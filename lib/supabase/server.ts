@@ -1,13 +1,19 @@
-// @ts-nocheck
-import { cookies } from "next/headers";
-import { createServerClient, type CookieOptions } from "@supabase/ssr";
+import { cookies } from "next/headers"
+import { createServerClient, type CookieOptions } from "@supabase/ssr"
 
-// ... (kode atasnya biarin aja)
-
-// 1. Tambahin 'async' di depan function
 export async function createSupabaseServerClient() {
-  // 2. Tambahin 'await' di depan cookies()
-  const cookieStore = await cookies();
+  const cookieStore = await cookies()
+
+  type CookieStore = {
+    get: (name: string) => { value: string } | undefined
+    set: (options: {
+      name: string
+      value: string
+      [key: string]: unknown
+    }) => void
+  }
+
+  const store = cookieStore as unknown as CookieStore
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -15,23 +21,23 @@ export async function createSupabaseServerClient() {
     {
       cookies: {
         get(name: string) {
-          return cookieStore.get(name)?.value;
+          return store.get(name)?.value
         },
         set(name: string, value: string, options: CookieOptions) {
           try {
-            cookieStore.set({ name, value, ...options });
-          } catch (error) {
-            // Ini normal kalo di Server Component
+            store.set({ name, value, ...options })
+          } catch {
+            // Expected in Server Components
           }
         },
         remove(name: string, options: CookieOptions) {
           try {
-            cookieStore.set({ name, value: "", ...options, maxAge: 0 });
-          } catch (error) {
-            // Ini normal kalo di Server Component
+            store.set({ name, value: "", ...options, maxAge: 0 })
+          } catch {
+            // Expected in Server Components
           }
         },
       },
     }
-  );
+  )
 }
