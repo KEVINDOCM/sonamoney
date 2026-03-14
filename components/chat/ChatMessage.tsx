@@ -20,23 +20,56 @@ function formatTime(date: Date): string {
   });
 }
 
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;")
+}
+
 function renderMarkdown(content: string): string {
-  let html = content;
+  // STEP 1: Escape ALL HTML first
+  // This prevents XSS from user input or AI response
+  let html = escapeHtml(content)
 
-  html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+  // STEP 2: Apply safe markdown conversions
+  // Only after escaping — order matters!
 
-  html = html.replace(/^\*\s+(.+)$/gm, "<li>$1</li>");
-  html = html.replace(/(<li>.+<\/li>\n?)+/g, "<ul>$&</ul>");
+  // Bold: **text** → <strong>text</strong>
+  html = html.replace(
+    /\*\*(.+?)\*\*/g,
+    "<strong>$1</strong>"
+  )
 
-  html = html.replace(/^\d+\.\s+(.+)$/gm, "<li>$1</li>");
-  html = html.replace(/(<li>.+<\/li>\n?)+/g, (match) => {
-    if (match.includes("<ul>")) return match;
-    return `<ol>${match}</ol>`;
-  });
+  // Unordered list items: * item
+  html = html.replace(
+    /^\*\s+(.+)$/gm,
+    "<li>$1</li>"
+  )
+  html = html.replace(
+    /(<li>.+<\/li>\n?)+/g,
+    "<ul class='list-disc pl-4 space-y-1'>$&</ul>"
+  )
 
-  html = html.replace(/\n/g, "<br>");
+  // Ordered list items: 1. item
+  html = html.replace(
+    /^\d+\.\s+(.+)$/gm,
+    "<li>$1</li>"
+  )
+  html = html.replace(
+    /(<li>.+<\/li>\n?)+/g,
+    (match) => {
+      if (match.includes("<ul")) return match
+      return `<ol class='list-decimal pl-4 space-y-1'>${match}</ol>`
+    }
+  )
 
-  return html;
+  // Line breaks
+  html = html.replace(/\n/g, "<br>")
+
+  return html
 }
 
 export function ChatMessage({ message, isLatest }: ChatMessageProps): React.ReactNode {
@@ -47,7 +80,7 @@ export function ChatMessage({ message, isLatest }: ChatMessageProps): React.Reac
     return (
       <div className="flex flex-col items-end gap-1">
         <div
-          className="max-w-[85%] sm:max-w-[80%] px-4 py-3 bg-gold-600 text-white rounded-2xl rounded-br-sm"
+          className="max-w-[85%] sm:max-w-[80%] px-4 py-3 bg-[#00B9A7] text-white rounded-2xl rounded-br-sm"
           dangerouslySetInnerHTML={{ __html: renderMarkdown(message.content) }}
         />
         <span className="text-xs text-gray-400 dark:text-gray-500">{timeString}</span>

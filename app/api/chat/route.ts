@@ -177,7 +177,9 @@ export async function POST(request: NextRequest): Promise<Response> {
     context
   )
 
-  console.log(`[TOKEN] Estimated: ${estimatedTokens} tokens`)
+  if (process.env.NODE_ENV === "development") {
+    console.log(`[TOKEN] Estimated: ${estimatedTokens} tokens`)
+  }
 
   if (!isTokenSafe(estimatedTokens, AI_MAX_TOKENS_PER_REQUEST)) {
     return createErrorResponse(
