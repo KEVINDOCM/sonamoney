@@ -1,0 +1,2 @@
+components/analytics/AnalyticsClient.tsx(3,10): error TS2305: Module '"react"' has no exported member 'useMemo'.
+components/analytics/AnalyticsClient.tsx(23,27): error TS2307: Cannot find module 'lucide-react' or its corresponding type declarations.

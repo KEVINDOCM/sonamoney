@@ -1,0 +1,138 @@
+---
+description: Refactor mode for Money Tracer - strict structured analysis and execution
+globs: ["lib/**/*.ts", "hooks/**/*.ts", "middleware.ts", "types/**/*.ts"]
+alwaysApply: false
+---
+
+# REFACTOR MODE — STRICT STRUCTURED SESSION
+
+You are refactoring production code for Money Tracer.
+Every change you make affects real user data.
+Treat every file as if it is already in production.
+
+---
+
+## STACK CONTEXT
+- Next.js 14 App Router
+- TypeScript strict mode
+- Supabase with @supabase/ssr
+- React 19 (named imports only, no default React import)
+- Zod v4 for validation
+- No any type allowed anywhere
+
+---
+
+## STEP 1 — READ FIRST, DO NOT CODE YET
+
+Before anything else:
+- Read the target file completely from line 1 to end
+- Read every file this file imports
+- Read every file that calls this file
+- Understand what already works correctly
+- Do not assume anything not explicitly in the code
+
+---
+
+## STEP 2 — ANALYSIS REPORT
+
+Report in this exact format before writing any code:
+
+Stop after the report. Wait for confirmation before writing any code.
+
+---
+
+## STEP 3 — LOGIC EXPLANATION
+
+After I confirm the analysis, explain in plain English for each change:
+- What this function does step by step
+- What could go wrong and how you handle each case
+- Why this approach over alternatives
+- What existing code you are preserving
+
+Stop again. Wait for second confirmation before writing code.
+
+---
+
+## STEP 4 — EXECUTION CONSTRAINTS
+
+Only after second confirmation, make the changes.
+
+### Follow existing patterns strictly:
+- Use the exact same naming convention already in the file
+- Use the exact same error handling pattern already in the file
+- Use the exact same return type shape already in the file
+- Use the exact same Supabase client call pattern already in the file
+- Do not introduce any pattern not already in the codebase
+
+### Every server action must have in this exact order:
+1. Session validation using createServerSupabaseClient
+2. Return { success: false, error: "Unauthorized" } if no session
+3. Zod schema validation of input
+4. Return { success: false, error: string } if validation fails
+5. Database operation inside try/catch
+6. Return { success: true, data: T } on success
+7. Return { success: false, error: "human readable message" } on catch
+
+### TypeScript rules:
+- No any type — use unknown and narrow it
+- Explicit return type on every exported function
+- No implicit undefined without explicit handling
+- useRef must use React.useRef not named import (React 19 constraint)
+- No default React import, use named imports only
+
+### Supabase rules:
+- Always use createServerSupabaseClient for server actions
+- Always use createBrowserSupabaseClient for client components
+- Always filter by user_id = auth.uid() for data operations
+- Never use service role key in client-facing code
+- Always check session exists before any database query
+
+### Forbidden:
+- Do not rewrite working code that is not in the issues list
+- Do not reorganize imports unless they are broken
+- Do not rename existing variables or functions
+- Do not add console.log to production code
+- Do not swallow errors silently in try/catch
+- Do not hardcode values that should be from env
+- Do not duplicate logic that already exists in lib/utils
+- Do not change more than what is listed in Step 2 analysis
+- Do not install new libraries without asking first
+- Do not change file structure or move code between files
+
+---
+
+## STEP 5 — SELF REVIEW
+
+After writing the code, review your own output and answer each question:
+
+1. Does every function validate session before touching database?
+2. Does every function validate input with Zod before saving?
+3. Does every function return { success: true/false } consistently?
+4. Is there any code path that could silently fail without returning error?
+5. Is there any type that is not explicitly defined?
+6. Is there any logic duplicated from lib/utils that should be reused?
+7. Did you change anything outside the scope of the Step 2 analysis?
+8. Is there any any type introduced anywhere?
+9. Does the code follow the exact same pattern as the rest of the file?
+10. Would this code work correctly if the database returns empty results?
+
+If you find issues in your own output, fix them before showing me.
+Report your self-review findings after the code.
+
+---
+
+## SCOPE CONTROL
+
+- One file per session, no exceptions
+- If fix requires touching another file, stop and tell me
+- I will create a separate session for each additional file
+- Never touch a file not explicitly mentioned in the instruction
+- If you are unsure about scope, ask before acting
+
+---
+
+## SESSION START FORMAT
+
+When I give you a target file, respond with:
+"Starting refactor session for [filename]. Reading file now."
+Then proceed to Step 2 analysis only.

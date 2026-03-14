@@ -1,0 +1,10 @@
+[33m9a4ba45[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m refactor(B1+B2): constants, storage keys, colors, ActionResult type, shared utils
+[33m3d09935[m Backend Refactor B1 — Constants + Types foundation.
+[33m798de7d[m OPTIMIZE
+[33mbc35c2d[m perf: add useMemo and useCallback - calendar, analytics, dashboard, transactions, budget
+[33m994589a[m NO AUTO TRANSLATION
+[33medc8314[m feat: rebrand to Sona Finance, luxury gold theme, PWA setup
+[33m1ac0faf[m FIX ICON
+[33m4c5fdcc[m fix: currency default IDR, conversion display bug, safeConvert optimization
+[33m39bc505[m fix: multi currency critical issues - chart conversion, budget overview, edit transaction, transfer history
+[33mb5c0a83[m fix: i18n remaining hardcoded strings - features, footer, calendar days
