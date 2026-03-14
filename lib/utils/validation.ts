@@ -38,3 +38,37 @@ export function validateOrThrow<T>(
   }
   return result.data
 }
+
+// Password schema with strength requirements
+export const passwordSchema = z
+  .string()
+  .min(8, "Password must be at least 8 characters")
+  .max(128, "Password too long")
+  .regex(/[A-Z]/, "Must contain uppercase letter")
+  .regex(/[a-z]/, "Must contain lowercase letter")
+  .regex(/[0-9]/, "Must contain a number")
+  .regex(
+    /[^A-Za-z0-9]/,
+    "Must contain a special character"
+  )
+
+// Login schema (less strict — just format)
+export const loginSchema = z.object({
+  email: z
+    .string()
+    .email("Invalid email address")
+    .max(254, "Email too long"),
+  password: z
+    .string()
+    .min(1, "Password is required")
+    .max(128, "Password too long"),
+})
+
+// Signup schema (strict password)
+export const signupSchema = z.object({
+  email: z
+    .string()
+    .email("Invalid email address")
+    .max(254, "Email too long"),
+  password: passwordSchema,
+})

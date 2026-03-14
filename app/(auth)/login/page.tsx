@@ -5,6 +5,7 @@ import { useState, useTransition, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { loginSchema } from "@/lib/utils/validation";
 
 interface AuthErrorState {
   message: string;
@@ -32,6 +33,16 @@ export default function AuthLoginPage() {
 
     setAuthError(null);
     setIsSubmitting(true);
+
+    // Validate form data
+    const parsed = loginSchema.safeParse({ email, password });
+    if (!parsed.success) {
+      setAuthError({
+        message: parsed.error.issues[0]?.message ?? "Invalid email or password",
+      });
+      setIsSubmitting(false);
+      return;
+    }
 
     const supabase = createSupabaseBrowserClient() as AuthClient;
 
