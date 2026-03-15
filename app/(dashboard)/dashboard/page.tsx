@@ -1,6 +1,7 @@
 import { fetchDashboardSummary, fetchTransactions } from "@/lib/actions/transactions";
 import { fetchCategories } from "@/lib/actions/categories";
 import { getOrSeedAccounts } from "@/lib/actions/accounts";
+import { fetchGoals } from "@/lib/actions/goals";
 import { DashboardClient } from "@/components/dashboard/DashboardClient";
 import { getAuthenticatedClient } from "@/lib/utils/auth";
 import type { Category } from "@/types";
@@ -25,11 +26,19 @@ export default async function DashboardPage() {
 
   const currentMonth = new Date().toISOString().slice(0, 7);
 
-  const [summary, { items: allTransactions }, categories, accounts, { data: monthTransactions }] = await Promise.all([
+  const [
+    summary,
+    { items: allTransactions },
+    categories,
+    accounts,
+    goals,
+    { data: monthTransactions }
+  ] = await Promise.all([
     fetchDashboardSummary(),
     fetchTransactions({ page: 1, pageSize: 5 }),
     fetchCategories(),
     getOrSeedAccounts(),
+    fetchGoals(),
     supabase
       .from("transactions")
       .select("*")
@@ -84,6 +93,7 @@ export default async function DashboardPage() {
       accounts={accounts}
       budgetSummary={budgetSummary}
       budgetWarningCount={budgetWarningCount}
+      goals={goals}
     />
   );
 }

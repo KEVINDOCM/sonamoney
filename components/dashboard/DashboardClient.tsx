@@ -10,7 +10,9 @@ import { AccountCarousel } from "./AccountCarousel";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { useCurrency } from "@/lib/hooks/useCurrency";
 import type { Transaction, Category, Account } from "@/types";
+import type { Goal } from "@/lib/actions/goals";
 import StatCard from "@/components/ui/StatCard";
+import { GoalsWidget } from "./GoalsWidget";
 
 interface BudgetSummary {
   categoriesWithLimit: Category[];
@@ -36,6 +38,7 @@ interface DashboardClientProps {
   accounts: Account[];
   budgetSummary: BudgetSummary;
   budgetWarningCount: number;
+  goals: Goal[];
 }
 
 export function DashboardClient({
@@ -46,6 +49,7 @@ export function DashboardClient({
   accounts,
   budgetSummary,
   budgetWarningCount,
+  goals,
 }: DashboardClientProps) {
   const { t, mounted } = useTranslation();
   const { baseCurrency, convert, rates, mounted: currencyMounted } = useCurrency();
@@ -380,6 +384,13 @@ export function DashboardClient({
           <BudgetOverview
             budgetSummary={budgetSummary}
           />
+          {goals && goals.length > 0 && (
+            <GoalsWidget
+              goals={goals}
+              mounted={mounted}
+              t={t}
+            />
+          )}
         </div>
       )}
 
