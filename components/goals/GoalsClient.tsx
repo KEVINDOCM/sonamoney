@@ -486,258 +486,263 @@ export function GoalsClient({
             onClick={() => setIsAddOpen(false)}
           />
           <div className="
-            fixed inset-x-4 top-1/2
-            -translate-y-1/2 z-[70]
-            bg-white dark:bg-gray-900
-            rounded-3xl shadow-2xl p-6
-            max-w-md mx-auto
-            animate-scaleIn
+            fixed inset-0 z-[70]
+            flex items-center justify-center
+            px-4
           ">
-            <h2 className="
-              text-base font-bold
-              text-[#1A1A2E] dark:text-white mb-4
+            <div className="
+              w-full max-w-md
+              bg-white dark:bg-gray-900
+              rounded-3xl shadow-2xl p-6
+              max-h-[90vh] overflow-y-auto
+              animate-scaleIn
             ">
-              Create New Goal
-            </h2>
+              <h2 className="
+                text-base font-bold
+                text-[#1A1A2E] dark:text-white mb-4
+              ">
+                Create New Goal
+              </h2>
 
-            <div className="space-y-4">
-              {/* Icon picker */}
-              <div>
-                <label className="
-                  text-xs font-semibold
-                  text-[#6B7280] uppercase
-                  tracking-wide block mb-2
-                ">
-                  Icon
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {GOAL_ICONS.map((icon) => (
-                    <button
-                      key={icon}
-                      onClick={() =>
-                        setForm((f) => ({ ...f, icon }))
-                      }
-                      className={`
-                        w-9 h-9 rounded-xl text-lg
-                        flex items-center justify-center
-                        transition-all duration-150
-                        ${form.icon === icon
-                          ? "bg-[#E6F7F6] ring-2 ring-[#00B9A7]"
-                          : "bg-gray-100 dark:bg-gray-800 hover:bg-gray-200"
+              <div className="space-y-4">
+                {/* Icon picker */}
+                <div>
+                  <label className="
+                    text-xs font-semibold
+                    text-[#6B7280] uppercase
+                    tracking-wide block mb-2
+                  ">
+                    Icon
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {GOAL_ICONS.map((icon) => (
+                      <button
+                        key={icon}
+                        onClick={() =>
+                          setForm((f) => ({ ...f, icon }))
                         }
-                      `}
-                    >
-                      {icon}
-                    </button>
-                  ))}
+                        className={`
+                          w-9 h-9 rounded-xl text-lg
+                          flex items-center justify-center
+                          transition-all duration-150
+                          ${form.icon === icon
+                            ? "bg-[#E6F7F6] ring-2 ring-[#00B9A7]"
+                            : "bg-gray-100 dark:bg-gray-800 hover:bg-gray-200"
+                          }
+                        `}
+                      >
+                        {icon}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              {/* Color picker */}
-              <div>
-                <label className="
-                  text-xs font-semibold
-                  text-[#6B7280] uppercase
-                  tracking-wide block mb-2
-                ">
-                  Color
-                </label>
-                <div className="flex gap-2">
-                  {GOAL_COLORS.map((color) => (
-                    <button
-                      key={color}
-                      onClick={() =>
-                        setForm((f) => ({ ...f, color }))
-                      }
-                      className={`
-                        w-8 h-8 rounded-full
-                        transition-all duration-150
-                        ${form.color === color
-                          ? "ring-2 ring-offset-2 ring-[#1A1A2E] scale-110"
-                          : "hover:scale-105"
+                {/* Color picker */}
+                <div>
+                  <label className="
+                    text-xs font-semibold
+                    text-[#6B7280] uppercase
+                    tracking-wide block mb-2
+                  ">
+                    Color
+                  </label>
+                  <div className="flex gap-2">
+                    {GOAL_COLORS.map((color) => (
+                      <button
+                        key={color}
+                        onClick={() =>
+                          setForm((f) => ({ ...f, color }))
                         }
-                      `}
-                      style={{ backgroundColor: color }}
-                      aria-label={`Select color ${color}`}
-                    />
-                  ))}
+                        className={`
+                          w-8 h-8 rounded-full
+                          transition-all duration-150
+                          ${form.color === color
+                            ? "ring-2 ring-offset-2 ring-[#1A1A2E] scale-110"
+                            : "hover:scale-105"
+                          }
+                        `}
+                        style={{ backgroundColor: color }}
+                        aria-label={`Select color ${color}`}
+                      />
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              {/* Name */}
-              <div>
-                <label className="
-                  text-xs font-semibold
-                  text-[#6B7280] uppercase
-                  tracking-wide block mb-1.5
-                ">
-                  Goal Name
-                </label>
-                <input
-                  type="text"
-                  value={form.name}
-                  onChange={(e) =>
-                    setForm((f) => ({
-                      ...f,
-                      name: e.target.value,
-                    }))
-                  }
-                  placeholder="e.g. Emergency Fund"
-                  className="
-                    w-full h-11 rounded-xl
-                    border border-gray-200
-                    dark:border-gray-700
-                    dark:bg-gray-800 dark:text-white
-                    px-4 text-sm
-                    focus:outline-none
-                    focus:ring-2
-                    focus:ring-[#00B9A7]/30
-                    focus:border-[#00B9A7]
-                    transition-all
-                  "
-                />
-              </div>
+                {/* Name */}
+                <div>
+                  <label className="
+                    text-xs font-semibold
+                    text-[#6B7280] uppercase
+                    tracking-wide block mb-1.5
+                  ">
+                    Goal Name
+                  </label>
+                  <input
+                    type="text"
+                    value={form.name}
+                    onChange={(e) =>
+                      setForm((f) => ({
+                        ...f,
+                        name: e.target.value,
+                      }))
+                    }
+                    placeholder="e.g. Emergency Fund"
+                    className="
+                      w-full h-11 rounded-xl
+                      border border-gray-200
+                      dark:border-gray-700
+                      dark:bg-gray-800 dark:text-white
+                      px-4 text-sm
+                      focus:outline-none
+                      focus:ring-2
+                      focus:ring-[#00B9A7]/30
+                      focus:border-[#00B9A7]
+                      transition-all
+                    "
+                  />
+                </div>
 
-              {/* Target amount */}
-              <div>
-                <label className="
-                  text-xs font-semibold
-                  text-[#6B7280] uppercase
-                  tracking-wide block mb-1.5
-                ">
-                  Target Amount
-                </label>
-                <input
-                  type="number"
-                  value={form.target_amount}
-                  onChange={(e) =>
-                    setForm((f) => ({
-                      ...f,
-                      target_amount: e.target.value,
-                    }))
-                  }
-                  placeholder="0"
-                  className="
-                    w-full h-11 rounded-xl
-                    border border-gray-200
-                    dark:border-gray-700
-                    dark:bg-gray-800 dark:text-white
-                    px-4 text-sm
-                    focus:outline-none
-                    focus:ring-2
-                    focus:ring-[#00B9A7]/30
-                    focus:border-[#00B9A7]
-                    transition-all
-                  "
-                />
-              </div>
+                {/* Target amount */}
+                <div>
+                  <label className="
+                    text-xs font-semibold
+                    text-[#6B7280] uppercase
+                    tracking-wide block mb-1.5
+                  ">
+                    Target Amount
+                  </label>
+                  <input
+                    type="number"
+                    value={form.target_amount}
+                    onChange={(e) =>
+                      setForm((f) => ({
+                        ...f,
+                        target_amount: e.target.value,
+                      }))
+                    }
+                    placeholder="0"
+                    className="
+                      w-full h-11 rounded-xl
+                      border border-gray-200
+                      dark:border-gray-700
+                      dark:bg-gray-800 dark:text-white
+                      px-4 text-sm
+                      focus:outline-none
+                      focus:ring-2
+                      focus:ring-[#00B9A7]/30
+                      focus:border-[#00B9A7]
+                      transition-all
+                    "
+                  />
+                </div>
 
-              {/* Current amount */}
-              <div>
-                <label className="
-                  text-xs font-semibold
-                  text-[#6B7280] uppercase
-                  tracking-wide block mb-1.5
-                ">
-                  Current Amount (optional)
-                </label>
-                <input
-                  type="number"
-                  value={form.current_amount}
-                  onChange={(e) =>
-                    setForm((f) => ({
-                      ...f,
-                      current_amount: e.target.value,
-                    }))
-                  }
-                  placeholder="0"
-                  className="
-                    w-full h-11 rounded-xl
-                    border border-gray-200
-                    dark:border-gray-700
-                    dark:bg-gray-800 dark:text-white
-                    px-4 text-sm
-                    focus:outline-none
-                    focus:ring-2
-                    focus:ring-[#00B9A7]/30
-                    focus:border-[#00B9A7]
-                    transition-all
-                  "
-                />
-              </div>
+                {/* Current amount */}
+                <div>
+                  <label className="
+                    text-xs font-semibold
+                    text-[#6B7280] uppercase
+                    tracking-wide block mb-1.5
+                  ">
+                    Current Amount (optional)
+                  </label>
+                  <input
+                    type="number"
+                    value={form.current_amount}
+                    onChange={(e) =>
+                      setForm((f) => ({
+                        ...f,
+                        current_amount: e.target.value,
+                      }))
+                    }
+                    placeholder="0"
+                    className="
+                      w-full h-11 rounded-xl
+                      border border-gray-200
+                      dark:border-gray-700
+                      dark:bg-gray-800 dark:text-white
+                      px-4 text-sm
+                      focus:outline-none
+                      focus:ring-2
+                      focus:ring-[#00B9A7]/30
+                      focus:border-[#00B9A7]
+                      transition-all
+                    "
+                  />
+                </div>
 
-              {/* Deadline */}
-              <div>
-                <label className="
-                  text-xs font-semibold
-                  text-[#6B7280] uppercase
-                  tracking-wide block mb-1.5
-                ">
-                  Deadline (optional)
-                </label>
-                <input
-                  type="date"
-                  value={form.deadline}
-                  onChange={(e) =>
-                    setForm((f) => ({
-                      ...f,
-                      deadline: e.target.value,
-                    }))
-                  }
-                  aria-label="Goal deadline"
-                  className="
-                    w-full h-11 rounded-xl
-                    border border-gray-200
-                    dark:border-gray-700
-                    dark:bg-gray-800 dark:text-white
-                    px-4 text-sm
-                    focus:outline-none
-                    focus:ring-2
-                    focus:ring-[#00B9A7]/30
-                    focus:border-[#00B9A7]
-                    transition-all
-                  "
-                />
-              </div>
+                {/* Deadline */}
+                <div>
+                  <label className="
+                    text-xs font-semibold
+                    text-[#6B7280] uppercase
+                    tracking-wide block mb-1.5
+                  ">
+                    Deadline (optional)
+                  </label>
+                  <input
+                    type="date"
+                    value={form.deadline}
+                    onChange={(e) =>
+                      setForm((f) => ({
+                        ...f,
+                        deadline: e.target.value,
+                      }))
+                    }
+                    aria-label="Goal deadline"
+                    className="
+                      w-full h-11 rounded-xl
+                      border border-gray-200
+                      dark:border-gray-700
+                      dark:bg-gray-800 dark:text-white
+                      px-4 text-sm
+                      focus:outline-none
+                      focus:ring-2
+                      focus:ring-[#00B9A7]/30
+                      focus:border-[#00B9A7]
+                      transition-all
+                    "
+                  />
+                </div>
 
-              {/* Buttons */}
-              <div className="flex gap-2 pt-2">
-                <button
-                  onClick={() => setIsAddOpen(false)}
-                  className="
-                    flex-1 h-11 rounded-full
-                    border border-gray-200
-                    dark:border-gray-700
-                    text-sm font-semibold
-                    text-[#6B7280]
-                    hover:bg-gray-50
-                    dark:hover:bg-gray-800
-                    active:scale-95
-                    transition-all duration-200
-                  "
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleCreate}
-                  disabled={
-                    isSubmitting ||
-                    !form.name ||
-                    !form.target_amount
-                  }
-                  className="
-                    flex-1 h-11 rounded-full
-                    bg-[#00B9A7] text-white
-                    text-sm font-semibold
-                    hover:bg-[#0099A0]
-                    active:scale-95
-                    transition-all duration-200
-                    disabled:opacity-50
-                    disabled:cursor-not-allowed
-                  "
-                >
-                  {isSubmitting ? "Creating..." : "Create Goal"}
-                </button>
+                {/* Buttons */}
+                <div className="flex gap-2 pt-2">
+                  <button
+                    onClick={() => setIsAddOpen(false)}
+                    className="
+                      flex-1 h-11 rounded-full
+                      border border-gray-200
+                      dark:border-gray-700
+                      text-sm font-semibold
+                      text-[#6B7280]
+                      hover:bg-gray-50
+                      dark:hover:bg-gray-800
+                      active:scale-95
+                      transition-all duration-200
+                    "
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleCreate}
+                    disabled={
+                      isSubmitting ||
+                      !form.name ||
+                      !form.target_amount
+                    }
+                    className="
+                      flex-1 h-11 rounded-full
+                      bg-[#00B9A7] text-white
+                      text-sm font-semibold
+                      hover:bg-[#0099A0]
+                      active:scale-95
+                      transition-all duration-200
+                      disabled:opacity-50
+                      disabled:cursor-not-allowed
+                    "
+                  >
+                    {isSubmitting ? "Creating..." : "Create Goal"}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
