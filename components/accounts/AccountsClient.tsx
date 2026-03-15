@@ -484,7 +484,7 @@ export function AccountsClient({ accounts, transfers }: AccountsClientProps) {
                   onClick={() => setType(accountType.value as AccountType)}
                   className={`flex flex-col items-center gap-1 p-3 rounded-lg border transition-colors duration-200 ${
                     type === accountType.value
-                      ? "border-gold-500 bg-gold-50 dark:bg-gold-900/30"
+                      ? "border-gold-500 bg-gold-50 dark:bg-[#00B9A7]/20"
                       : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
                   }`}
                 >
@@ -508,7 +508,7 @@ export function AccountsClient({ accounts, transfers }: AccountsClientProps) {
                   onClick={() => setIcon(e)}
                   className={`h-10 w-10 rounded-lg flex items-center justify-center text-xl transition-colors duration-200 ${
                     icon === e
-                      ? "bg-gold-50 dark:bg-gold-900/30 border border-gold-200 dark:border-gold-800"
+                      ? "bg-gold-50 dark:bg-[#00B9A7]/20 border border-gold-200 dark:border-[#00B9A7]/30"
                       : "bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700"
                   }`}
                 >

@@ -6,7 +6,7 @@ import { revalidateAccountPaths } from "@/lib/utils/revalidate";
 import { adjustAccountBalance, hasSufficientBalance } from "@/lib/utils/balance";
 import { ActionResult, CreateTransferPayload } from "@/lib/types/actions";
 import { TRANSFERS_PAGE_SIZE } from "@/lib/constants";
-import type { Transfer } from "@/types";
+import type { TransferWithAccounts } from "@/types";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 interface SupabaseAuthClient {
@@ -70,7 +70,7 @@ export async function createTransfer(data: CreateTransferPayload): Promise<Actio
   return { success: true };
 }
 
-export async function getTransfers(): Promise<Transfer[]> {
+export async function getTransfers(): Promise<TransferWithAccounts[]> {
   const { supabase: rawSupabase, user } = await getAuthenticatedClient();
   const supabase: SupabaseAuthClient = rawSupabase;
 
@@ -88,7 +88,7 @@ export async function getTransfers(): Promise<Transfer[]> {
     .limit(TRANSFERS_PAGE_SIZE);
 
   if (error) return [];
-  return (data ?? []) as Transfer[];
+  return (data ?? []) as TransferWithAccounts[];
 }
 
 export async function deleteTransfer(id: string): Promise<ActionResult> {

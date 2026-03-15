@@ -13,6 +13,8 @@ declare module "react" {
   
   export function useRef<T>(initialValue: T | null): { current: T | null };
   
+  export function Suspense(props: { children: React.ReactNode; fallback?: React.ReactNode }): React.ReactElement;
+  
   type DependencyList = readonly unknown[];
   type EffectCallback = () => void | (() => void);
 }

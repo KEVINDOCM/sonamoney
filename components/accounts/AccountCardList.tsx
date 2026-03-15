@@ -13,6 +13,7 @@ interface AccountCardListProps {
   t: (key: string) => string;
   baseCurrency: string;
   convert: (amount: number, from: string, to: string) => number;
+  isLoading?: boolean;
 }
 
 export function AccountCardList({
@@ -24,6 +25,7 @@ export function AccountCardList({
   t,
   baseCurrency,
   convert,
+  isLoading,
 }: AccountCardListProps) {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
@@ -36,7 +38,21 @@ export function AccountCardList({
         overflow-x-auto scrollbar-hide
         pb-2 -mx-4 px-4
       ">
-        {accounts.length === 0 ? (
+        {isLoading ? (
+          /* Mobile skeleton */
+          <>
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="
+                  min-w-[200px] shrink-0
+                  rounded-2xl h-[120px]
+                  skeleton
+                "
+              />
+            ))}
+          </>
+        ) : accounts.length === 0 ? (
           <div className="
             w-full bg-white dark:bg-gray-900
             rounded-2xl shadow-sm p-8
@@ -171,7 +187,20 @@ export function AccountCardList({
         hidden lg:grid
         lg:grid-cols-3 gap-4
       ">
-        {accounts.length === 0 ? (
+        {isLoading ? (
+          /* Desktop skeleton */
+          <>
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="
+                  rounded-2xl h-[160px]
+                  skeleton
+                "
+              />
+            ))}
+          </>
+        ) : accounts.length === 0 ? (
           <div className="
             lg:col-span-3
             bg-white dark:bg-gray-900

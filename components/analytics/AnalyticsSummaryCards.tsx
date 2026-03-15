@@ -39,6 +39,7 @@ export function AnalyticsSummaryCards({
                     rounded-2xl p-4
                     min-w-[140px] shrink-0
                     shadow-sm
+                    dark:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.1)]
                 ">
                     <p className="
                         text-white/70 text-[10px]
@@ -64,6 +65,7 @@ export function AnalyticsSummaryCards({
                     rounded-2xl p-4
                     min-w-[140px] shrink-0
                     shadow-sm
+                    dark:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.1)]
                 ">
                     <p className="
                         text-white/70 text-[10px]
@@ -96,6 +98,7 @@ export function AnalyticsSummaryCards({
                     rounded-2xl p-4
                     min-w-[140px] shrink-0
                     shadow-sm
+                    dark:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.1)]
                 ">
                     <p className="
                         text-white/70 text-[10px]
@@ -128,6 +131,7 @@ export function AnalyticsSummaryCards({
                     rounded-2xl p-4
                     min-w-[140px] shrink-0
                     shadow-sm
+                    dark:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.1)]
                 ">
                     <p className="
                         text-white/70 text-[10px]

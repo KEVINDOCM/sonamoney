@@ -13,6 +13,7 @@ import type { Transaction, Category, Account } from "@/types";
 import type { Goal } from "@/lib/actions/goals";
 import StatCard from "@/components/ui/StatCard";
 import { GoalsWidget } from "./GoalsWidget";
+import { BudgetNotification } from "./BudgetNotification";
 
 interface BudgetSummary {
   categoriesWithLimit: Category[];
@@ -393,6 +394,12 @@ export function DashboardClient({
           )}
         </div>
       )}
+
+      <BudgetNotification
+        budgetWarningCount={budgetWarningCount}
+        mounted={mounted}
+        t={t}
+      />
 
       {/* Mobile Add Button */}
       <div className="
