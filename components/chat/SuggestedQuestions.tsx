@@ -29,31 +29,41 @@ export function SuggestedQuestions({
     {
       id: "q1",
       icon: "📊",
-      label: mounted ? t("ai.suggestedQ1") : "How am I doing financially this month?",
+      label: mounted
+        ? t("ai.suggestedQ1")
+        : "How am I doing this month?",
       category: "general",
     },
     {
       id: "q2",
       icon: "💸",
-      label: mounted ? t("ai.suggestedQ2") : "Which category am I spending the most on?",
+      label: mounted
+        ? t("ai.suggestedQ2")
+        : "Where am I overspending?",
       category: "spending",
     },
     {
       id: "q3",
       icon: "🎯",
-      label: mounted ? t("ai.suggestedQ3") : "Are my budgets on track?",
+      label: mounted
+        ? t("ai.suggestedQ3")
+        : "Which budgets need attention?",
       category: "budget",
     },
     {
       id: "q4",
-      icon: "💰",
-      label: mounted ? t("ai.suggestedQ4") : "How can I save more money?",
+      icon: "�",
+      label: mounted
+        ? t("ai.suggestedQ4")
+        : "Give me 3 money saving tips",
       category: "savings",
     },
     {
       id: "q5",
       icon: "📈",
-      label: mounted ? t("ai.suggestedQ5") : "What are my spending trends?",
+      label: mounted
+        ? t("ai.suggestedQ5")
+        : "Compare this month vs last month",
       category: "general",
     },
   ];
@@ -68,13 +78,7 @@ export function SuggestedQuestions({
           <button
             key={question.id}
             onClick={() => onSelect(question.label)}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm 
-                       text-[#00B9A7] dark:text-[#00B9A7] 
-                       border border-[#00B9A7]/30 dark:border-[#00B9A7]/30 rounded-full
-                       hover:bg-[#E6F7F6] dark:hover:bg-[#00B9A7]/10 
-                       hover:border-[#00B9A7]
-                       active:scale-95
-                       transition-all duration-200 text-left"
+            className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-[#1A1A2E] dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm hover:border-[#00B9A7] hover:text-[#00B9A7] hover:bg-[#E6F7F6] dark:hover:bg-[#00B9A7]/10 active:scale-95 transition-all duration-200 text-left"
             type="button"
           >
             <span>{question.icon}</span>

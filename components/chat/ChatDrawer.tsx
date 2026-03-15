@@ -23,6 +23,16 @@ interface ChatDrawerProps {
 
 const SCROLL_THRESHOLD = 100;
 
+const CHAT_HISTORY_KEY = "sona_chat_history";
+const MAX_STORED_MESSAGES = 50;
+
+const TYPING_MESSAGES = [
+  "Sona is thinking...",
+  "Analyzing your finances...",
+  "Crunching the numbers...",
+  "Almost there...",
+];
+
 export function ChatDrawer({
   isOpen,
   onClose,
@@ -34,6 +44,7 @@ export function ChatDrawer({
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [hasStarted, setHasStarted] = useState<boolean>(false);
   const [showScrollButton, setShowScrollButton] = useState<boolean>(false);
+  const [typingIndex, setTypingIndex] = useState<number>(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -60,6 +71,50 @@ export function ChatDrawer({
       inputRef.current.focus();
     }
   }, [isOpen]);
+
+  // Load chat history from localStorage on mount
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(CHAT_HISTORY_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored) as ChatMessage[];
+        // Restore timestamps as Date objects
+        const restored = parsed.map((msg) => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp),
+        }));
+        if (restored.length > 0) {
+          setMessages(restored);
+          setHasStarted(true);
+        }
+      }
+    } catch {
+      // ignore parse errors
+    }
+  }, []);
+
+  // Save chat history to localStorage when messages change
+  useEffect(() => {
+    if (messages.length === 0) return;
+    try {
+      const toStore = messages.slice(-MAX_STORED_MESSAGES);
+      localStorage.setItem(CHAT_HISTORY_KEY, JSON.stringify(toStore));
+    } catch {
+      // ignore storage errors
+    }
+  }, [messages]);
+
+  // Rotate typing indicator messages
+  useEffect(() => {
+    if (!isLoading) {
+      setTypingIndex(0);
+      return;
+    }
+    const interval = setInterval(() => {
+      setTypingIndex((prev) => (prev + 1) % TYPING_MESSAGES.length);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [isLoading]);
 
   async function sendMessage(): Promise<void> {
     if (!inputValue.trim() || isLoading) return;
@@ -129,8 +184,72 @@ export function ChatDrawer({
     sendMessage();
   }
 
+  const handleRegenerate = useCallback(async (): Promise<void> => {
+    // Find last user message
+    const lastUserMsg = [...messages]
+      .reverse()
+      .find((m) => m.role === "user");
+
+    if (!lastUserMsg || isLoading) return;
+
+    // Remove last AI message
+    setMessages((prev) => {
+      const lastAiIndex = [...prev]
+        .map((m, i) => ({ m, i }))
+        .filter(({ m }) => m.role === "assistant")
+        .pop()?.i;
+
+      if (lastAiIndex === undefined) return prev;
+      return prev.filter((_, i) => i !== lastAiIndex);
+    });
+
+    // Resend last user message
+    setIsLoading(true);
+
+    try {
+      const historyWithoutLast = messages.filter(
+        (m) => m.role === "user" || m.role === "assistant"
+      ).slice(0, -2); // remove last exchange
+
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          message: lastUserMsg.content,
+          history: historyWithoutLast,
+        }),
+      });
+
+      const data = await response.json() as {
+        reply: string;
+        error?: string;
+      };
+
+      const aiMessage: ChatMessage = {
+        role: "assistant",
+        content: data.reply || data.error || "Failed",
+        timestamp: new Date(),
+        isError: !data.reply,
+      };
+
+      setMessages((prev) => [...prev, aiMessage]);
+    } catch {
+      const errMsg: ChatMessage = {
+        role: "assistant",
+        content: "Failed to regenerate. Try again.",
+        timestamp: new Date(),
+        isError: true,
+      };
+      setMessages((prev) => [...prev, errMsg]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [messages, isLoading]);
+
   function clearChat(): void {
     setMessages([]);
+    localStorage.removeItem(CHAT_HISTORY_KEY);
     setHasStarted(false);
   }
 
@@ -197,25 +316,32 @@ export function ChatDrawer({
             </>
           )}
 
-          {messages.map((message, index) => (
-            <div key={index} className="space-y-2">
-              <ChatMessageComponent
-                message={message}
-                isLatest={index === messages.length - 1}
-              />
-              {index === messages.length - 1 &&
-                message.role === "assistant" &&
-                !isLoading && (
-                  <QuickActions
-                    onSelect={handleQuickAction}
-                    mounted={mounted}
-                    t={t}
-                  />
-                )}
-            </div>
-          ))}
+          {messages.map((message, index) => {
+            const isLastAi =
+              index === messages.length - 1 &&
+              message.role === "assistant";
 
-          {isLoading && <TypingIndicator label={t("ai.thinking")} />}
+            return (
+              <div key={index} className="space-y-2">
+                <ChatMessageComponent
+                  message={message}
+                  isLatest={isLastAi}
+                  onRegenerate={isLastAi ? handleRegenerate : undefined}
+                />
+                {index === messages.length - 1 &&
+                  message.role === "assistant" &&
+                  !isLoading && (
+                    <QuickActions
+                      onSelect={handleQuickAction}
+                      mounted={mounted}
+                      t={t}
+                    />
+                  )}
+              </div>
+            );
+          })}
+
+          {isLoading && <TypingIndicator text={TYPING_MESSAGES[typingIndex]} />}
 
           <div ref={messagesEndRef} />
 
