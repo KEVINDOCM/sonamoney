@@ -18,8 +18,9 @@ export function ChatButton({ onClick, isOpen, t }: ChatButtonProps): React.React
     <button
       onClick={onClick}
       className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 w-14 h-14 
-                 bg-gradient-to-br from-gold-400 to-gold-600 
-                 hover:from-gold-500 hover:to-gold-700
+                 bg-gradient-to-br from-[#00B9A7] to-[#0099A0] 
+                 hover:from-[#00B9A7] hover:to-[#007A80]
+                 hover:shadow-[0_8px_25px_rgba(0,185,167,0.4)]
                  text-white rounded-full shadow-lg hover:shadow-xl 
                  transition-all duration-300 ease-out
                  flex items-center justify-center z-[60]"

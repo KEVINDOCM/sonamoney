@@ -48,8 +48,8 @@ export function OnboardingModal({
   function renderStep1(): React.ReactNode {
     return (
       <div className="flex flex-col items-center text-center gap-4 py-4">
-        <div className="w-16 h-16 bg-gold-100 dark:bg-gold-900/30 rounded-full flex items-center justify-center">
-          <Sparkles className="w-8 h-8 text-gold-600" />
+        <div className="w-16 h-16 bg-[#E6F7F6] dark:bg-[#00B9A7]/20 rounded-full flex items-center justify-center">
+          <Sparkles className="w-8 h-8 text-[#00B9A7]" />
         </div>
         <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
           {t("ai.onboardingStep1Title")}
@@ -73,8 +73,8 @@ export function OnboardingModal({
     return (
       <div className="flex flex-col gap-4 py-2">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gold-100 dark:bg-gold-900/30 rounded-full flex items-center justify-center">
-            <Lightbulb className="w-5 h-5 text-gold-600" />
+          <div className="w-10 h-10 bg-[#E6F7F6] dark:bg-[#00B9A7]/20 rounded-full flex items-center justify-center">
+            <Lightbulb className="w-5 h-5 text-[#00B9A7]" />
           </div>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
             {t("ai.onboardingStep2Title")}
@@ -107,8 +107,8 @@ export function OnboardingModal({
     return (
       <div className="flex flex-col gap-4 py-2">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gold-100 dark:bg-gold-900/30 rounded-full flex items-center justify-center">
-            <Shield className="w-5 h-5 text-gold-600" />
+          <div className="w-10 h-10 bg-[#E6F7F6] dark:bg-[#00B9A7]/20 rounded-full flex items-center justify-center">
+            <Shield className="w-5 h-5 text-[#00B9A7]" />
           </div>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
             {t("ai.onboardingStep3Title")}
@@ -148,7 +148,7 @@ export function OnboardingModal({
         <p className="text-xs text-gray-500 dark:text-gray-400">
           {t("ai.onboardingStep3Powered")}
         </p>
-        <p className="text-xs text-gold-600 dark:text-gold-400 font-medium">
+        <p className="text-xs text-[#00B9A7] dark:text-[#00B9A7] font-medium">
           {t("ai.onboardingStep3Agreement")}
         </p>
       </div>
@@ -176,7 +176,7 @@ export function OnboardingModal({
             key={index}
             className={`w-2 h-2 rounded-full transition-colors duration-200 ${
               index + 1 === currentStep
-                ? "bg-gold-500"
+                ? "bg-[#00B9A7]"
                 : "bg-gray-300 dark:bg-gray-600"
             }`}
           />

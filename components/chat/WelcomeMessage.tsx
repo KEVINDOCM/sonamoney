@@ -16,7 +16,7 @@ export function WelcomeMessage({ mounted, t }: WelcomeMessageProps): React.React
   return (
     <div className="flex flex-col items-center text-center gap-4 py-8 px-4">
       {/* Avatar */}
-      <div className="w-16 h-16 bg-gradient-to-br from-gold-400 to-gold-700 rounded-full flex items-center justify-center shadow-lg">
+      <div className="w-16 h-16 bg-gradient-to-br from-[#00B9A7] to-[#0099A0] rounded-full flex items-center justify-center shadow-lg">
         <span className="text-2xl font-bold text-white">S</span>
       </div>
 
@@ -31,7 +31,7 @@ export function WelcomeMessage({ mounted, t }: WelcomeMessageProps): React.React
       </p>
 
       {/* Prompt */}
-      <p className="text-xs text-gold-600 dark:text-gold-400 font-medium">
+      <p className="text-xs text-[#00B9A7] dark:text-[#00B9A7] font-medium">
         {t("ai.welcomePrompt")}
       </p>
     </div>

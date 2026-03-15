@@ -39,7 +39,7 @@ export function AppearanceSection({
           onClick={onToggle}
           title="Toggle dark mode"
           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 ${
-            isDark ? "bg-gold-600" : "bg-gray-200"
+            isDark ? "bg-[#00B9A7]" : "bg-gray-200"
           }`}
         >
           <span

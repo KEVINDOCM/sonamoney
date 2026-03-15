@@ -153,10 +153,10 @@ export function ChatDrawer({
                    z-[70] sm:z-50 sm:rounded-l-2xl ${isOpen ? "translate-x-0" : "translate-x-full"}`}
       >
         {/* Sticky Header */}
-        <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-4 bg-gradient-to-r from-gold-500 to-gold-600 text-white shrink-0">
+        <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-4 bg-gradient-to-br from-[#00B9A7] to-[#0099A0] text-white shrink-0">
           <div>
             <h2 className="text-lg font-semibold">{t("ai.title")}</h2>
-            <p className="text-xs text-gold-100">{t("ai.subtitle")}</p>
+            <p className="text-xs text-white/80">{t("ai.subtitle")}</p>
           </div>
           <div className="flex items-center gap-2">
             {hasStarted && (
@@ -226,7 +226,7 @@ export function ChatDrawer({
               className="fixed bottom-24 sm:bottom-20 right-4 w-8 h-8 bg-white dark:bg-gray-800 
                          border border-gray-200 dark:border-gray-700 shadow-md rounded-full
                          flex items-center justify-center text-gray-600 dark:text-gray-400
-                         hover:text-gold-600 dark:hover:text-gold-400
+                         hover:text-[#00B9A7] dark:hover:text-[#00B9A7]
                          transition-all duration-200 animate-in fade-in z-20"
               aria-label="Scroll to bottom"
               type="button"
@@ -247,7 +247,7 @@ export function ChatDrawer({
             onKeyDown={handleKeyDown}
             placeholder={t("ai.placeholder")}
             className="flex-1 px-4 py-2.5 bg-gray-100 dark:bg-gray-800 border border-transparent 
-                       focus:border-gold-500 focus:ring-2 focus:ring-gold-200 dark:focus:ring-gold-800
+                       focus:border-[#00B9A7] focus:ring-2 focus:ring-[#00B9A7]/20 dark:focus:ring-[#00B9A7]/20
                        rounded-full text-sm text-gray-900 dark:text-gray-100 
                        placeholder-gray-500 dark:placeholder-gray-400 outline-none transition-all"
             disabled={isLoading}
@@ -255,9 +255,10 @@ export function ChatDrawer({
           <button
             onClick={sendMessage}
             disabled={!inputValue.trim() || isLoading}
-            className="p-2.5 bg-gold-600 hover:bg-gold-700 disabled:opacity-50 
+            className="p-2.5 bg-[#00B9A7] hover:bg-[#0099A0] disabled:opacity-50 
                          disabled:cursor-not-allowed text-white rounded-full 
-                         transition-colors duration-200 shrink-0"
+                         shadow-sm hover:shadow-md
+                         transition-all duration-200 shrink-0"
             aria-label={t("ai.send")}
             type="button"
           >

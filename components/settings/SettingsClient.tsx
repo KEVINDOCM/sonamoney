@@ -99,10 +99,10 @@ export function SettingsClient({ email, displayName: initialDisplayName }: Setti
       />
 
       {/* Profile Section */}
-      <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-6">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm p-6">
         <div className="flex items-center gap-3 mb-6">
-          <div className="h-10 w-10 rounded-xl bg-gold-100 dark:bg-gold-900/30 flex items-center justify-center">
-            <User className="h-5 w-5 text-gold-600 dark:text-gold-400" />
+          <div className="h-10 w-10 rounded-xl bg-[#E6F7F6] dark:bg-[#00B9A7]/20 flex items-center justify-center">
+            <User className="h-5 w-5 text-[#00B9A7] dark:text-[#00B9A7]" />
           </div>
           <div>
             <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
@@ -139,14 +139,14 @@ export function SettingsClient({ email, displayName: initialDisplayName }: Setti
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
             placeholder={i18nMounted ? t("settings.displayNamePlaceholder") : "Your name"}
-            className="w-full h-10 border border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg px-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold-500"
+            className="w-full h-10 border border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#00B9A7]/30 focus:border-[#00B9A7]"
           />
         </div>
 
         <button
           onClick={handleUpdateDisplayName}
           disabled={isUpdatingDisplayName}
-          className="px-5 py-2 bg-gold-600 hover:bg-gold-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors duration-200"
+          className="px-5 py-2 bg-[#00B9A7] hover:bg-[#0099A0] disabled:opacity-50 text-white text-sm font-medium rounded-full transition-colors duration-200"
         >
           {isUpdatingDisplayName 
             ? (i18nMounted ? t("settings.saving") : "Saving...") 
@@ -155,7 +155,7 @@ export function SettingsClient({ email, displayName: initialDisplayName }: Setti
       </div>
 
       {/* Password Section */}
-      <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-6">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm p-6">
         <div className="flex items-center gap-3 mb-6">
           <div className="h-10 w-10 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
             <Lock className="h-5 w-5 text-purple-600 dark:text-purple-400" />
@@ -207,7 +207,7 @@ export function SettingsClient({ email, displayName: initialDisplayName }: Setti
       </div>
 
       {/* Danger Zone Section */}
-      <div className="bg-white dark:bg-gray-900 rounded-xl border border-rose-200 dark:border-rose-800 p-6">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-rose-200 dark:border-rose-800 p-6">
         <div className="flex items-center gap-3 mb-6">
           <div className="h-10 w-10 rounded-xl bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center">
             <Trash2 className="h-5 w-5 text-rose-600 dark:text-rose-400" />

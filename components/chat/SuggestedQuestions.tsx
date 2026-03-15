@@ -69,9 +69,11 @@ export function SuggestedQuestions({
             key={question.id}
             onClick={() => onSelect(question.label)}
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm 
-                       text-gold-700 dark:text-gold-400 
-                       border border-gold-200 dark:border-gold-800 rounded-full
-                       hover:bg-gold-50 dark:hover:bg-gold-900/20 
+                       text-[#00B9A7] dark:text-[#00B9A7] 
+                       border border-[#00B9A7]/30 dark:border-[#00B9A7]/30 rounded-full
+                       hover:bg-[#E6F7F6] dark:hover:bg-[#00B9A7]/10 
+                       hover:border-[#00B9A7]
+                       active:scale-95
                        transition-all duration-200 text-left"
             type="button"
           >
