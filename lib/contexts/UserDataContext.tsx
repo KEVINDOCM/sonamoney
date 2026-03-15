@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client"
 
 import {
@@ -22,7 +21,7 @@ interface UserDataContextValue {
   refetchAll: () => Promise<void>
 }
 
-const UserDataContext = createContext<UserDataContextValue | null>(null)
+const UserDataContext = createContext<UserDataContextValue | null>(null) as { Provider: React.ComponentType<{ value: UserDataContextValue | null; children?: ReactNode }>; };
 
 export function UserDataProvider({ children }: { children: ReactNode }) {
   const [accounts, setAccounts] = useState<Account[]>([])
@@ -70,5 +69,5 @@ export function useUserData(): UserDataContextValue {
   if (!context) {
     throw new Error("useUserData must be used within UserDataProvider")
   }
-  return context
+  return context as UserDataContextValue
 }

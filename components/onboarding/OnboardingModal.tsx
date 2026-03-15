@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client";
 
 import { useState, useEffect } from "react";
@@ -48,7 +47,7 @@ const STEPS: StepData[] = [
   },
 ];
 
-export function OnboardingModal(): JSX.Element | null {
+export function OnboardingModal(): React.ReactElement | null {
   const [isVisible, setIsVisible] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);

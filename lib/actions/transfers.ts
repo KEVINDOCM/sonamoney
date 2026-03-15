@@ -46,7 +46,7 @@ export async function createTransfer(data: CreateTransferPayload): Promise<Actio
   if (data.amount <= 0) return { success: false, error: "Amount must be greater than 0" };
 
   // Check sufficient balance
-  const hasBalance = await hasSufficientBalance(typedSupabase, data.from_account_id, data.amount);
+  const hasBalance = await hasSufficientBalance(typedSupabase as unknown as Parameters<typeof hasSufficientBalance>[0], data.from_account_id, data.amount);
   if (!hasBalance) {
     return { success: false, error: "Insufficient balance in source account" };
   }
@@ -74,8 +74,8 @@ export async function createTransfer(data: CreateTransferPayload): Promise<Actio
   if (insertError) return { success: false, error: insertError.message };
 
   // Adjust balances using utility functions
-  await adjustAccountBalance(typedSupabase, data.from_account_id, -data.amount);
-  await adjustAccountBalance(typedSupabase, data.to_account_id, data.amount);
+  await adjustAccountBalance(typedSupabase as unknown as Parameters<typeof adjustAccountBalance>[0], data.from_account_id, -data.amount);
+  await adjustAccountBalance(typedSupabase as unknown as Parameters<typeof adjustAccountBalance>[0], data.to_account_id, data.amount);
 
   revalidateAccountPaths();
   return { success: true };
@@ -124,8 +124,8 @@ export async function deleteTransfer(id: string): Promise<ActionResult> {
   const typedTransfer = transfer as { from_account_id: string; to_account_id: string; amount: number };
 
   // Revert balances using utility functions
-  await adjustAccountBalance(typedSupabase, typedTransfer.from_account_id, typedTransfer.amount);
-  await adjustAccountBalance(typedSupabase, typedTransfer.to_account_id, -typedTransfer.amount);
+  await adjustAccountBalance(typedSupabase as unknown as Parameters<typeof adjustAccountBalance>[0], typedTransfer.from_account_id, typedTransfer.amount);
+  await adjustAccountBalance(typedSupabase as unknown as Parameters<typeof adjustAccountBalance>[0], typedTransfer.to_account_id, -typedTransfer.amount);
 
   // Delete transfer
   const { error: deleteError } = await supabase

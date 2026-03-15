@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client"
 
 import {
@@ -22,7 +21,7 @@ export interface TranslationContextValue {
   mounted: boolean
 }
 
-const TranslationContext = createContext<TranslationContextValue | null>(null)
+const TranslationContext = createContext<TranslationContextValue | null>(null) as { Provider: React.ComponentType<{ value: TranslationContextValue | null; children?: ReactNode }>; };
 
 export function TranslationProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Language>("en")
@@ -70,8 +69,8 @@ export function TranslationProvider({ children }: { children: ReactNode }) {
   )
 }
 
-export function useTranslation() {
+export function useTranslation(): TranslationContextValue {
   const ctx = useContext(TranslationContext)
   if (!ctx) throw new Error("useTranslation must be used within TranslationProvider")
-  return ctx
+  return ctx as TranslationContextValue
 }

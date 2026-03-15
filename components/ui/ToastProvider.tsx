@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client";
 
 import type { ReactNode } from "react";
@@ -17,7 +16,7 @@ interface ToastContextValue {
   showError: (message: string) => void;
 }
 
-const ToastContext = createContext<ToastContextValue | undefined>(undefined as unknown as ToastContextValue | undefined);
+const ToastContext = createContext<ToastContextValue | undefined>(undefined) as { Provider: React.ComponentType<{ value: ToastContextValue | undefined; children?: ReactNode }>; };
 
 export interface ToastProviderProps {
   children?: ReactNode;
@@ -108,9 +107,9 @@ export function ToastProvider({ children }: ToastProviderProps) {
 
 export function useToast(): ToastContextValue {
   const ctx = useContext(ToastContext);
-  if (!ctx) {
+  if (ctx === undefined || !ctx) {
     throw new Error("useToast must be used within a ToastProvider");
   }
-  return ctx;
+  return ctx as ToastContextValue;
 }
 

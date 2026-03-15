@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { Card } from "@/components/ui/Card";
 import { fetchTransactions } from "@/lib/actions/transactions";
 import { fetchCategories } from "@/lib/actions/categories";

@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client"
 
 import {
@@ -26,6 +25,12 @@ import { LS_KEY_BASE_CURRENCY } from "@/lib/constants/storage"
 
 const BASE_CURRENCY_KEY = LS_KEY_BASE_CURRENCY
 
+interface SupabaseAuthClient {
+  auth: {
+    updateUser: (params: { data: { base_currency: SupportedCurrency } }) => Promise<void>;
+  };
+}
+
 export interface CurrencyContextValue {
   baseCurrency: SupportedCurrency
   setBaseCurrency: (currency: SupportedCurrency) => Promise<void>
@@ -36,7 +41,7 @@ export interface CurrencyContextValue {
   convert: (amount: number, fromCurrency: string, toCurrency?: string) => number
 }
 
-const CurrencyContext = createContext<CurrencyContextValue | null>(null)
+const CurrencyContext = createContext<CurrencyContextValue | null>(null) as { Provider: React.ComponentType<{ value: CurrencyContextValue | null; children?: ReactNode }>; };
 
 export function CurrencyProvider({ children }: { children: ReactNode }) {
   const [baseCurrency, setBaseCurrencyState] = useState<SupportedCurrency>(DEFAULT_CURRENCY)
@@ -60,7 +65,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     setBaseCurrencyState(currency)
     localStorage.setItem(BASE_CURRENCY_KEY, currency)
     try {
-      const supabase = createSupabaseBrowserClient()
+      const supabase = createSupabaseBrowserClient() as unknown as SupabaseAuthClient
       await supabase.auth.updateUser({ data: { base_currency: currency } })
     } catch {
       // ignore
@@ -92,8 +97,8 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
   )
 }
 
-export function useCurrency() {
+export function useCurrency(): CurrencyContextValue {
   const ctx = useContext(CurrencyContext)
   if (!ctx) throw new Error("useCurrency must be used within CurrencyProvider")
-  return ctx
+  return ctx as CurrencyContextValue
 }

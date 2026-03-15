@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client";
 
 import { useState } from "react";
@@ -6,6 +5,12 @@ import { useRouter } from "next/navigation";
 import { CheckCircle, AlertCircle } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+
+interface SupabaseAuthClient {
+  auth: {
+    updateUser: (params: { password: string }) => Promise<{ error: { message: string } | null }>;
+  };
+}
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -29,8 +34,8 @@ export default function ResetPasswordPage() {
     }
     
     setLoading(true);
-    const supabase = createSupabaseBrowserClient();
-    const { error: updateError } = await (supabase as any).auth.updateUser({ password: newPassword });
+    const supabase = createSupabaseBrowserClient() as unknown as SupabaseAuthClient;
+    const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
     setLoading(false);
     
     if (updateError) {

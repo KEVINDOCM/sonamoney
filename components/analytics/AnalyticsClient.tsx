@@ -543,10 +543,10 @@ export function AnalyticsClient({ transactions }: AnalyticsClientProps) {
                                         cy="50%"
                                         outerRadius="80%"
                                         dataKey="amount"
-                                        label={({ name, percent }: any) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                        label={({ name, percent }: { name: string; percent: number }) => `${name} ${(percent * 100).toFixed(0)}%`}
                                         labelLine={false}
                                     >
-                                        {expensesByCategory.map((entry: any, index: number) => (
+                                        {expensesByCategory.map((entry: { name: string; color: string }, index: number) => (
                                             <Cell key={`cell-${index}`} fill={entry.color} />
                                         ))}
                                     </Pie>
@@ -575,7 +575,7 @@ export function AnalyticsClient({ transactions }: AnalyticsClientProps) {
                                         contentStyle={{ backgroundColor: "white", border: "none", borderRadius: "16px", boxShadow: "0 4px 20px rgba(0,0,0,0.08)", fontSize: "12px" }}
                                     />
                                     <Bar dataKey="amount" radius={[0, 4, 4, 0]}>
-                                        {top5Expenses.map((entry: any, index: number) => (
+                                        {top5Expenses.map((entry: { color: string }, index: number) => (
                                             <Cell key={`cell-${index}`} fill={entry.color} />
                                         ))}
                                         <LabelList dataKey="amount" position="right" formatter={(val: unknown) => formatCurrency(Number(val), baseCurrency)} style={{ fontSize: 12, fill: "#6b7280" }} />

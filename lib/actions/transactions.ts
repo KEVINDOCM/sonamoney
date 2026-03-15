@@ -198,7 +198,8 @@ async function updateAccountBalance(
   const delta = operation === "add"
     ? (type === "income" ? amount : -amount)
     : (type === "income" ? -amount : amount);
-  await adjustAccountBalance(supabase, accountId, delta);
+  // Cast to match balance.ts local interface
+  await adjustAccountBalance(supabase as unknown as Parameters<typeof adjustAccountBalance>[0], accountId, delta);
 }
 
 export async function createTransaction(payload: CreateTransactionPayload): Promise<ActionResult> {

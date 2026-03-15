@@ -129,8 +129,8 @@ export default function TransactionTable({
                   <td className="px-2 py-3 lg:px-4">
                     <div className="flex items-center gap-2">
                       <CategoryIcon
-                        icon={(transaction as any).categories?.icon ?? categories.find(c => c.id === transaction.category_id)?.icon}
-                        color={(transaction as any).categories?.color ?? categories.find(c => c.id === transaction.category_id)?.color}
+                        icon={categories.find(c => c.id === transaction.category_id)?.icon}
+                        color={categories.find(c => c.id === transaction.category_id)?.color}
                         size="sm"
                       />
                       <div>

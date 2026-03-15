@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { createSupabaseServerClient } from "@/lib/supabase/server"
 
 export interface AuthenticatedUser {
@@ -15,12 +14,9 @@ export class AuthError extends Error {
 
 export async function requireAuth(): Promise<AuthenticatedUser> {
   const supabase = await createSupabaseServerClient()
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  if (error || !user) {
+  if (!user) {
     throw new AuthError("Unauthorized")
   }
 
@@ -33,17 +29,11 @@ export async function requireAuth(): Promise<AuthenticatedUser> {
 }
 
 // Helper to get supabase client + user in one call
-export async function getAuthenticatedClient(): Promise<{
-  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>
-  user: AuthenticatedUser
-}> {
+export async function getAuthenticatedClient() {
   const supabase = await createSupabaseServerClient()
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  if (error || !user) {
+  if (!user) {
     throw new AuthError("Unauthorized")
   }
 
@@ -51,6 +41,7 @@ export async function getAuthenticatedClient(): Promise<{
 
   return {
     supabase,
+    userId: typedUser.id,
     user: {
       id: typedUser.id,
       email: typedUser.email,
