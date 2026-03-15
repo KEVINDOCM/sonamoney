@@ -14,7 +14,7 @@ import { useTranslation } from "@/lib/i18n/useTranslation";
 import { useCurrency } from "@/lib/hooks/useCurrency";
 import { Search, SlidersHorizontal, X, Receipt, Repeat, Plus, CheckCircle, ChevronDown } from "lucide-react";
 import { CategoryIcon } from "@/components/ui/CategoryIcon";
-import { createTransaction, updateTransaction, deleteTransaction, logRecurringTransaction } from "@/lib/actions/transactions";
+import { createTransaction, updateTransaction, deleteTransaction, logRecurringTransaction, skipRecurringOccurrence, stopRecurring } from "@/lib/actions/transactions";
 import PaginationControls from "./PaginationControls";
 import TransactionTable from "./TransactionTable";
 import TransactionCardList from "./TransactionCardList";
@@ -188,6 +188,37 @@ export function TransactionsClient({
       toast.success(t("transactions.loggedSuccess"));
     }
   }, [toast, t]);
+
+  const handleSkipRecurring = useCallback(
+    async (parentId: string) => {
+      const result = await skipRecurringOccurrence(parentId);
+      if (result.success) {
+        toast.success("Occurrence skipped");
+      } else {
+        toast.error(result.error ?? "Failed to skip");
+      }
+    },
+    [toast]
+  );
+
+  const handleStopRecurring = useCallback(
+    async (parentId: string) => {
+      const result = await stopRecurring(parentId);
+      if (result.success) {
+        setLocalTransactions((prev) =>
+          prev.map((t) =>
+            t.id === parentId
+              ? { ...t, is_recurring: false }
+              : t
+          )
+        );
+        toast.success("Recurring stopped");
+      } else {
+        toast.error(result.error ?? "Failed to stop");
+      }
+    },
+    [toast]
+  );
 
   const hasTransactions = filteredTransactions.length > 0;
 
@@ -635,6 +666,9 @@ export function TransactionsClient({
             }}
             onCloseDropdown={() => setActiveTransactionMenuId(null)}
             onResetFilters={handleResetFilters}
+            onLogRecurring={handleLogRecurring}
+            onSkipRecurring={handleSkipRecurring}
+            onStopRecurring={handleStopRecurring}
             dateLabel={mounted ? t("transactions.date") : "Date"}
             categoryLabel={mounted ? t("transactions.category") : "Category"}
             typeLabel={mounted ? t("transactions.type") : "Type"}
@@ -677,6 +711,9 @@ export function TransactionsClient({
             }}
             onCloseDropdown={() => setActiveTransactionMenuId(null)}
             onResetFilters={handleResetFilters}
+            onLogRecurring={handleLogRecurring}
+            onSkipRecurring={handleSkipRecurring}
+            onStopRecurring={handleStopRecurring}
             incomeLabel={mounted ? t("transactions.income") : "Income"}
             expenseLabel={mounted ? t("transactions.expense") : "Expense"}
             manageLabel={mounted ? t("common.manage") : "Manage"}

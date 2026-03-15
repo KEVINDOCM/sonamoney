@@ -23,6 +23,10 @@ interface TransactionTableProps {
   onDelete: (transaction: Transaction) => void;
   onCloseDropdown: () => void;
   onResetFilters: () => void;
+  // Recurring handlers
+  onLogRecurring?: (id: string) => void;
+  onSkipRecurring?: (id: string) => void;
+  onStopRecurring?: (id: string) => void;
   // Pre-translated labels
   dateLabel: string;
   categoryLabel: string;
@@ -69,6 +73,9 @@ export default function TransactionTable({
   onDelete,
   onCloseDropdown,
   onResetFilters,
+  onLogRecurring,
+  onSkipRecurring,
+  onStopRecurring,
   dateLabel,
   categoryLabel,
   typeLabel,
@@ -128,6 +135,24 @@ export default function TransactionTable({
                       />
                       <div>
                         <span className="text-sm font-semibold text-[#1A1A2E] dark:text-white">{categoryMap.get(transaction.category_id) ?? "-"}</span>
+                        {transaction.is_recurring && (
+                          <span className="
+                            ml-1 text-[10px] font-semibold
+                            bg-[#E6F7F6] text-[#00B9A7]
+                            px-1.5 py-0.5 rounded-full
+                          ">
+                            🔄
+                          </span>
+                        )}
+                        {transaction.recurring_parent_id && (
+                          <span className="
+                            ml-1 text-[10px] font-semibold
+                            bg-[#F0EFFE] text-[#6366F1]
+                            px-1.5 py-0.5 rounded-full
+                          ">
+                            ↩
+                          </span>
+                        )}
                         {transaction.account_id && accountMap.get(transaction.account_id) && (
                           <span className="text-xs text-gray-400 dark:text-gray-500 block">{accountMap.get(transaction.account_id)}</span>
                         )}
@@ -237,6 +262,71 @@ export default function TransactionTable({
                               </svg>
                               {editLabel}
                             </button>
+                            {transaction.is_recurring && (
+                              <>
+                                <div className="h-px bg-gray-100 dark:bg-gray-800 mx-3"/>
+                                {/* Log now */}
+                                <button
+                                  onClick={() => {
+                                    onLogRecurring?.(transaction.id);
+                                    onCloseDropdown();
+                                    setTableDropdownPos(null);
+                                  }}
+                                  className="
+                                    w-full text-left px-4 py-2.5
+                                    text-sm font-medium
+                                    text-[#00B9A7]
+                                    hover:bg-[#E6F7F6]
+                                    dark:hover:bg-[#00B9A7]/10
+                                    flex items-center gap-2
+                                    transition-colors
+                                    border-none bg-transparent cursor-pointer
+                                  "
+                                >
+                                  🔄 Log now
+                                </button>
+                                {/* Skip */}
+                                <button
+                                  onClick={() => {
+                                    onSkipRecurring?.(transaction.id);
+                                    onCloseDropdown();
+                                    setTableDropdownPos(null);
+                                  }}
+                                  className="
+                                    w-full text-left px-4 py-2.5
+                                    text-sm font-medium
+                                    text-[#FFB800]
+                                    hover:bg-[#FFF8E6]
+                                    dark:hover:bg-yellow-900/20
+                                    flex items-center gap-2
+                                    transition-colors
+                                    border-none bg-transparent cursor-pointer
+                                  "
+                                >
+                                  ⏭ Skip this month
+                                </button>
+                                {/* Stop recurring */}
+                                <button
+                                  onClick={() => {
+                                    onStopRecurring?.(transaction.id);
+                                    onCloseDropdown();
+                                    setTableDropdownPos(null);
+                                  }}
+                                  className="
+                                    w-full text-left px-4 py-2.5
+                                    text-sm font-medium
+                                    text-[#FF5B5B]
+                                    hover:bg-[#FFF0F0]
+                                    dark:hover:bg-rose-900/20
+                                    flex items-center gap-2
+                                    transition-colors
+                                    border-none bg-transparent cursor-pointer
+                                  "
+                                >
+                                  ⏹ Stop recurring
+                                </button>
+                              </>
+                            )}
                             <div className="h-px bg-gray-100 dark:bg-gray-800 mx-3"/>
                             <button
                               onClick={() => {

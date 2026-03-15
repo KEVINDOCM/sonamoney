@@ -22,6 +22,10 @@ interface TransactionCardListProps {
   onDelete: (transaction: Transaction) => void;
   onCloseDropdown: () => void;
   onResetFilters: () => void;
+  // Recurring handlers
+  onLogRecurring?: (id: string) => void;
+  onSkipRecurring?: (id: string) => void;
+  onStopRecurring?: (id: string) => void;
   // Pre-translated labels
   incomeLabel: string;
   expenseLabel: string;
@@ -62,6 +66,9 @@ export default function TransactionCardList({
   onDelete,
   onCloseDropdown,
   onResetFilters,
+  onLogRecurring,
+  onSkipRecurring,
+  onStopRecurring,
   incomeLabel,
   expenseLabel,
   manageLabel,
@@ -216,6 +223,7 @@ export default function TransactionCardList({
                             </p>
                             <div className="
                               flex items-center gap-2 mt-0.5
+                              flex-wrap
                             ">
                               {accountName && (
                                 <span className="
@@ -232,6 +240,30 @@ export default function TransactionCardList({
                                   truncate
                                 ">
                                   {transaction.notes}
+                                </span>
+                              )}
+                              {transaction.is_recurring && (
+                                <span className="
+                                  text-[10px] font-semibold
+                                  bg-[#E6F7F6] text-[#00B9A7]
+                                  dark:bg-[#00B9A7]/20
+                                  px-2 py-0.5 rounded-full
+                                  flex items-center gap-0.5
+                                  shrink-0
+                                ">
+                                  🔄 Recurring
+                                </span>
+                              )}
+                              {transaction.recurring_parent_id && (
+                                <span className="
+                                  text-[10px] font-semibold
+                                  bg-[#F0EFFE] text-[#6366F1]
+                                  dark:bg-[#6366F1]/20
+                                  px-2 py-0.5 rounded-full
+                                  flex items-center gap-0.5
+                                  shrink-0
+                                ">
+                                  ↩ Auto
                                 </span>
                               )}
                             </div>
@@ -335,6 +367,70 @@ export default function TransactionCardList({
                                   <span>✏️</span>
                                   {editLabel}
                                 </button>
+                                {transaction.is_recurring && (
+                                  <>
+                                    <div className="
+                                      h-px bg-gray-100 dark:bg-gray-800 mx-3
+                                    "/>
+                                    {/* Log now */}
+                                    <button
+                                      onClick={() => {
+                                        onLogRecurring?.(transaction.id);
+                                        onCloseDropdown();
+                                        setDropdownPos(null);
+                                      }}
+                                      className="
+                                        w-full text-left px-4 py-2.5
+                                        text-sm font-medium
+                                        text-[#00B9A7]
+                                        hover:bg-[#E6F7F6]
+                                        dark:hover:bg-[#00B9A7]/10
+                                        flex items-center gap-2
+                                        transition-colors
+                                      "
+                                    >
+                                      🔄 Log now
+                                    </button>
+                                    {/* Skip */}
+                                    <button
+                                      onClick={() => {
+                                        onSkipRecurring?.(transaction.id);
+                                        onCloseDropdown();
+                                        setDropdownPos(null);
+                                      }}
+                                      className="
+                                        w-full text-left px-4 py-2.5
+                                        text-sm font-medium
+                                        text-[#FFB800]
+                                        hover:bg-[#FFF8E6]
+                                        dark:hover:bg-yellow-900/20
+                                        flex items-center gap-2
+                                        transition-colors
+                                      "
+                                    >
+                                      ⏭ Skip this month
+                                    </button>
+                                    {/* Stop recurring */}
+                                    <button
+                                      onClick={() => {
+                                        onStopRecurring?.(transaction.id);
+                                        onCloseDropdown();
+                                        setDropdownPos(null);
+                                      }}
+                                      className="
+                                        w-full text-left px-4 py-2.5
+                                        text-sm font-medium
+                                        text-[#FF5B5B]
+                                        hover:bg-[#FFF0F0]
+                                        dark:hover:bg-rose-900/20
+                                        flex items-center gap-2
+                                        transition-colors
+                                      "
+                                    >
+                                      ⏹ Stop recurring
+                                    </button>
+                                  </>
+                                )}
                                 <div className="
                                   h-px bg-gray-100 dark:bg-gray-800
                                   mx-3

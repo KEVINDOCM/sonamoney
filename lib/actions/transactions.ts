@@ -5,6 +5,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getAuthenticatedClient } from "@/lib/utils/auth";
 import { revalidateTransactionPaths } from "@/lib/utils/revalidate";
 import { adjustAccountBalance } from "@/lib/utils/balance";
+import { withActionResult } from "@/lib/utils/actions";
 import { ActionResult } from "@/lib/types/actions";
 import type {
   CreateTransactionPayload,
@@ -293,6 +294,16 @@ export async function updateTransaction(id: string, payload: UpdateTransactionPa
       account_id: payload.account_id ?? null,
       currency: payload.currency ?? "IDR",
       exchange_rate_at_time: payload.exchange_rate_at_time ?? 1,
+      is_recurring: payload.is_recurring,
+      recurring_interval: payload.is_recurring
+        ? payload.recurring_interval ?? DEFAULT_RECURRING_INTERVAL
+        : null,
+      recurring_unit: payload.is_recurring
+        ? payload.recurring_unit ?? DEFAULT_RECURRING_UNIT
+        : null,
+      recurring_next_date: payload.is_recurring
+        ? payload.recurring_next_date ?? null
+        : null,
     })
     .eq("id", id)
     .eq("user_id", user.id);
@@ -445,4 +456,90 @@ export async function logRecurringTransaction(
 
   revalidateTransactionPaths();
   return { success: true };
+}
+
+export async function skipRecurringOccurrence(
+  parentId: string
+): Promise<ActionResult<null>> {
+  return withActionResult(async () => {
+    const { supabase: rawSupabase, user } =
+      await getAuthenticatedClient()
+    const supabase: SupabaseAuthClient = rawSupabase;
+    const typedSupabase = rawSupabase as SupabaseClient;
+
+    if (!supabase.from) {
+      throw new Error("Database client not available")
+    }
+
+    // Fetch parent transaction
+    const { data: parent, error: fetchError } =
+      await supabase
+        .from("transactions")
+        .select(
+          "id, recurring_interval, recurring_unit, recurring_next_date"
+        )
+        .eq("id", parentId)
+        .eq("user_id", user.id)
+        .single()
+
+    if (fetchError || !parent) {
+      throw new Error("Recurring transaction not found")
+    }
+
+    const typedParent = parent as {
+      id: string
+      recurring_interval: number
+      recurring_unit: string
+      recurring_next_date: string | null
+    }
+
+    // Compute next date skipping this occurrence
+    const nextDate = computeNextDate(
+      typedParent.recurring_next_date ??
+        new Date().toISOString().slice(0, 10),
+      typedParent.recurring_interval ?? 1,
+      typedParent.recurring_unit ?? "month"
+    )
+
+    // Update next date without creating transaction
+    const { error: updateError } = await supabase
+      .from("transactions")
+      .update({ recurring_next_date: nextDate })
+      .eq("id", parentId)
+      .eq("user_id", user.id)
+
+    if (updateError) throw updateError
+
+    revalidateTransactionPaths()
+    return null
+  })
+}
+
+export async function stopRecurring(
+  parentId: string
+): Promise<ActionResult<null>> {
+  return withActionResult(async () => {
+    const { supabase: rawSupabase, user } =
+      await getAuthenticatedClient()
+    const supabase: SupabaseAuthClient = rawSupabase;
+    const typedSupabase = rawSupabase as SupabaseClient;
+
+    if (!supabase.from) {
+      throw new Error("Database client not available")
+    }
+
+    const { error } = await supabase
+      .from("transactions")
+      .update({
+        is_recurring: false,
+        recurring_next_date: null,
+      })
+      .eq("id", parentId)
+      .eq("user_id", user.id)
+
+    if (error) throw error
+
+    revalidateTransactionPaths()
+    return null
+  })
 }
