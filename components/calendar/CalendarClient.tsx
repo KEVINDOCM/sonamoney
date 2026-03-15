@@ -94,18 +94,18 @@ export function CalendarClient({ transactions }: CalendarClientProps) {
   }, []);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 px-4 md:px-0 pt-4 md:pt-0">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{mounted ? t("calendar.title") : "Calendar"}</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+          <h1 className="text-xl font-extrabold text-[#1A1A2E] dark:text-white">{mounted ? t("calendar.title") : "Calendar"}</h1>
+          <p className="text-xs text-[#6B7280] dark:text-gray-400 mt-0.5">
             {mounted ? t("calendar.description") : "View your transactions by date."}
           </p>
         </div>
         <button
           onClick={handleGoToToday}
-          className="text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline"
+          className="text-xs font-semibold text-[#00B9A7] hover:text-[#0099A0] transition-colors duration-150"
         >
           {mounted ? t("calendar.today") : "Today"}
         </button>
@@ -118,30 +118,30 @@ export function CalendarClient({ transactions }: CalendarClientProps) {
           aria-label={mounted ? t("calendar.prevMonth") : "Previous month"}
           className="h-8 w-8 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
         >
-          <ChevronLeft className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+          <ChevronLeft className="h-4 w-4 text-[#6B7280] dark:text-gray-400" />
         </button>
 
-        <h2 className="text-base font-semibold text-gray-900 dark:text-white">
+        <h2 className="text-base font-bold text-[#1A1A2E] dark:text-white">
           {currentDate.toLocaleDateString("en-US", { month: "long", year: "numeric" })}
         </h2>
 
         <button
           onClick={handleNextMonth}
           aria-label={mounted ? t("calendar.nextMonth") : "Next month"}
-          className="h-8 w-8 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+          className="h-9 w-9 rounded-xl bg-white dark:bg-gray-800 shadow-sm flex items-center justify-center hover:bg-[#E6F7F6] dark:hover:bg-[#00B9A7]/10 hover:text-[#00B9A7] active:scale-95 transition-all duration-200"
         >
-          <ChevronRight className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+          <ChevronRight className="h-4 w-4 text-[#6B7280] dark:text-gray-400" />
         </button>
       </div>
 
       {/* Calendar Grid */}
-      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm p-4">
         {/* Day Headers */}
         <div className="grid grid-cols-7 mb-2">
           {DAY_NAMES.map((d) => (
             <div
               key={d}
-              className="text-center text-xs font-medium text-gray-400 dark:text-gray-500 py-2"
+              className="text-center text-[10px] font-bold text-[#6B7280] dark:text-gray-500 uppercase tracking-wide py-2"
             >
               {d}
             </div>
@@ -171,20 +171,20 @@ export function CalendarClient({ transactions }: CalendarClientProps) {
                 aria-label={new Date(year, month, day).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
                 className={`h-16 lg:h-20 rounded-xl p-1.5 flex flex-col items-start transition-all duration-200 text-left w-full ${
                   isSelected
-                    ? "bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700"
+                    ? "bg-[#E6F7F6] dark:bg-[#00B9A7]/20 border border-[#00B9A7]/30"
                     : isToday
-                    ? "bg-blue-600 border border-blue-600"
-                    : "hover:bg-gray-50 dark:hover:bg-gray-800 border border-transparent"
+                    ? "bg-[#00B9A7] border border-[#00B9A7] shadow-sm"
+                    : "hover:bg-[#F5F7FA] dark:hover:bg-gray-800 hover:border-[#00B9A7]/20 border border-transparent transition-all duration-150"
                 }`}
               >
                 {/* Day Number */}
                 <span
                   className={`text-xs font-semibold mb-1 ${
                     isToday
-                      ? "text-white"
-                      : isSelected
-                      ? "text-blue-600 dark:text-blue-400"
-                      : "text-gray-700 dark:text-gray-300"
+                    ? "text-white"
+                    : isSelected
+                    ? "text-[#00B9A7] font-bold"
+                    : "text-gray-700 dark:text-gray-300"
                   }`}
                 >
                   {day}
@@ -194,10 +194,10 @@ export function CalendarClient({ transactions }: CalendarClientProps) {
                 {dayData && (
                   <div className="flex gap-0.5 mb-0.5">
                     {dayData.hasIncome && (
-                      <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                      <div className="h-1.5 w-1.5 rounded-full bg-[#00C48C]" />
                     )}
                     {dayData.hasExpense && (
-                      <div className="h-1.5 w-1.5 rounded-full bg-rose-500" />
+                      <div className="h-1.5 w-1.5 rounded-full bg-[#FF5B5B]" />
                     )}
                   </div>
                 )}
@@ -206,12 +206,12 @@ export function CalendarClient({ transactions }: CalendarClientProps) {
                 {dayData && (
                   <div className="hidden lg:flex flex-col gap-0.5 w-full">
                     {dayData.hasIncome && (
-                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium truncate">
+                      <span className="text-[10px] text-[#00C48C] font-semibold truncate">
                         +{formatCurrency(dayData.totalIncome)}
                       </span>
                     )}
                     {dayData.hasExpense && (
-                      <span className="text-[10px] text-rose-500 dark:text-rose-400 font-medium truncate">
+                      <span className="text-[10px] text-[#FF5B5B] font-semibold truncate">
                         -{formatCurrency(dayData.totalExpense)}
                       </span>
                     )}
@@ -226,21 +226,21 @@ export function CalendarClient({ transactions }: CalendarClientProps) {
       {/* Legend */}
       <div className="flex items-center gap-4 mt-3 px-1">
         <div className="flex items-center gap-1.5">
-          <div className="h-2 w-2 rounded-full bg-emerald-500" />
-          <span className="text-xs text-gray-500 dark:text-gray-400">{mounted ? t("calendar.income") : "Income"}</span>
+          <div className="h-2 w-2 rounded-full bg-[#00C48C]" />
+          <span className="text-xs text-[#6B7280] dark:text-gray-400">{mounted ? t("calendar.income") : "Income"}</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="h-2 w-2 rounded-full bg-rose-500" />
-          <span className="text-xs text-gray-500 dark:text-gray-400">{mounted ? t("calendar.expense") : "Expense"}</span>
+          <div className="h-2 w-2 rounded-full bg-[#FF5B5B]" />
+          <span className="text-xs text-[#6B7280] dark:text-gray-400">{mounted ? t("calendar.expense") : "Expense"}</span>
         </div>
       </div>
 
       {/* Selected Day Panel */}
       {selectedDate && (
-        <div className="mt-4 bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4">
+        <div className="mt-4 bg-white dark:bg-gray-900 rounded-2xl shadow-sm p-4 animate-slideDown">
           {/* Panel Header */}
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+            <h3 className="text-sm font-bold text-[#1A1A2E] dark:text-white">
               {new Date(selectedDate + "T00:00:00").toLocaleDateString("en-US", {
                 weekday: "long",
                 month: "long",
@@ -251,7 +251,7 @@ export function CalendarClient({ transactions }: CalendarClientProps) {
               onClick={() => setSelectedDate(null)}
               aria-label={mounted ? t("common.close") : "Close"}
               title={mounted ? t("common.close") : "Close"}
-              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              className="text-[#6B7280] dark:text-gray-400 hover:text-[#FF5B5B] dark:hover:text-[#FF5B5B] hover:bg-[#FFF0F0] dark:hover:bg-rose-900/20 w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-200"
             >
               <X className="h-4 w-4" />
             </button>
@@ -259,7 +259,7 @@ export function CalendarClient({ transactions }: CalendarClientProps) {
 
           {/* No Transactions */}
           {!selectedDayData && (
-            <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-4">
+            <p className="text-sm text-[#6B7280] dark:text-gray-500 text-center py-6">
               {mounted ? t("calendar.noTransactions") : "No transactions on this day"}
             </p>
           )}
@@ -270,17 +270,17 @@ export function CalendarClient({ transactions }: CalendarClientProps) {
               {/* Summary Row */}
               <div className="flex gap-3 mb-4">
                 {selectedDayData.hasIncome && (
-                  <div className="flex-1 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-3">
-                    <p className="text-xs text-emerald-600 dark:text-emerald-400 mb-0.5">{mounted ? t("calendar.income") : "Income"}</p>
-                    <p className="text-sm font-bold text-emerald-700 dark:text-emerald-400">
+                  <div className="flex-1 bg-[#E6FAF4] dark:bg-emerald-900/20 rounded-xl p-3">
+                    <p className="text-[10px] text-[#00C48C] font-semibold uppercase tracking-wide mb-0.5">{mounted ? t("calendar.income") : "Income"}</p>
+                    <p className="text-sm font-extrabold text-[#00C48C]">
                       +{formatCurrency(selectedDayData.totalIncome)}
                     </p>
                   </div>
                 )}
                 {selectedDayData.hasExpense && (
-                  <div className="flex-1 bg-rose-50 dark:bg-rose-900/20 rounded-xl p-3">
-                    <p className="text-xs text-rose-500 dark:text-rose-400 mb-0.5">{mounted ? t("calendar.expense") : "Expense"}</p>
-                    <p className="text-sm font-bold text-rose-600 dark:text-rose-400">
+                  <div className="flex-1 bg-[#FFF0F0] dark:bg-rose-900/20 rounded-xl p-3">
+                    <p className="text-[10px] text-[#FF5B5B] font-semibold uppercase tracking-wide mb-0.5">{mounted ? t("calendar.expense") : "Expense"}</p>
+                    <p className="text-sm font-extrabold text-[#FF5B5B]">
                       -{formatCurrency(selectedDayData.totalExpense)}
                     </p>
                   </div>
@@ -296,7 +296,7 @@ export function CalendarClient({ transactions }: CalendarClientProps) {
                   return (
                     <div
                       key={tx.id}
-                      className="flex items-center justify-between py-2 border-b border-gray-50 dark:border-gray-800 last:border-0"
+                      className="flex items-center justify-between py-2.5 border-b border-gray-50 dark:border-gray-800 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-xl px-1 -mx-1 transition-colors duration-150"
                     >
                       <div className="flex items-center gap-3">
                         <div
@@ -312,17 +312,17 @@ export function CalendarClient({ transactions }: CalendarClientProps) {
                           )}
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">{name}</p>
+                          <p className="text-sm font-semibold text-[#1A1A2E] dark:text-white">{name}</p>
                           {tx.notes && (
-                            <p className="text-xs text-gray-400 dark:text-gray-500">{tx.notes}</p>
+                            <p className="text-xs text-[#6B7280] dark:text-gray-400">{tx.notes}</p>
                           )}
                         </div>
                       </div>
                       <span
                         className={`text-sm font-semibold ${
                           tx.type === "income"
-                            ? "text-emerald-600 dark:text-emerald-400"
-                            : "text-rose-500 dark:text-rose-400"
+                            ? "text-[#00C48C]"
+                            : "text-[#FF5B5B]"
                         }`}
                       >
                         {tx.type === "income" ? "+" : "-"}
