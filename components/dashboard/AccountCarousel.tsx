@@ -7,7 +7,7 @@ interface AccountCarouselProps {
   mounted: boolean;
   t: (key: string) => string;
   baseCurrency: string;
-  convert: (amount: number, from: string, to: string) => number;
+  convert: (amount: number, from: string) => number;
   formatCurrency: (amount: number, currency: string) => string;
 }
 
@@ -40,8 +40,7 @@ export function AccountCarousel({
             ACCOUNT_COLORS[index % ACCOUNT_COLORS.length];
           const convertedBalance = convert(
             account.balance,
-            account.currency,
-            baseCurrency
+            account.currency
           );
 
           return (

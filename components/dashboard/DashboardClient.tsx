@@ -282,33 +282,55 @@ export function DashboardClient({
       {/* Budget Warning */}
       {budgetWarningCount > 0 && (
         <div className="
-          mx-4 mt-4
-          bg-[#FFF8E6] dark:bg-yellow-900/20
-          border border-[#FFB800]/30
-          rounded-2xl p-4
-          flex items-center gap-3
-          animate-slideUp
+          mx-4 mt-4 animate-slideUp
         ">
-          <span className="text-xl shrink-0">⚠️</span>
-          <div className="flex-1">
-            <p className="
-              text-sm font-semibold
-              text-[#FFB800]
-            ">
-              {budgetWarningCount}{" "}
-              {mounted
-                ? t("budget.warningCategories")
-                : "budget(s) over limit"}
-            </p>
-            <Link
-              href="/budget"
-              className="
-                text-xs text-[#FFB800]
-                hover:underline font-medium
-              "
-            >
-              {mounted ? t("budget.viewBudgets") : "View budgets"} →
-            </Link>
+          <div className="
+            bg-[#FFF8E6] dark:bg-yellow-900/20
+            border border-[#FFB800]/30
+            rounded-2xl p-4
+          ">
+            <div className="flex items-center gap-3">
+              <div className="
+                w-10 h-10 rounded-xl shrink-0
+                bg-[#FFB800]/20
+                flex items-center justify-center
+                text-xl
+              ">
+                ⚠️
+              </div>
+              <div className="flex-1">
+                <p className="
+                  text-sm font-bold
+                  text-[#FFB800]
+                ">
+                  {budgetWarningCount}{" "}
+                  {mounted
+                    ? t("budget.warningCategories")
+                    : "budget(s) need attention"}
+                </p>
+                <p className="
+                  text-xs text-[#6B7280]
+                  dark:text-gray-400 mt-0.5
+                ">
+                  {mounted
+                    ? t("budget.warningDesc")
+                    : "Some categories are close to or over limit"}
+                </p>
+              </div>
+              <Link
+                href="/budget"
+                className="
+                  shrink-0 text-xs font-bold
+                  text-[#FFB800]
+                  bg-[#FFB800]/10
+                  px-3 py-1.5 rounded-full
+                  hover:bg-[#FFB800]/20
+                  transition-colors duration-150
+                "
+              >
+                View →
+              </Link>
+            </div>
           </div>
         </div>
       )}

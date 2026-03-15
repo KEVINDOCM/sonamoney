@@ -57,6 +57,11 @@ const SECONDARY_NAV_ITEMS = [
     icon: Wallet,
   },
   {
+    label: "Goals",
+    href: "/goals",
+    icon: Target,
+  },
+  {
     label: "Analytics",
     href: "/analytics",
     icon: BarChart2,
@@ -92,6 +97,7 @@ export function Sidebar({ budgetWarningCount, children }: SidebarProps) {
       "/calendar": "calendar",
       "/budget": "budget",
       "/accounts": "accounts",
+      "/goals": "goals",
       "/analytics": "analytics",
       "/categories": "categories",
       "/settings": "settings",
