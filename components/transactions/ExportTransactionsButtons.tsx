@@ -1,9 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import * as XLSX from "xlsx"
 import type { Transaction } from "@/types"
-import { exportTransactionsToExcel } from "@/lib/utils/exportExcel"
 import { useTranslation } from "@/lib/i18n/useTranslation"
 import { useUserData } from "@/lib/contexts/UserDataContext"
 
@@ -170,11 +168,15 @@ export function ExportTransactionsButtons({
     }
   }
 
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
     if (items.length === 0) return
     setIsExcelLoading(true)
 
     try {
+      // Lazy load — only when user clicks
+      const { exportTransactionsToExcel } =
+        await import("@/lib/utils/exportExcel")
+
       const exportData = items.map((t) => ({
         date: t.date,
         category:

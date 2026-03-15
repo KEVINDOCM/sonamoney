@@ -79,6 +79,22 @@ const securityHeaders = [
 
 module.exports = withPWA({
   turbopack: {},
+
+  // Compress responses
+  compress: true,
+
+  // Image optimization
+  images: {
+    formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 60,
+  },
+
+  // Experimental optimizations
+  experimental: {
+    optimizeCss: true,
+    scrollRestoration: true,
+  },
+
   async headers() {
     return [
       {
