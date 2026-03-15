@@ -6,7 +6,10 @@
 import { NextRequest } from "next/server"
 import { getAuthenticatedClient } from "@/lib/utils/auth"
 import { buildAIContext } from "@/lib/services/contextBuilder"
-import { checkRateLimit } from "@/lib/services/rateLimit"
+import {
+  checkRateLimit,
+  checkPerMinuteLimit,
+} from "@/lib/services/rateLimit"
 import { generateAIResponse } from "@/lib/services/gemini"
 import {
   estimateRequestTokens,
@@ -153,11 +156,30 @@ export async function POST(request: NextRequest): Promise<Response> {
 
   const sanitizedHistory = sanitizeHistory(parsed.history)
 
-  const rateLimit = await checkRateLimit(supabase, user.id)
+  // Check hourly rate limit
+  const rateLimit = await checkRateLimit(
+    supabase,
+    user.id
+  )
   if (!rateLimit.allowed) {
-    const minutesRemaining = Math.ceil((rateLimit.resetAt.getTime() - Date.now()) / (60 * 1000))
+    const minutesRemaining = Math.ceil(
+      (rateLimit.resetAt.getTime() - Date.now()) /
+      (60 * 1000)
+    )
     return createErrorResponse(
-      `Rate limit exceeded. Try again in ${minutesRemaining} minutes.`,
+      `Batas chat tercapai. Coba lagi dalam ${minutesRemaining} menit.`,
+      429
+    )
+  }
+
+  // Check per-minute rate limit
+  const withinMinuteLimit = await checkPerMinuteLimit(
+    supabase,
+    user.id
+  )
+  if (!withinMinuteLimit) {
+    return createErrorResponse(
+      "Terlalu cepat! Tunggu sebentar sebelum kirim pesan lagi.",
       429
     )
   }

@@ -1,12 +1,15 @@
 // ============================================
 // AI RATE LIMITER
-// 20 requests per rolling hour per user
+// 100 requests per rolling hour per user
+// 4 requests per minute per user
 // Storage: Supabase ai_rate_limits table
 // ============================================
 
 import {
   AI_MAX_REQUESTS_PER_HOUR,
+  AI_MAX_REQUESTS_PER_MINUTE,
   AI_RATE_LIMIT_WINDOW_MS,
+  AI_RATE_LIMIT_MINUTE_MS,
 } from "@/lib/constants/ai"
 import type { RateLimitStatus } from "@/lib/types/ai"
 
@@ -137,5 +140,38 @@ function buildStatus(
     allowed,
     remaining,
     resetAt,
+  }
+}
+
+export async function checkPerMinuteLimit(
+  supabase: SupabaseAuthClient,
+  userId: string
+): Promise<boolean> {
+  try {
+    const oneMinuteAgo = new Date(
+      Date.now() - AI_RATE_LIMIT_MINUTE_MS
+    ).toISOString()
+
+    const { data } = await supabase
+      .from("ai_rate_limits")
+      .select("request_count, window_start")
+      .eq("user_id", userId)
+      .single()
+
+    if (!data) return true
+
+    const record = data as RateLimitRow
+    const windowStart = new Date(record.window_start)
+    const isWithinMinute =
+      windowStart > new Date(Date.now() - AI_RATE_LIMIT_MINUTE_MS)
+
+    if (!isWithinMinute) return true
+
+    // If last window was within 1 min,
+    // check if requests in last minute
+    // exceed per-minute limit
+    return record.request_count < AI_MAX_REQUESTS_PER_MINUTE
+  } catch {
+    return true // fail open
   }
 }

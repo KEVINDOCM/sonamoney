@@ -70,6 +70,11 @@ const securityHeaders = [
       "upgrade-insecure-requests",
     ].join("; "),
   },
+  // Rate limit hint for clients
+  {
+    key: "X-RateLimit-Limit",
+    value: "60",
+  },
 ]
 
 module.exports = withPWA({
@@ -80,6 +85,20 @@ module.exports = withPWA({
         // Apply to all routes
         source: "/(.*)",
         headers: securityHeaders,
+      },
+      {
+        source: "/api/(.*)",
+        headers: [
+          ...securityHeaders,
+          {
+            key: "X-RateLimit-Limit",
+            value: "60",
+          },
+          {
+            key: "Cache-Control",
+            value: "no-store, no-cache, must-revalidate",
+          },
+        ],
       },
     ]
   },
