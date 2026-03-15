@@ -190,10 +190,20 @@ export function AccountsClient({ accounts, transfers }: AccountsClientProps) {
   async function handleTransfer() {
     if (!transferFrom || !transferTo || !transferAmount) return;
     setIsTransferring(true);
+    const fromAcc = localAccounts.find(
+      (a) => a.id === transferFrom
+    )
+    const toAcc = localAccounts.find(
+      (a) => a.id === transferTo
+    )
     const result = await createTransfer({
       from_account_id: transferFrom,
       to_account_id: transferTo,
       amount: Number(transferAmount),
+      from_currency: fromAcc?.currency ?? "IDR",
+      to_currency: toAcc?.currency ?? "IDR",
+      exchange_rate: 1,
+      converted_amount: Number(transferAmount),
       date: transferDate,
       notes: transferNotes || undefined,
     });
@@ -350,7 +360,12 @@ export function AccountsClient({ accounts, transfers }: AccountsClientProps) {
                 <option value="">{mounted ? t("accounts.selectAccount") : "Select account"}</option>
                 {localAccounts.map(acc => (
                   <option key={acc.id} value={acc.id}>
-                    {acc.icon} {acc.name} · {formatCurrency(acc.balance)}
+                    {acc.icon} {acc.name} —{" "}
+                    {new Intl.NumberFormat("id-ID", {
+                      style: "currency",
+                      currency: acc.currency,
+                      maximumFractionDigits: 0,
+                    }).format(acc.balance)}
                   </option>
                 ))}
               </select>
@@ -377,7 +392,12 @@ export function AccountsClient({ accounts, transfers }: AccountsClientProps) {
                   .filter(acc => acc.id !== transferFrom)
                   .map(acc => (
                     <option key={acc.id} value={acc.id}>
-                      {acc.icon} {acc.name} · {formatCurrency(acc.balance)}
+                      {acc.icon} {acc.name} —{" "}
+                      {new Intl.NumberFormat("id-ID", {
+                        style: "currency",
+                        currency: acc.currency,
+                        maximumFractionDigits: 0,
+                      }).format(acc.balance)}
                     </option>
                   ))}
               </select>
@@ -393,24 +413,60 @@ export function AccountsClient({ accounts, transfers }: AccountsClientProps) {
                 placeholder="0"
                 className="w-full h-11 border border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-xl px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#00B9A7]/30 focus:border-[#00B9A7] transition-all"
               />
+              {/* Insufficient balance warning */}
               {(() => {
-                const fromAccount = localAccounts.find(acc => acc.id === transferFrom)
-                const toAccount = localAccounts.find(acc => acc.id === transferTo)
-                if (fromAccount?.currency !== toAccount?.currency && transferAmount) {
-                  return (
-                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                      ≈ {formatCurrency(
-                        convert(
-                          parseFloat(transferAmount),
-                          fromAccount?.currency ?? "USD",
-                          toAccount?.currency ?? "USD"
-                        ),
-                        toAccount?.currency ?? "USD"
-                      )}
+                const fromAcc = localAccounts.find(
+                  (a) => a.id === transferFrom
+                )
+                const amount = Number(transferAmount)
+                const isInsufficient =
+                  fromAcc !== undefined && amount > 0 &&
+                  amount > fromAcc.balance
+
+                if (!isInsufficient) return null
+
+                return (
+                  <p className="
+                    text-xs text-[#FF5B5B]
+                    flex items-center gap-1 mt-1
+                  ">
+                    ⚠️ Insufficient balance.
+                    Available:{" "}
+                    {new Intl.NumberFormat("id-ID", {
+                      style: "currency",
+                      currency: fromAcc?.currency ?? "IDR",
+                      maximumFractionDigits: 0,
+                    }).format(fromAcc?.balance ?? 0)}
+                  </p>
+                )
+              })()}
+              {/* Cross-currency info */}
+              {(() => {
+                const fromAcc = localAccounts.find(
+                  (a) => a.id === transferFrom
+                )
+                const toAcc = localAccounts.find(
+                  (a) => a.id === transferTo
+                )
+                const isCross =
+                  fromAcc !== undefined && toAcc !== undefined &&
+                  fromAcc.currency !== toAcc.currency
+
+                if (!isCross || !transferAmount) return null
+
+                return (
+                  <div className="
+                    bg-[#E6F7F6] dark:bg-[#00B9A7]/10
+                    rounded-xl p-3
+                    flex items-center gap-2
+                  ">
+                    <span className="text-sm">💱</span>
+                    <p className="text-xs text-[#00B9A7] font-medium">
+                      Cross-currency transfer:{" "}
+                      {fromAcc?.currency} → {toAcc?.currency}
                     </p>
-                  )
-                }
-                return null
+                  </div>
+                )
               })()}
             </div>
 
@@ -450,7 +506,23 @@ export function AccountsClient({ accounts, transfers }: AccountsClientProps) {
               </button>
               <button
                 onClick={handleTransfer}
-                disabled={isTransferring || !transferFrom || !transferTo || !transferAmount}
+                disabled={
+                  isTransferring ||
+                  !transferFrom ||
+                  !transferTo ||
+                  !transferAmount ||
+                  (() => {
+                    const fromAcc = localAccounts.find(
+                      (a) => a.id === transferFrom
+                    )
+                    const amount = Number(transferAmount)
+                    return (
+                      fromAcc !== undefined &&
+                      amount > 0 &&
+                      amount > fromAcc.balance
+                    )
+                  })()
+                }
                 className="flex-1 h-11 bg-[#00B9A7] hover:bg-[#0099A0] disabled:opacity-50 text-white text-sm font-semibold rounded-full active:scale-95 transition-all duration-200"
               >
                 {isTransferring ? (mounted ? t("accounts.processing") : "Processing...") : (mounted ? t("accounts.transfer") : "Transfer")}

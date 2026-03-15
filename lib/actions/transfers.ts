@@ -58,7 +58,18 @@ export async function createTransfer(data: CreateTransferPayload): Promise<Actio
   // Insert transfer record
   const { error: insertError } = await supabase
     .from("transfers")
-    .insert({ ...data, user_id: user.id });
+    .insert({
+      from_account_id: data.from_account_id,
+      to_account_id: data.to_account_id,
+      amount: data.amount,
+      from_currency: data.from_currency ?? "IDR",
+      to_currency: data.to_currency ?? "IDR",
+      exchange_rate: data.exchange_rate ?? 1,
+      converted_amount: data.converted_amount ?? data.amount,
+      date: data.date,
+      notes: data.notes ?? null,
+      user_id: user.id,
+    });
 
   if (insertError) return { success: false, error: insertError.message };
 

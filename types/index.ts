@@ -57,6 +57,10 @@ export interface Transfer {
   from_account_id: string;
   to_account_id: string;
   amount: number;
+  from_currency?: string | null;
+  to_currency?: string | null;
+  exchange_rate?: number | null;
+  converted_amount?: number | null;
   date: string;
   notes: string | null;
   created_at: string;

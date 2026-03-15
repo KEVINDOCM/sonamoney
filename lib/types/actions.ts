@@ -57,6 +57,10 @@ export interface CreateTransferPayload {
   from_account_id: string
   to_account_id: string
   amount: number
+  from_currency?: string
+  to_currency?: string
+  exchange_rate?: number
+  converted_amount?: number
   date: string
   notes?: string
 }
