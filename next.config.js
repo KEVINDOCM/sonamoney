@@ -98,6 +98,23 @@ module.exports = withPWA({
             key: "Cache-Control",
             value: "no-store, no-cache, must-revalidate",
           },
+          {
+            key: "Access-Control-Allow-Origin",
+            value: process.env.NEXT_PUBLIC_SITE_URL
+              ?? "https://sona-money.vercel.app",
+          },
+          {
+            key: "Access-Control-Allow-Methods",
+            value: "GET, POST, PUT, DELETE, OPTIONS",
+          },
+          {
+            key: "Access-Control-Allow-Headers",
+            value: "Content-Type, Authorization",
+          },
+          {
+            key: "Access-Control-Max-Age",
+            value: "86400",
+          },
         ],
       },
     ]
