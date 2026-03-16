@@ -133,7 +133,7 @@ export default function HomePage() {
           __html: JSON.stringify(jsonLd),
         }}
       />
-      <div className="min-h-screen bg-white text-[#1A1A2E]">
+      <div className="min-h-screen bg-white text-[#1A1A2E] pb-16 md:pb-0">
 
       {/* ================================
           NAVBAR
@@ -263,16 +263,19 @@ export default function HomePage() {
                 Log in
               </Link>
             </div>
+            <p className="text-xs text-[#9CA3AF] text-center lg:text-left">
+              Takes 60 seconds · No credit card · Cancel anytime
+            </p>
 
             {/* Trust badges */}
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-2">
               {[
-                { icon: "✅", text: "Free forever" },
-                { icon: "🔒", text: "Secure & private" },
-                { icon: "📱", text: "Works on mobile" },
+                { icon: CheckCircle, text: "Free forever" },
+                { icon: Shield, text: "Secure & private" },
+                { icon: Smartphone, text: "Works on mobile" },
               ].map((badge) => (
                 <div key={badge.text} className="flex items-center gap-1.5 text-xs text-[#6B7280] font-medium">
-                  <span>{badge.icon}</span>
+                  <badge.icon className="w-3.5 h-3.5 text-[#00B9A7]" />
                   <span>{badge.text}</span>
                 </div>
               ))}
@@ -374,8 +377,8 @@ export default function HomePage() {
       {/* ================================
           STATS STRIP
           ================================ */}
-      <section className="bg-[#F5F7FA] border-y border-gray-100 py-8 px-4">
-        <div className="max-w-4xl mx-auto grid grid-cols-3 gap-4 text-center">
+      <section className="bg-[#0D1F1E] border-y border-gray-800 py-8 px-4">
+        <div className="max-w-4xl mx-auto grid grid-cols-3 gap-4 text-center divide-x divide-white/10">
           {[
             { value: "100%", label: "Free forever" },
             { value: "256-bit", label: "Encryption" },
@@ -383,7 +386,7 @@ export default function HomePage() {
           ].map((stat) => (
             <div key={stat.label}>
               <p className="text-2xl lg:text-3xl font-extrabold text-[#00B9A7]">{stat.value}</p>
-              <p className="text-xs text-[#6B7280] font-medium mt-0.5">{stat.label}</p>
+              <p className="text-xs text-gray-400 font-medium mt-0.5">{stat.label}</p>
             </div>
           ))}
         </div>
@@ -420,6 +423,39 @@ export default function HomePage() {
                 <h3 className="text-base font-bold text-[#1A1A2E] mb-1">{feature.title}</h3>
                 <p className="text-sm text-[#6B7280] leading-relaxed">{feature.desc}</p>
               </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ================================
+          TRUST SIGNAL BAR
+          ================================ */}
+      <section className="py-10 px-4 bg-[#F8FAFB] border-y border-gray-100">
+        <div className="max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
+          {[
+            {
+              icon: Shield,
+              title: "Bank-level encryption",
+              desc: "256-bit AES encryption. Your data is never sold or shared.",
+            },
+            {
+              icon: CheckCircle,
+              title: "Free forever",
+              desc: "No hidden fees, no premium tiers. All features, always free.",
+            },
+            {
+              icon: Smartphone,
+              title: "Works everywhere",
+              desc: "Fully responsive web app. Install as PWA on any device.",
+            },
+          ].map((item) => (
+            <div key={item.title} className="flex flex-col items-center gap-3 p-6">
+              <div className="w-12 h-12 rounded-2xl bg-[#E6F7F5] flex items-center justify-center">
+                <item.icon className="w-5 h-5 text-[#007A6E]" />
+              </div>
+              <p className="text-sm font-bold text-[#0D1F1E]">{item.title}</p>
+              <p className="text-xs text-gray-500 leading-relaxed max-w-[200px]">{item.desc}</p>
             </div>
           ))}
         </div>
@@ -504,7 +540,7 @@ export default function HomePage() {
           ================================ */}
       <footer className="bg-[#1A1A2E] text-white py-12 px-4 lg:px-6">
         <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pb-8 border-b border-white/10">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-8 border-b border-white/10">
             {/* Brand */}
             <div className="space-y-4">
               <div className="flex items-center gap-2">
@@ -559,6 +595,27 @@ export default function HomePage() {
                 ))}
               </ul>
             </div>
+
+            {/* Legal links */}
+            <div>
+              <p className="text-xs font-bold text-white/40 uppercase tracking-wider mb-4">Legal</p>
+              <ul className="space-y-3">
+                {[
+                  { label: "Privacy Policy", href: "/privacy" },
+                  { label: "Terms of Service", href: "/terms" },
+                  { label: "Security", href: "/security" },
+                ].map((link) => (
+                  <li key={link.label}>
+                    <Link
+                      href={link.href}
+                      className="text-sm text-white/60 hover:text-white transition-colors duration-150"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
 
           {/* Bottom bar */}
@@ -571,6 +628,17 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
+    </div>
+
+    {/* Sticky mobile CTA bar */}
+    <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-white border-t border-gray-100 shadow-lg px-4 py-3">
+      <Link
+        href="/signup"
+        className="flex items-center justify-center gap-2 h-12 w-full bg-[#00B9A7] text-white rounded-full font-semibold text-sm hover:bg-[#007A6E] active:scale-95 transition-all duration-200 shadow-md shadow-[#00B9A7]/25"
+      >
+        Get started free
+        <ArrowRight className="w-4 h-4" />
+      </Link>
     </div>
   </>
   )
