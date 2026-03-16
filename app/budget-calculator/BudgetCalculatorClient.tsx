@@ -4,6 +4,25 @@ import Link from "next/link"
 import { useState } from "react"
 
 export default function BudgetCalculatorClient() {
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: "https://sona-money.vercel.app",
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Budget Calculator",
+        item: "https://sona-money.vercel.app/budget-calculator",
+      },
+    ],
+  }
+
   const [income, setIncome] = useState<string>("")
   const [currency, setCurrency] = useState<string>("USD")
 
@@ -21,6 +40,13 @@ export default function BudgetCalculatorClient() {
   }
 
   return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbLd),
+        }}
+      />
     <div className="min-h-screen bg-[#F5F7FA]">
       {/* Hero Section */}
       <section className="px-4 py-16 lg:py-20 fade-in-up">
@@ -345,5 +371,6 @@ export default function BudgetCalculatorClient() {
         </div>
       </section>
     </div>
+    </>
   )
 }

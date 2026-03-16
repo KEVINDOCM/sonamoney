@@ -31,7 +31,33 @@ export const metadata: Metadata = {
 }
 
 export default function IndonesiaPage() {
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: "https://sona-money.vercel.app",
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Indonesia",
+        item: "https://sona-money.vercel.app/id",
+      },
+    ],
+  }
+
   return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbLd),
+        }}
+      />
     <div className="min-h-screen bg-[#F5F7FA]">
       {/* Hero Section */}
       <section className="px-4 py-16 lg:py-24 fade-in-up">
@@ -327,5 +353,6 @@ export default function IndonesiaPage() {
         </div>
       </section>
     </div>
+    </>
   )
 }
