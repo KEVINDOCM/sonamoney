@@ -7,7 +7,7 @@ import { TranslationProvider } from "@/lib/contexts/TranslationContext";
 
 export const metadata: Metadata = {
   metadataBase: new URL(
-    "https://sonamoney.vercel.app"
+    "https://sona-money.vercel.app"
   ),
   title: {
     default: "SonaMoney — Personal Finance Tracker",
@@ -49,7 +49,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "id_ID",
     alternateLocale: ["en_US"],
-    url: "https://sonamoney.vercel.app",
+    url: "https://sona-money.vercel.app",
     siteName: "SonaMoney",
     title: "SonaMoney — Personal Finance Tracker",
     description:
@@ -57,7 +57,7 @@ export const metadata: Metadata = {
       "Free personal finance app with analytics and AI.",
     images: [
       {
-        url: "/og-image.svg",
+        url: "/og-image.png",
         width: 1200,
         height: 630,
         alt: "SonaMoney — Personal Finance Tracker",
@@ -70,8 +70,16 @@ export const metadata: Metadata = {
     description:
       "Free personal finance tracker. " +
       "Track income, expenses, budgets, and insights.",
-    images: ["/og-image.svg"],
+    images: ["/og-image.png"],
   },
+  alternates: {
+    canonical: "https://sona-money.vercel.app",
+    languages: {
+      "en-US": "https://sona-money.vercel.app",
+      "id-ID": "https://sona-money.vercel.app",
+    },
+  },
+  category: "finance",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -109,6 +117,25 @@ export default function RootLayout({ children }: RootLayoutProps) {
                 document.body.classList.add('hydrated');
               });
             `,
+          }}
+        />
+
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              name: "SonaMoney",
+              url: "https://sona-money.vercel.app",
+              logo: "https://sona-money.vercel.app/icon-512.png",
+              sameAs: [],
+              contactPoint: {
+                "@type": "ContactPoint",
+                contactType: "customer support",
+                availableLanguage: ["English", "Indonesian"],
+              },
+            }),
           }}
         />
 
