@@ -230,7 +230,7 @@ export default function HomePage() {
       <section className="pt-24 pb-16 lg:pt-32 lg:pb-24 px-4 lg:px-6 max-w-6xl mx-auto">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Left — Text */}
-          <div className="flex flex-col items-center text-center lg:items-start lg:text-left space-y-6">
+          <div className="flex flex-col items-start text-left lg:items-start lg:text-left space-y-6">
             {/* Badge */}
             <div className="inline-flex items-center gap-2 bg-[#E6F7F6] rounded-full px-4 py-1.5">
               <span className="h-2 w-2 rounded-full bg-[#00B9A7] animate-pulse"/>
@@ -243,12 +243,12 @@ export default function HomePage() {
             </h1>
 
             {/* Description */}
-            <p className="text-base text-[#6B7280] max-w-md mx-auto lg:mx-0 leading-relaxed">
+            <p className="text-base text-[#6B7280] max-w-md lg:mx-0 leading-relaxed">
               Track income, expenses, budgets, and insights in one clean dashboard. No spreadsheets, no guessing — just a clear view of your money.
             </p>
 
             {/* CTA buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 w-full max-w-xs mx-auto lg:mx-0 lg:max-w-none">
+            <div className="flex flex-col sm:flex-row gap-3 w-full lg:max-w-none">
               <Link
                 href="/signup"
                 className="flex items-center justify-center gap-2 h-12 px-8 bg-[#00B9A7] text-white rounded-full font-semibold text-sm hover:bg-[#0099A0] active:scale-95 transition-all duration-200 shadow-md shadow-[#00B9A7]/25"
@@ -263,12 +263,12 @@ export default function HomePage() {
                 Log in
               </Link>
             </div>
-            <p className="text-xs text-[#9CA3AF] text-center lg:text-left">
+            <p className="text-xs text-[#9CA3AF]">
               Takes 60 seconds · No credit card · Cancel anytime
             </p>
 
             {/* Trust badges */}
-            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-2">
+            <div className="flex flex-wrap items-center justify-start gap-4 pt-2">
               {[
                 { icon: CheckCircle, text: "Free forever" },
                 { icon: Shield, text: "Secure & private" },
