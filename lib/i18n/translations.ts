@@ -290,6 +290,7 @@ export const translations = {
     },
     auth: {
       login: "Log in",
+      welcomeBack: "Welcome back",
       signup: "Sign up",
       logout: "Log out",
       email: "Email",
@@ -705,6 +706,7 @@ export const translations = {
     },
     auth: {
       login: "Masuk",
+      welcomeBack: "Selamat datang kembali",
       signup: "Daftar",
       logout: "Keluar",
       email: "Email",

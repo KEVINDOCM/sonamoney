@@ -13,6 +13,14 @@ export const metadata: Metadata = {
     "budget rule calculator",
     "free budget tool",
   ],
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+    },
+  },
   openGraph: {
     title: "50/30/20 Rule Calculator | Free Budget Planner",
     description:
