@@ -23,7 +23,7 @@ export default function BudgetCalculatorClient() {
   return (
     <div className="min-h-screen bg-[#F5F7FA]">
       {/* Hero Section */}
-      <section className="px-4 py-16 lg:py-20">
+      <section className="px-4 py-16 lg:py-20 fade-in-up">
         <div className="max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#00B9A7]/10 rounded-full mb-6">
             <span className="text-sm font-medium text-[#00B9A7]">
@@ -47,8 +47,8 @@ export default function BudgetCalculatorClient() {
           <h2 className="text-3xl font-bold text-[#1A1A2E] text-center mb-12">
             What Is the 50/30/20 Rule?
           </h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center p-6">
+          <div className="grid md:grid-cols-3 gap-8 stagger-children">
+            <div className="text-center p-6 hover-lift stagger-1">
               <div className="w-20 h-20 bg-[#00B9A7]/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-3xl font-bold text-[#00B9A7]">50%</span>
               </div>
@@ -57,7 +57,7 @@ export default function BudgetCalculatorClient() {
                 Rent, groceries, utilities, minimum debt payments, transportation
               </p>
             </div>
-            <div className="text-center p-6">
+            <div className="text-center p-6 hover-lift stagger-2">
               <div className="w-20 h-20 bg-[#FFB800]/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-3xl font-bold text-[#FFB800]">30%</span>
               </div>
@@ -66,7 +66,7 @@ export default function BudgetCalculatorClient() {
                 Dining out, entertainment, hobbies, subscriptions, shopping
               </p>
             </div>
-            <div className="text-center p-6">
+            <div className="text-center p-6 hover-lift stagger-3">
               <div className="w-20 h-20 bg-[#00C48C]/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-3xl font-bold text-[#00C48C]">20%</span>
               </div>

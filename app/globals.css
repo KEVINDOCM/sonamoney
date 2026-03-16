@@ -316,6 +316,92 @@ body {
   animation: slideUp 0.3s ease-out 0.25s forwards;
 }
 
+/* SEO-Safe Landing Page Animations */
+@keyframes gentlePulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.05); opacity: 0.9; }
+}
+
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Hover lift effect for cards - GPU accelerated */
+.hover-lift {
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+  will-change: transform;
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px -8px rgba(0, 185, 167, 0.15);
+}
+
+/* Gentle pulse for badges/icons */
+.gentle-pulse {
+  animation: gentlePulse 2s ease-in-out infinite;
+}
+
+/* Count up animation for numbers */
+.count-up {
+  animation: countUp 0.4s ease-out forwards;
+}
+
+/* Fade in up for sections */
+.fade-in-up {
+  opacity: 0;
+  animation: fadeInUp 0.5s ease-out forwards;
+}
+
+/* Stagger delays for grid items */
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.10s; }
+.stagger-3 { animation-delay: 0.15s; }
+.stagger-4 { animation-delay: 0.20s; }
+.stagger-5 { animation-delay: 0.25s; }
+.stagger-6 { animation-delay: 0.30s; }
+
+/* Button press feedback */
+.btn-press:active {
+  transform: scale(0.98);
+  transition: transform 0.1s ease-out;
+}
+
+/* Focus ring animation */
+.focus-ring:focus-visible {
+  outline: none;
+  ring: 2px;
+  ring-offset: 2px;
+  ring-color: #00B9A7;
+  transition: ring 0.15s ease-out;
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .hover-lift,
+  .gentle-pulse,
+  .count-up,
+  .fade-in-up,
+  .stagger-children > * {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+}
+
 /* Hide scrollbar but keep scroll */
 .scrollbar-hide {
   -ms-overflow-style: none;

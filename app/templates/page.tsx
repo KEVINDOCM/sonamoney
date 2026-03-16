@@ -113,7 +113,7 @@ export default function TemplatesPage() {
   return (
     <div className="min-h-screen bg-[#F5F7FA]">
       {/* Hero Section */}
-      <section className="px-4 py-16 lg:py-20">
+      <section className="px-4 py-16 lg:py-20 fade-in-up">
         <div className="max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#00B9A7]/10 rounded-full mb-6">
             <span className="text-sm font-medium text-[#00B9A7]">
@@ -139,7 +139,7 @@ export default function TemplatesPage() {
       </section>
 
       {/* Section 1: Monthly Budget Template */}
-      <section className="px-4 py-16 bg-white">
+      <section className="px-4 py-16 bg-white fade-in-up">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-3xl font-bold text-[#1A1A2E] text-center mb-12">
             Monthly Budget Template (Excel + Google Sheets)
@@ -399,11 +399,11 @@ export default function TemplatesPage() {
           <h2 className="text-3xl font-bold text-[#1A1A2E] text-center mb-12">
             Get All Templates + Free Expense Tracker App
           </h2>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-12 stagger-children">
             {templates.map((template, index) => (
               <div
                 key={index}
-                className="p-4 bg-[#F5F7FA] rounded-xl hover:bg-[#E6F7F6] transition-colors"
+                className={`p-4 bg-[#F5F7FA] rounded-xl hover-lift stagger-${Math.min(index + 1, 6)}`}
               >
                 <div className="flex items-start justify-between mb-2">
                   <span className="text-2xl">{template.icon}</span>
@@ -441,7 +441,7 @@ export default function TemplatesPage() {
             </p>
             <Link
               href="/signup"
-              className="inline-flex items-center justify-center px-8 py-4 bg-white text-[#00B9A7] font-bold rounded-full hover:bg-gray-100 transition-colors shadow-lg"
+              className="inline-flex items-center justify-center px-8 py-4 bg-white text-[#00B9A7] font-bold rounded-full hover:bg-gray-100 transition-colors shadow-lg btn-press"
             >
               Create Free Account →
             </Link>

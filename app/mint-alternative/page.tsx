@@ -26,9 +26,9 @@ export default function MintAlternativePage() {
   return (
     <div className="min-h-screen bg-[#F5F7FA]">
       {/* Hero Section */}
-      <section className="px-4 py-16 lg:py-24">
+      <section className="px-4 py-16 lg:py-24 fade-in-up">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#00B9A7]/10 rounded-full mb-6">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#00B9A7]/10 rounded-full mb-6 gentle-pulse">
             <span className="w-2 h-2 bg-[#00B9A7] rounded-full animate-pulse" />
             <span className="text-sm font-medium text-[#00B9A7]">
               200,000+ Mint Users Have Switched
@@ -65,8 +65,8 @@ export default function MintAlternativePage() {
           <h2 className="text-3xl lg:text-4xl font-bold text-[#1A1A2E] text-center mb-12">
             Why 200,000+ Mint Users Switched to SonaMoney
           </h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="p-6 rounded-2xl bg-[#F5F7FA]">
+          <div className="grid md:grid-cols-3 gap-8 stagger-children">
+            <div className="p-6 rounded-2xl bg-[#F5F7FA] hover-lift stagger-1">
               <div className="w-12 h-12 bg-[#00B9A7]/10 rounded-xl flex items-center justify-center mb-4">
                 <span className="text-2xl">🚫</span>
               </div>
@@ -76,7 +76,7 @@ export default function MintAlternativePage() {
                 isn&apos;t sold to advertisers.
               </p>
             </div>
-            <div className="p-6 rounded-2xl bg-[#F5F7FA]">
+            <div className="p-6 rounded-2xl bg-[#F5F7FA] hover-lift stagger-2">
               <div className="w-12 h-12 bg-[#00B9A7]/10 rounded-xl flex items-center justify-center mb-4">
                 <span className="text-2xl">🔒</span>
               </div>
@@ -86,7 +86,7 @@ export default function MintAlternativePage() {
                 financial data stays private.
               </p>
             </div>
-            <div className="p-6 rounded-2xl bg-[#F5F7FA]">
+            <div className="p-6 rounded-2xl bg-[#F5F7FA] hover-lift stagger-3">
               <div className="w-12 h-12 bg-[#00B9A7]/10 rounded-xl flex items-center justify-center mb-4">
                 <span className="text-2xl">⚡</span>
               </div>
@@ -291,11 +291,11 @@ export default function MintAlternativePage() {
             financial goals today. No credit card required.
           </p>
           <Link
-            href="/signup"
-            className="inline-flex items-center justify-center px-8 py-4 bg-white text-[#00B9A7] font-bold rounded-full hover:bg-gray-100 transition-colors shadow-lg"
-          >
-            Create Free Account →
-          </Link>
+              href="/signup"
+              className="inline-flex items-center justify-center px-8 py-4 bg-white text-[#00B9A7] font-bold rounded-full hover:bg-gray-100 transition-colors shadow-lg btn-press"
+            >
+              Create Free Account →
+            </Link>
           <p className="text-sm text-white/60 mt-4">
             Free forever. Upgrade to Premium for advanced analytics.
           </p>
