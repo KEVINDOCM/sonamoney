@@ -92,7 +92,6 @@ export const viewport: Viewport = {
   themeColor: "#00B9A7",
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
 }
 
 export interface RootLayoutProps {

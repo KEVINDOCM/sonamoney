@@ -57,7 +57,7 @@ const securityHeaders = [
       // Fonts: self
       "font-src 'self'",
       // API connections allowed
-      "connect-src 'self' https://*.supabase.co https://generativelanguage.googleapis.com https://api.pwnedpasswords.com https://open.er-api.com",
+      "connect-src 'self' https://*.supabase.co https://generativelanguage.googleapis.com https://api.pwnedpasswords.com https://open.er-api.com https://api.frankfurter.app",
       // Frames: none
       "frame-src 'none'",
       // Objects: none
