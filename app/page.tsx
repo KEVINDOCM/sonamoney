@@ -266,20 +266,21 @@ export default function HomePage() {
               Track income, expenses, budgets, and insights in one clean dashboard. No spreadsheets, no guessing — just a clear view of your money.
             </p>
 
-            {/* CTA buttons */}
+            {/* CTA buttons — Mobile-optimized */}
             <div className="flex flex-col sm:flex-row gap-3 w-full lg:max-w-none">
               <Link
                 href="/signup"
-                className="flex items-center justify-center gap-2 h-12 px-8 bg-[#00B9A7] text-white rounded-full font-semibold text-sm hover:bg-[#0099A0] active:scale-95 transition-all duration-200 shadow-md shadow-[#00B9A7]/25"
+                className="flex items-center justify-center gap-2 h-14 sm:h-12 px-8 bg-gradient-to-r from-[#00B9A7] to-[#00A896] text-white rounded-2xl sm:rounded-full font-bold text-base sm:text-sm sm:font-semibold hover:shadow-lg hover:shadow-[#00B9A7]/30 sm:hover:shadow-md sm:hover:shadow-[#00B9A7]/25 sm:hover:scale-100 hover:scale-[1.02] active:scale-[0.98] sm:active:scale-95 transition-all duration-200"
               >
                 Get started free
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-5 h-5 sm:w-4 sm:h-4" />
               </Link>
               <Link
                 href="/login"
-                className="flex items-center justify-center gap-2 h-12 px-8 border-2 border-gray-200 text-[#1A1A2E] rounded-full font-semibold text-sm hover:border-[#00B9A7] hover:text-[#00B9A7] active:scale-95 transition-all duration-200"
+                className="flex items-center justify-center h-12 text-[#6B7280] sm:border-2 sm:border-gray-200 sm:text-[#1A1A2E] sm:rounded-full sm:font-semibold sm:text-sm sm:px-8 font-medium text-sm hover:text-[#00B9A7] sm:hover:border-[#00B9A7] sm:hover:text-[#00B9A7] transition-colors duration-200"
               >
-                Log in
+                <span className="sm:hidden">Already have an account? <span className="text-[#00B9A7] ml-1">Log in</span></span>
+                <span className="hidden sm:inline">Log in</span>
               </Link>
             </div>
             <p className="text-xs text-[#9CA3AF]">
