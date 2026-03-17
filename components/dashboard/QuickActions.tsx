@@ -53,7 +53,7 @@ export function QuickActions({
       bg-white dark:bg-gray-900
       rounded-2xl shadow-sm
       mx-4 md:mx-0
-      -mt-5 relative z-10
+      -mt-5 relative
       px-4 py-4
     ">
       <div className="grid grid-cols-4 gap-2">
