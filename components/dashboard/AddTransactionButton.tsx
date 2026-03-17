@@ -8,21 +8,12 @@ import { createTransaction } from "@/lib/actions/transactions";
 import { useToast } from "@/lib/hooks/useToast";
 import { useUserData } from "@/lib/contexts/UserDataContext";
 
-interface AddTransactionButtonProps {
-  isOpen?: boolean;
-  onOpenChange?: (open: boolean) => void;
-}
-
-export function AddTransactionButton({ isOpen: controlledIsOpen, onOpenChange }: AddTransactionButtonProps = {}) {
+export function AddTransactionButton() {
   const { categories, accounts } = useUserData();
-  const [internalIsOpen, setInternalIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const { t } = useTranslation();
-
-  // Use controlled state if provided, otherwise internal state
-  const isOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
-  const setIsOpen = onOpenChange !== undefined ? onOpenChange : setInternalIsOpen;
 
   const handleSubmit = async (data: {
     date: string;

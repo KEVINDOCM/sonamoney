@@ -127,7 +127,6 @@ export function DashboardClient({
   );
 
   const hasAnyTransactions = summary.hasAnyTransactions;
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   return (
     <div className="
@@ -135,14 +134,13 @@ export function DashboardClient({
       min-h-screen pb-6
       overflow-x-hidden
     ">
-      {/* Modern Desktop Header - Compact Floating Card Style */}
+      {/* Modern Gradient Mesh Header - Mobile First Compact */}
       <div className="
         relative overflow-hidden
         px-4 pt-4 pb-6
-        md:pt-5 md:pb-5
-        md:rounded-2xl md:mx-4 md:mt-4
+        md:pt-6 md:pb-10
+        md:rounded-3xl md:mx-4 md:mt-4
         bg-gradient-to-br from-[#00B9A7] via-[#00A896] to-[#0099A0]
-        md:shadow-lg md:shadow-[#00B9A7]/20
       ">
         {/* Mesh gradient overlay */}
         <div className="absolute inset-0 opacity-30">
@@ -151,43 +149,25 @@ export function DashboardClient({
         </div>
         
         <div className="relative z-10">
-          {/* Desktop: Horizontal layout with stats inline */}
-          <div className="hidden md:flex items-center justify-between">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              <p className="text-white/70 text-sm font-medium">
-                {mounted ? t("dashboard.description") : "Overview"}
-              </p>
-              <h1 className="text-2xl font-extrabold text-white mt-0.5">
-                {mounted ? t("dashboard.title") : "Dashboard"}
-              </h1>
-            </motion.div>
-
-            {/* Desktop: Inline stats with glass effect */}
-            <motion.div 
-              className="flex items-center gap-6"
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-            >
-              <div className="text-right">
-                <p className="text-white/60 text-[11px] uppercase tracking-wide">{mounted ? t("dashboard.totalIncome") : "Income"}</p>
-                <p className="text-white font-bold text-lg">{mounted ? new Intl.NumberFormat("id-ID", { style: "currency", currency: baseCurrency, maximumFractionDigits: 0 }).format(totalIncome) : "—"}</p>
-              </div>
-              <div className="w-px h-10 bg-white/20"/>
-              <div className="text-right">
-                <p className="text-white/60 text-[11px] uppercase tracking-wide">{mounted ? t("dashboard.totalExpenses") : "Expenses"}</p>
-                <p className="text-white font-bold text-lg">{mounted ? new Intl.NumberFormat("id-ID", { style: "currency", currency: baseCurrency, maximumFractionDigits: 0 }).format(totalExpenses) : "—"}</p>
-              </div>
-              <AddTransactionButton isOpen={isAddModalOpen} onOpenChange={setIsAddModalOpen} />
-            </motion.div>
+        {/* Title - Compact on mobile */}
+        <motion.div 
+          className="flex items-center justify-between mb-3 md:mb-4"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div>
+            <p className="text-white/80 text-xs md:text-sm font-medium">
+              {mounted ? t("dashboard.description") : "Overview"}
+            </p>
+            <h1 className="text-xl md:text-2xl font-extrabold text-white mt-0.5">
+              {mounted ? t("dashboard.title") : "Dashboard"}
+            </h1>
           </div>
-
-          {/* Mobile Layout */}
-          <div className="md:hidden">
+          <div className="hidden md:block">
+            <AddTransactionButton />
+          </div>
+        </motion.div>
 
         {/* Mobile Combined Stats Card */}
         <motion.div 
@@ -209,33 +189,92 @@ export function DashboardClient({
           </div>
         </motion.div>
 
-        {/* Mobile title and pills */}
-        <motion.div 
-          className="flex items-center justify-between mt-4"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <div>
-            <p className="text-white/80 text-xs font-medium">
-              {mounted ? t("dashboard.description") : "Overview"}
-            </p>
-            <h1 className="text-xl font-extrabold text-white mt-0.5">
-              {mounted ? t("dashboard.title") : "Dashboard"}
-            </h1>
-          </div>
-        </motion.div>
-      </div>
+        {/* Desktop Income / Expense pills - hidden on mobile */}
+        <div className="hidden md:flex gap-3 mt-2 min-h-[52px]">
+          <motion.div 
+            className={`
+              flex items-center gap-2
+              bg-white/15 backdrop-blur-md
+              rounded-2xl px-4 py-2
+              border border-white/20
+              shadow-lg shadow-black/5
+              ${mounted ? "opacity-100" : "opacity-0"}
+            `}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
+            <span className="text-white text-sm">↑</span>
+            <div>
+              <p className="
+                text-white/70 text-[10px]
+                uppercase tracking-wide
+              ">
+                {mounted
+                  ? t("dashboard.totalIncome")
+                  : "Income"}
+              </p>
+              <p className="
+                text-white font-bold text-sm
+              ">
+                {mounted
+                  ? new Intl.NumberFormat("id-ID", {
+                      style: "currency",
+                      currency: baseCurrency,
+                      maximumFractionDigits: 0,
+                    }).format(totalIncome)
+                  : "—"}
+              </p>
+            </div>
+          </motion.div>
+
+          <motion.div 
+            className={`
+              flex items-center gap-2
+              bg-white/15 backdrop-blur-md
+              rounded-2xl px-4 py-2
+              border border-white/20
+              shadow-lg shadow-black/5
+              transition-opacity duration-200
+              ${mounted ? "opacity-100" : "opacity-0"}
+            `}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            <span className="text-white text-sm">↓</span>
+            <div>
+              <p className="
+                text-white/70 text-[10px]
+                uppercase tracking-wide
+              ">
+                {mounted
+                  ? t("dashboard.totalExpenses")
+                  : "Expenses"}
+              </p>
+              <p className="
+                text-white font-bold text-sm
+              ">
+                {mounted
+                  ? new Intl.NumberFormat("id-ID", {
+                      style: "currency",
+                      currency: baseCurrency,
+                      maximumFractionDigits: 0,
+                    }).format(totalExpenses)
+                  : "—"}
+              </p>
+            </div>
+          </motion.div>
+        </div>
+        </div>
       </div>
 
-      {/* Quick Actions - Only on mobile */}
-      <div className="md:hidden">
-        <QuickActions
-          mounted={mounted}
-          t={t}
-          onAddTransaction={() => setIsAddModalOpen(true)}
-        />
-      </div>
+      {/* Quick Actions */}
+      <QuickActions
+        mounted={mounted}
+        t={t}
+        onAddTransaction={() => {}}
+      />
 
       {/* Account Carousel */}
       {accounts && accounts.length > 0 && (
@@ -267,6 +306,68 @@ export function DashboardClient({
           />
         </div>
       )}
+
+      {/* Stat Cards (desktop only) - with animated counters */}
+      <div className="
+        hidden md:grid
+        md:grid-cols-3
+        gap-4 mt-4 mx-4
+      ">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+        >
+          <StatCard
+            title={mounted ? t("dashboard.totalBalance") : "Balance"}
+            value={mounted
+              ? new Intl.NumberFormat("id-ID", {
+                  style: "currency",
+                  currency: baseCurrency,
+                  maximumFractionDigits: 0,
+                }).format(totalBalance)
+              : "—"}
+            borderColorClass="border-[#00B9A7]"
+          />
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          <StatCard
+            title={mounted ? t("dashboard.totalIncome") : "Income"}
+            value={mounted
+              ? new Intl.NumberFormat("id-ID", {
+                  style: "currency",
+                  currency: baseCurrency,
+                  maximumFractionDigits: 0,
+                }).format(totalIncome)
+              : "—"}
+            borderColorClass="border-[#00C48C]"
+          />
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          <StatCard
+            title={mounted ? t("dashboard.totalExpenses") : "Expenses"}
+            value={mounted
+              ? new Intl.NumberFormat("id-ID", {
+                  style: "currency",
+                  currency: baseCurrency,
+                  maximumFractionDigits: 0,
+                }).format(totalExpenses)
+              : "—"}
+            borderColorClass="border-[#FF5B5B]"
+          />
+        </motion.div>
+      </div>
 
       {/* Budget Warning - Modern Styled */}
       {budgetWarningCount > 0 && (
@@ -375,7 +476,7 @@ export function DashboardClient({
               : "Add your first transaction to get started"}
           </p>
           <div className="md:hidden">
-            <AddTransactionButton isOpen={isAddModalOpen} onOpenChange={setIsAddModalOpen} />
+            <AddTransactionButton />
           </div>
         </motion.div>
       ) : (
@@ -415,7 +516,7 @@ export function DashboardClient({
         md:hidden z-40
       ">
         <div className="flex justify-center">
-          <AddTransactionButton isOpen={isAddModalOpen} onOpenChange={setIsAddModalOpen} />
+          <AddTransactionButton />
         </div>
       </div>
     </div>
