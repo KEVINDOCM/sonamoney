@@ -190,14 +190,15 @@ export default function TransactionCardList({
                     return (
                       <div
                         key={transaction.id}
-                        className="
+                        className={`
                           bg-white dark:bg-gray-900
                           rounded-2xl shadow-sm
                           hover:shadow-md
                           hover:-translate-y-0.5
                           transition-all duration-200
                           animate-slideUp
-                        "
+                          ${activeDropdownId === transaction.id ? "relative z-50" : ""}
+                        `}
                       >
                         <div className="
                           flex items-center gap-3 p-4

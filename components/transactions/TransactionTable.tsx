@@ -122,7 +122,7 @@ export default function TransactionTable({
             transactions.map((transaction: Transaction) => {
               const { payee, notes } = parsePayeeAndNotes(transaction.notes);
               return (
-                <tr key={transaction.id} className="hover:bg-[#F5F7FA] dark:hover:bg-gray-800/50 transition-colors duration-150 cursor-default min-h-12 border-b border-gray-50 dark:border-gray-800">
+                <tr key={transaction.id} className={`hover:bg-[#F5F7FA] dark:hover:bg-gray-800/50 transition-colors duration-150 cursor-default min-h-12 border-b border-gray-50 dark:border-gray-800 ${activeDropdownId === transaction.id ? "relative z-50" : ""}`}>
                   <td className="px-2 py-3 lg:px-4 text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">
                     {formatShortDate(transaction.date)}
                   </td>
