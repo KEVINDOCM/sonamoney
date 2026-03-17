@@ -306,7 +306,7 @@ export default function TransactionCardList({
                             onClick={(e) => {
                               const rect = e.currentTarget.getBoundingClientRect();
                               const spaceBelow = window.innerHeight - rect.bottom;
-                              const dropdownHeight = 96;
+                              const dropdownHeight = transaction.is_recurring ? 280 : 140;
                               setDropdownPos({
                                 top: spaceBelow > dropdownHeight
                                   ? rect.bottom + 4
