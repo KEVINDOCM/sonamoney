@@ -301,7 +301,69 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Right — Dashboard Preview Card */}
+          {/* Mobile Dashboard Preview — Glassmorphism Cards */}
+          <div className="lg:hidden w-full mt-4">
+            <div className="relative">
+              {/* Background blur effects */}
+              <div className="absolute -top-4 -right-4 w-32 h-32 rounded-full bg-[#00B9A7]/20 blur-2xl"/>
+              <div className="absolute -bottom-4 -left-4 w-24 h-24 rounded-full bg-[#6366F1]/15 blur-2xl"/>
+
+              {/* Main balance card */}
+              <div className="relative backdrop-blur-md bg-white/80 rounded-2xl border border-white/50 shadow-lg p-4 mb-3">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <p className="text-xs text-[#6B7280]">Total Balance</p>
+                    <p className="text-xl font-bold text-[#1A1A2E]">Rp 12.450.000</p>
+                  </div>
+                  <div className="h-9 w-9 rounded-xl bg-[#E6F7F6] flex items-center justify-center">
+                    <Wallet className="w-4 h-4 text-[#00B9A7]"/>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <div className="flex-1 bg-[#E6FAF4] rounded-xl p-2">
+                    <p className="text-[10px] text-[#6B7280]">Income</p>
+                    <p className="text-sm font-bold text-[#00C48C]">+Rp 8.5M</p>
+                  </div>
+                  <div className="flex-1 bg-[#FFF0F0] rounded-xl p-2">
+                    <p className="text-[10px] text-[#6B7280]">Expenses</p>
+                    <p className="text-sm font-bold text-[#FF5B5B]">-Rp 4.2M</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Floating mini cards */}
+              <div className="flex gap-3">
+                <div className="flex-1 backdrop-blur-md bg-white/70 rounded-xl border border-white/40 shadow-md p-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">📊</span>
+                    <div>
+                      <p className="text-[10px] font-bold text-[#1A1A2E]">Analytics</p>
+                      <p className="text-[10px] text-[#00C48C]">+12% this month</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex-1 backdrop-blur-md bg-white/70 rounded-xl border border-white/40 shadow-md p-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">🎯</span>
+                    <div>
+                      <p className="text-[10px] font-bold text-[#1A1A2E]">Budget</p>
+                      <p className="text-[10px] text-[#6B7280]">2 of 6 on track</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Scroll indicator */}
+            <div className="flex flex-col items-center mt-6 mb-2">
+              <span className="text-xs text-[#9CA3AF] mb-2">Scroll to explore</span>
+              <div className="w-6 h-10 rounded-full border-2 border-[#00B9A7]/30 flex items-start justify-center p-1">
+                <div className="w-1.5 h-2.5 rounded-full bg-[#00B9A7] animate-bounce mt-1"/>
+              </div>
+            </div>
+          </div>
+
+          {/* Right — Dashboard Preview Card (Desktop) */}
           <div className="hidden lg:block relative">
             {/* Decorative blobs */}
             <div className="absolute -top-8 -right-8 w-64 h-64 rounded-full bg-[#00B9A7]/10 blur-3xl"/>
@@ -470,8 +532,8 @@ export default function HomePage() {
             },
           ].map((item) => (
             <div key={item.title} className="flex flex-col items-center gap-3 p-6">
-              <div className="w-12 h-12 rounded-2xl bg-[#E6F7F5] flex items-center justify-center">
-                <item.icon className="w-5 h-5 text-[#007A6E]" />
+              <div className="w-12 h-12 rounded-2xl bg-[#E6F7F6] flex items-center justify-center">
+                <item.icon className="w-5 h-5 text-[#00B9A7]" />
               </div>
               <p className="text-sm font-bold text-[#0D1F1E]">{item.title}</p>
               <p className="text-xs text-gray-500 leading-relaxed max-w-[200px]">{item.desc}</p>
@@ -496,7 +558,7 @@ export default function HomePage() {
             </div>
 
             <h2 className="text-3xl lg:text-4xl font-extrabold text-white leading-tight">
-              Start tracking your money<br />in under 2 minutes.
+              Start tracking your money in under 2 minutes.
             </h2>
 
             <p className="text-white/80 text-base max-w-md mx-auto">
@@ -539,6 +601,7 @@ export default function HomePage() {
             >
               <button
                 onClick={() => setOpenFaq(openFaq === index ? null : index)}
+                aria-expanded={openFaq === index}
                 className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50 transition-colors duration-150"
               >
                 <span className="text-sm font-semibold text-[#1A1A2E] pr-4">{faq.q}</span>
@@ -650,7 +713,7 @@ export default function HomePage() {
     </div>
 
     {/* Sticky mobile CTA bar */}
-    <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-white border-t border-gray-100 shadow-lg px-4 py-3">
+    <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white border-t border-gray-100 shadow-lg px-4 py-3">
       <Link
         href="/signup"
         className="flex items-center justify-center gap-2 h-12 w-full bg-[#00B9A7] text-white rounded-full font-semibold text-sm hover:bg-[#007A6E] active:scale-95 transition-all duration-200 shadow-md shadow-[#00B9A7]/25"
