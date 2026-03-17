@@ -17,8 +17,6 @@ import {
   Settings2,
   Wallet,
   CalendarDays,
-  Repeat,
-  Bell,
 } from "lucide-react";
 import { OnboardingModal } from "@/components/onboarding/OnboardingModal";
 
@@ -57,16 +55,6 @@ const SECONDARY_NAV_ITEMS = [
     label: "Accounts",
     href: "/accounts",
     icon: Wallet,
-  },
-  {
-    label: "Recurring",
-    href: "/recurring",
-    icon: Repeat,
-  },
-  {
-    label: "Reminders",
-    href: "/reminders",
-    icon: Bell,
   },
   {
     label: "Goals",
@@ -109,8 +97,6 @@ export function Sidebar({ budgetWarningCount, children }: SidebarProps) {
       "/calendar": "calendar",
       "/budget": "budget",
       "/accounts": "accounts",
-      "/recurring": "recurring",
-      "/reminders": "reminders",
       "/goals": "goals",
       "/analytics": "analytics",
       "/categories": "categories",

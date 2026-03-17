@@ -26,7 +26,7 @@ export function QuickActions({
       icon: PlusCircle,
       label: mounted ? t("transactions.add") : "Add",
       color: "bg-[#00B9A7]",
-      onClick: () => router.push("/transactions"),
+      onClick: onAddTransaction,
     },
     {
       icon: ArrowLeftRight,
