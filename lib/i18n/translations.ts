@@ -155,6 +155,8 @@ export const translations = {
       warningNear: "is at % of budget",
       budgetUpdated: "Budget updated",
       spentOf: "spent of",
+      warningCategories: "budget(s) need attention",
+      warningDesc: "Some categories are approaching or over their limits.",
     },
     categories: {
       title: "Categories",
@@ -571,6 +573,8 @@ export const translations = {
       warningNear: "sudah % dari anggaran",
       budgetUpdated: "Anggaran diperbarui",
       spentOf: "digunakan dari",
+      warningCategories: "anggaran perlu diperhatikan",
+      warningDesc: "Beberapa kategori mendekati atau melebihi batas anggaran.",
     },
     categories: {
       title: "Kategori",

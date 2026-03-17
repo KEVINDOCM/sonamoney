@@ -134,10 +134,11 @@ export function DashboardClient({
       min-h-screen pb-6
       overflow-x-hidden
     ">
-      {/* Modern Gradient Mesh Header */}
+      {/* Modern Gradient Mesh Header - Mobile First Compact */}
       <div className="
         relative overflow-hidden
-        px-4 pt-6 pb-10
+        px-4 pt-4 pb-6
+        md:pt-6 md:pb-10
         md:rounded-3xl md:mx-4 md:mt-4
         bg-gradient-to-br from-[#00B9A7] via-[#00A896] to-[#0099A0]
       ">
@@ -148,18 +149,18 @@ export function DashboardClient({
         </div>
         
         <div className="relative z-10">
-        {/* Title */}
+        {/* Title - Compact on mobile */}
         <motion.div 
-          className="flex items-center justify-between mb-4"
+          className="flex items-center justify-between mb-3 md:mb-4"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
           <div>
-            <p className="text-white/80 text-sm font-medium">
+            <p className="text-white/80 text-xs md:text-sm font-medium">
               {mounted ? t("dashboard.description") : "Overview"}
             </p>
-            <h1 className="text-2xl font-extrabold text-white mt-0.5">
+            <h1 className="text-xl md:text-2xl font-extrabold text-white mt-0.5">
               {mounted ? t("dashboard.title") : "Dashboard"}
             </h1>
           </div>
@@ -168,8 +169,28 @@ export function DashboardClient({
           </div>
         </motion.div>
 
-        {/* Income / Expense pills with glassmorphism */}
-        <div className="flex gap-3 mt-2 min-h-[52px]">
+        {/* Mobile Combined Stats Card */}
+        <motion.div 
+          className="md:hidden bg-white/20 backdrop-blur-md rounded-xl border border-white/20 shadow-lg shadow-black/5 p-3"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          <div className="flex items-center justify-between">
+            <div className="text-center flex-1">
+              <p className="text-[10px] text-white/70 uppercase tracking-wide">{mounted ? t("dashboard.totalIncome") : "Income"}</p>
+              <p className="text-white font-bold text-sm">{mounted ? new Intl.NumberFormat("id-ID", { style: "currency", currency: baseCurrency, maximumFractionDigits: 0 }).format(totalIncome) : "—"}</p>
+            </div>
+            <div className="w-px h-8 bg-white/30"/>
+            <div className="text-center flex-1">
+              <p className="text-[10px] text-white/70 uppercase tracking-wide">{mounted ? t("dashboard.totalExpenses") : "Expenses"}</p>
+              <p className="text-white font-bold text-sm">{mounted ? new Intl.NumberFormat("id-ID", { style: "currency", currency: baseCurrency, maximumFractionDigits: 0 }).format(totalExpenses) : "—"}</p>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Desktop Income / Expense pills - hidden on mobile */}
+        <div className="hidden md:flex gap-3 mt-2 min-h-[52px]">
           <motion.div 
             className={`
               flex items-center gap-2

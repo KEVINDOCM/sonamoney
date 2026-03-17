@@ -197,7 +197,7 @@ export default function TransactionCardList({
                           hover:-translate-y-0.5
                           transition-all duration-200
                           animate-slideUp
-                          ${activeDropdownId === transaction.id ? "relative z-50" : ""}
+                          ${activeDropdownId === transaction.id ? "relative z-[90]" : ""}
                         `}
                       >
                         <div className="
@@ -329,7 +329,7 @@ export default function TransactionCardList({
                           {activeDropdownId === transaction.id && dropdownPos && (
                             <>
                               <div
-                                className="fixed inset-0 z-40"
+                                className="fixed inset-0 z-[100]"
                                 onClick={() => {
                                   onCloseDropdown();
                                   setDropdownPos(null);
@@ -337,13 +337,14 @@ export default function TransactionCardList({
                               />
                               <div
                                 className="
-                                  fixed z-[60]
+                                  fixed z-[110]
                                   bg-white dark:bg-gray-900
-                                  rounded-2xl shadow-xl
+                                  rounded-2xl shadow-2xl
                                   border border-gray-100
-                                  dark:border-gray-800
+                                  dark:border-gray-700
                                   py-2 min-w-[160px]
                                   animate-scaleIn
+                                  backdrop-blur-sm
                                 "
                                 style={{
                                   top: dropdownPos.top,
