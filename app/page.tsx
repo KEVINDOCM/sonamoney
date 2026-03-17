@@ -1,7 +1,8 @@
 "use client"
 
 import Link from "next/link"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { motion, AnimatePresence } from "framer-motion"
 import {
   ChevronDown,
   ArrowRight,
@@ -21,6 +22,76 @@ import {
 export default function HomePage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [openFaq, setOpenFaq] = useState<number | null>(null)
+
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.1,
+      },
+    },
+  }
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.5,
+        ease: [0.25, 0.1, 0.25, 1],
+      },
+    },
+  }
+
+  const cardVariants = {
+    hidden: { opacity: 0, y: 30, scale: 0.95 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: {
+        duration: 0.6,
+        ease: [0.25, 0.1, 0.25, 1],
+      },
+    },
+  }
+
+  // Animated number counter component
+  const AnimatedNumber = ({ value, suffix = "" }: { value: string; suffix?: string }) => {
+    const [count, setCount] = useState(0)
+    const [hasAnimated, setHasAnimated] = useState(false)
+    const numericValue = parseInt(value.replace(/[^0-9]/g, "")) || 0
+    
+    useEffect(() => {
+      if (hasAnimated) return
+      
+      const duration = 2000
+      const steps = 60
+      const stepValue = numericValue / steps
+      let current = 0
+      let step = 0
+      
+      const timer = setInterval(() => {
+        step++
+        current = Math.min(Math.floor(step * stepValue), numericValue)
+        setCount(current)
+        
+        if (step >= steps) {
+          setCount(numericValue)
+          setHasAnimated(true)
+          clearInterval(timer)
+        }
+      }, duration / steps)
+      
+      return () => clearInterval(timer)
+    }, [numericValue, hasAnimated])
+    
+    return <span>{value.startsWith("∞") ? "∞" : count}{suffix}</span>
+  }
 
   const features = [
     {
@@ -249,25 +320,30 @@ export default function HomePage() {
       <section className="pt-24 pb-16 lg:pt-32 lg:pb-24 px-4 lg:px-6 max-w-6xl mx-auto">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Left — Text */}
-          <div className="flex flex-col items-start text-left lg:items-start lg:text-left space-y-6">
+          <motion.div 
+            className="flex flex-col items-start text-left lg:items-start lg:text-left space-y-6"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+          >
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 bg-[#E6F7F6] rounded-full px-4 py-1.5">
+            <motion.div variants={itemVariants} className="inline-flex items-center gap-2 bg-[#E6F7F6] rounded-full px-4 py-1.5">
               <span className="h-2 w-2 rounded-full bg-[#00B9A7] animate-pulse"/>
               <span className="text-xs font-semibold text-[#00B9A7]">Personal finance, made simple</span>
-            </div>
+            </motion.div>
 
             {/* Headline */}
-            <h1 className="text-4xl lg:text-5xl font-extrabold text-[#1A1A2E] leading-tight tracking-tight">
+            <motion.h1 variants={itemVariants} className="text-4xl lg:text-5xl font-extrabold text-[#1A1A2E] leading-tight tracking-tight">
               Take control of <span className="text-[#00B9A7] relative">your money</span> today.
-            </h1>
+            </motion.h1>
 
             {/* Description */}
-            <p className="text-base text-[#6B7280] max-w-md lg:mx-0 leading-relaxed">
+            <motion.p variants={itemVariants} className="text-base text-[#6B7280] max-w-md lg:mx-0 leading-relaxed">
               Track income, expenses, budgets, and insights in one clean dashboard. No spreadsheets, no guessing — just a clear view of your money.
-            </p>
+            </motion.p>
 
             {/* CTA buttons — Mobile-optimized */}
-            <div className="flex flex-col sm:flex-row gap-3 w-full lg:max-w-none">
+            <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-3 w-full lg:max-w-none">
               <Link
                 href="/signup"
                 className="flex items-center justify-center gap-2 h-14 sm:h-12 px-8 bg-gradient-to-r from-[#00B9A7] to-[#00A896] text-white rounded-2xl sm:rounded-full font-bold text-base sm:text-sm sm:font-semibold hover:shadow-lg hover:shadow-[#00B9A7]/30 sm:hover:shadow-md sm:hover:shadow-[#00B9A7]/25 sm:hover:scale-100 hover:scale-[1.02] active:scale-[0.98] sm:active:scale-95 transition-all duration-200"
@@ -279,16 +355,17 @@ export default function HomePage() {
                 href="/login"
                 className="flex items-center justify-center h-12 text-[#6B7280] sm:border-2 sm:border-gray-200 sm:text-[#1A1A2E] sm:rounded-full sm:font-semibold sm:text-sm sm:px-8 font-medium text-sm hover:text-[#00B9A7] sm:hover:border-[#00B9A7] sm:hover:text-[#00B9A7] transition-colors duration-200"
               >
-                <span className="sm:hidden">Already have an account? <span className="text-[#00B9A7] ml-1">Log in</span></span>
-                <span className="hidden sm:inline">Log in</span>
+                <motion.span variants={itemVariants} className="sm:hidden">Already have an account? </motion.span>
+                <motion.span variants={itemVariants} className="sm:hidden text-[#00B9A7] ml-1">Log in</motion.span>
+                <motion.span variants={itemVariants} className="hidden sm:inline">Log in</motion.span>
               </Link>
-            </div>
-            <p className="text-xs text-[#9CA3AF]">
+            </motion.div>
+            <motion.p variants={itemVariants} className="text-xs text-[#9CA3AF]">
               Takes 60 seconds · No credit card · Cancel anytime
-            </p>
+            </motion.p>
 
             {/* Trust badges */}
-            <div className="flex flex-wrap items-center justify-start gap-4 pt-2">
+            <motion.div variants={itemVariants} className="flex flex-wrap items-center justify-start gap-4 pt-2">
               {[
                 { icon: CheckCircle, text: "Free forever" },
                 { icon: Shield, text: "Secure & private" },
@@ -299,8 +376,8 @@ export default function HomePage() {
                   <span>{badge.text}</span>
                 </div>
               ))}
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
           {/* Mobile Dashboard Preview — Glassmorphism Cards */}
           <div className="lg:hidden w-full mt-4">
@@ -309,8 +386,12 @@ export default function HomePage() {
               <div className="absolute -top-4 -right-4 w-32 h-32 rounded-full bg-[#00B9A7]/20 blur-2xl"/>
               <div className="absolute -bottom-4 -left-4 w-24 h-24 rounded-full bg-[#6366F1]/15 blur-2xl"/>
 
-              {/* Main balance card */}
-              <div className="relative backdrop-blur-md bg-white/80 rounded-2xl border border-white/50 shadow-lg p-4 mb-3">
+              {/* Main balance card - floating animation */}
+              <motion.div 
+                className="relative backdrop-blur-md bg-white/80 rounded-2xl border border-white/50 shadow-lg p-4 mb-3"
+                animate={{ y: [0, -8, 0] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              >
                 <div className="flex items-center justify-between mb-3">
                   <div>
                     <p className="text-xs text-[#6B7280]">Total Balance</p>
@@ -330,11 +411,15 @@ export default function HomePage() {
                     <p className="text-sm font-bold text-[#FF5B5B]">-Rp 4.2M</p>
                   </div>
                 </div>
-              </div>
+              </motion.div>
 
               {/* Floating mini cards */}
               <div className="flex gap-3">
-                <div className="flex-1 backdrop-blur-md bg-white/70 rounded-xl border border-white/40 shadow-md p-3">
+                <motion.div 
+                  className="flex-1 backdrop-blur-md bg-white/70 rounded-xl border border-white/40 shadow-md p-3"
+                  animate={{ y: [0, -6, 0] }}
+                  transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+                >
                   <div className="flex items-center gap-2">
                     <span className="text-lg">📊</span>
                     <div>
@@ -342,8 +427,12 @@ export default function HomePage() {
                       <p className="text-[10px] text-[#00C48C]">+12% this month</p>
                     </div>
                   </div>
-                </div>
-                <div className="flex-1 backdrop-blur-md bg-white/70 rounded-xl border border-white/40 shadow-md p-3">
+                </motion.div>
+                <motion.div 
+                  className="flex-1 backdrop-blur-md bg-white/70 rounded-xl border border-white/40 shadow-md p-3"
+                  animate={{ y: [0, -6, 0] }}
+                  transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                >
                   <div className="flex items-center gap-2">
                     <span className="text-lg">🎯</span>
                     <div>
@@ -351,7 +440,7 @@ export default function HomePage() {
                       <p className="text-[10px] text-[#6B7280]">2 of 6 on track</p>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               </div>
             </div>
 
@@ -459,27 +548,47 @@ export default function HomePage() {
       {/* ================================
           STATS STRIP
           ================================ */}
-      <section className="bg-[#0D1F1E] border-y border-gray-800 py-8 px-4">
+      <motion.section 
+        className="bg-[#0D1F1E] border-y border-gray-800 py-8 px-4"
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
+      >
         <div className="max-w-4xl mx-auto grid grid-cols-3 gap-4 text-center divide-x divide-white/10">
           {[
             { value: "100%", label: "Free forever" },
             { value: "256-bit", label: "Encryption" },
             { value: "∞", label: "Transactions" },
-          ].map((stat) => (
-            <div key={stat.label}>
-              <p className="text-2xl lg:text-3xl font-extrabold text-[#00B9A7]">{stat.value}</p>
+          ].map((stat, index) => (
+            <motion.div 
+              key={stat.label}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+            >
+              <p className="text-2xl lg:text-3xl font-extrabold text-[#00B9A7]">
+                <AnimatedNumber value={stat.value} />
+              </p>
               <p className="text-xs text-gray-400 font-medium mt-0.5">{stat.label}</p>
-            </div>
+            </motion.div>
           ))}
         </div>
-      </section>
+      </motion.section>
 
       {/* ================================
           FEATURES SECTION
           ================================ */}
       <section id="features" className="py-16 lg:py-24 px-4 lg:px-6 max-w-6xl mx-auto">
         {/* Section header */}
-        <div className="text-center mb-12">
+        <motion.div 
+          className="text-center mb-12"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+        >
           <div className="inline-flex items-center gap-2 bg-[#E6F7F6] rounded-full px-4 py-1.5 mb-4">
             <span className="text-xs font-semibold text-[#00B9A7]">Everything you need</span>
           </div>
@@ -489,23 +598,37 @@ export default function HomePage() {
           <p className="text-base text-[#6B7280] mt-4 max-w-xl mx-auto">
             Everything you need to understand and control your finances — without the learning curve.
           </p>
-        </div>
+        </motion.div>
 
         {/* Features grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {features.map((feature) => (
-            <div
+          {features.map((feature, index) => (
+            <motion.div
               key={feature.title}
-              className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default group"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+              whileHover={{ 
+                scale: 1.02,
+                transition: { duration: 0.2 }
+              }}
+              className="relative bg-white rounded-2xl border border-gray-100 p-6 space-y-4 cursor-default group overflow-hidden"
             >
-              <div className={`w-12 h-12 rounded-2xl ${feature.color} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
-                <feature.icon className={`w-6 h-6 ${feature.iconColor}`}/>
+              {/* Bento Grid hover gradient effect */}
+              <div className="absolute inset-0 bg-gradient-to-br from-[#00B9A7]/5 via-transparent to-[#6366F1]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
+              
+              <div className="relative z-10">
+                <div className={`w-12 h-12 rounded-2xl ${feature.color} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
+                  <feature.icon className={`w-6 h-6 ${feature.iconColor}`}/>
+                </div>
+                <div className="mt-4">
+                  <h3 className="text-base font-bold text-[#1A1A2E] mb-1">{feature.title}</h3>
+                  <p className="text-sm text-[#6B7280] leading-relaxed">{feature.desc}</p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-base font-bold text-[#1A1A2E] mb-1">{feature.title}</h3>
-                <p className="text-sm text-[#6B7280] leading-relaxed">{feature.desc}</p>
-              </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       </section>
@@ -513,7 +636,13 @@ export default function HomePage() {
       {/* ================================
           TRUST SIGNAL BAR
           ================================ */}
-      <section className="py-10 px-4 bg-[#F8FAFB] border-y border-gray-100">
+      <motion.section 
+        className="py-10 px-4 bg-[#F8FAFB] border-y border-gray-100"
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
+      >
         <div className="max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
           {[
             {
@@ -531,28 +660,47 @@ export default function HomePage() {
               title: "Works everywhere",
               desc: "Fully responsive web app. Install as PWA on any device.",
             },
-          ].map((item) => (
-            <div key={item.title} className="flex flex-col items-center gap-3 p-6">
+          ].map((item, index) => (
+            <motion.div 
+              key={item.title} 
+              className="flex flex-col items-center gap-3 p-6"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: index * 0.15 }}
+            >
               <div className="w-12 h-12 rounded-2xl bg-[#E6F7F6] flex items-center justify-center">
                 <item.icon className="w-5 h-5 text-[#00B9A7]" />
               </div>
               <p className="text-sm font-bold text-[#0D1F1E]">{item.title}</p>
               <p className="text-xs text-gray-500 leading-relaxed max-w-[200px]">{item.desc}</p>
-            </div>
+            </motion.div>
           ))}
         </div>
-      </section>
+      </motion.section>
 
       {/* ================================
           CTA SECTION
           ================================ */}
       <section className="py-16 lg:py-24 px-4 lg:px-6">
-        <div className="max-w-4xl mx-auto bg-gradient-to-br from-[#00B9A7] to-[#0099A0] rounded-3xl p-10 lg:p-16 text-center relative overflow-hidden">
+        <motion.div 
+          className="max-w-4xl mx-auto bg-gradient-to-br from-[#00B9A7] to-[#0099A0] rounded-3xl p-10 lg:p-16 text-center relative overflow-hidden"
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.7 }}
+        >
           {/* Decorative circles */}
           <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-white/10 -translate-y-1/2 translate-x-1/2"/>
           <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full bg-white/10 translate-y-1/2 -translate-x-1/2"/>
 
-          <div className="relative z-10 space-y-6">
+          <motion.div 
+            className="relative z-10 space-y-6"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
             <div className="inline-flex items-center gap-2 bg-white/20 rounded-full px-4 py-1.5">
               <CheckCircle className="w-3.5 h-3.5 text-white"/>
               <span className="text-xs font-semibold text-white">Free forever — no credit card needed</span>
@@ -581,23 +729,33 @@ export default function HomePage() {
                 Already have an account
               </Link>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </section>
 
       {/* ================================
           FAQ SECTION
           ================================ */}
       <section id="faq" className="py-16 lg:py-24 px-4 lg:px-6 max-w-3xl mx-auto">
-        <div className="text-center mb-12">
+        <motion.div 
+          className="text-center mb-12"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+        >
           <h2 className="text-3xl lg:text-4xl font-extrabold text-[#1A1A2E]">Frequently asked questions</h2>
           <p className="text-base text-[#6B7280] mt-3">Everything you need to know about SonaMoney.</p>
-        </div>
+        </motion.div>
 
         <div className="space-y-3">
           {faqs.map((faq, index) => (
-            <div
+            <motion.div
               key={index}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: index * 0.08 }}
               className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:border-[#00B9A7]/30 transition-colors duration-200"
             >
               <button
@@ -609,11 +767,21 @@ export default function HomePage() {
                 <ChevronDown className={`w-4 h-4 text-[#6B7280] shrink-0 transition-transform duration-200 ${openFaq === index ? "rotate-180" : ""}`}/>
               </button>
               {openFaq === index && (
-                <div className="px-6 pb-4">
-                  <p className="text-sm text-[#6B7280] leading-relaxed">{faq.a}</p>
-                </div>
+                <AnimatePresence>
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    className="overflow-hidden"
+                  >
+                    <div className="px-6 pb-4">
+                      <p className="text-sm text-[#6B7280] leading-relaxed">{faq.a}</p>
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
               )}
-            </div>
+            </motion.div>
           ))}
         </div>
       </section>
