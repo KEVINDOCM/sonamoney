@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     description:
       "12 free budget templates that actually work. Download Excel, Google Sheets, or PDF. Plus free expense tracker app.",
     url: "https://sona-money.vercel.app/templates",
-    images: ["/og-image.png"],
+    images: ["/og-image.svg"],
   },
 }
 

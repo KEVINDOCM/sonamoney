@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#00B9A7"/>
+      <stop offset="100%" stop-color="#005C54"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="white" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="white" stop-opacity="0"/>
+    </linearGradient>
+    <clipPath id="clip">
+      <rect width="512" height="512" rx="115"/>
+    </clipPath>
+  </defs>
+  <!-- Background -->
+  <rect width="512" height="512" rx="115" fill="url(#g)"/>
+  <!-- Shine overlay -->
+  <rect width="512" height="512" rx="115" fill="url(#shine)"/>
+  <g clip-path="url(#clip)">
+    <!-- S letter -->
+    <text x="256" y="340" font-family="Georgia, serif" font-size="310"
+      font-weight="bold" fill="white" text-anchor="middle"
+      opacity="1">S</text>
+    <!-- Trend line -->
+    <polyline points="70,400 136,292 200,336 306,200 430,98"
+      stroke="white" stroke-width="24"
+      fill="none" stroke-linecap="round" stroke-linejoin="round"
+      opacity="0.9"/>
+    <!-- Arrowhead -->
+    <polygon points="430,98 392,134 416,170" fill="white" opacity="0.9"/>
+    <!-- Dots on line -->
+    <circle cx="70" cy="400" r="14" fill="white" opacity="0.45"/>
+    <circle cx="136" cy="292" r="14" fill="white" opacity="0.45"/>
+    <circle cx="200" cy="336" r="14" fill="white" opacity="0.45"/>
+    <circle cx="306" cy="200" r="14" fill="white" opacity="0.45"/>
+  </g>
+</svg>

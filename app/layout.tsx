@@ -57,7 +57,7 @@ export const metadata: Metadata = {
       "Free personal finance app with analytics and AI.",
     images: [
       {
-        url: "/og-image.png",
+        url: "/og-image.svg",
         width: 1200,
         height: 630,
         alt: "SonaMoney — Personal Finance Tracker",
@@ -70,7 +70,7 @@ export const metadata: Metadata = {
     description:
       "Free personal finance tracker. " +
       "Track income, expenses, budgets, and insights.",
-    images: ["/og-image.png"],
+    images: ["/og-image.svg"],
   },
   alternates: {
     canonical: "https://sona-money.vercel.app",
@@ -85,10 +85,11 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: "black-translucent",
     title: "SonaMoney",
-    startupImage: "/icon-192.png",
+    startupImage: "/icon-192.svg",
   },
   icons: {
-    apple: "/icon-192.png",
+    icon: "/favicon.svg",
+    apple: "/icon-192.svg",
   },
   other: {
     google: "notranslate",
@@ -128,7 +129,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
               "@type": "Organization",
               name: "SonaMoney",
               url: "https://sona-money.vercel.app",
-              logo: "https://sona-money.vercel.app/icon-512.png",
+              logo: "https://sona-money.vercel.app/icon-512.svg",
               sameAs: [],
               contactPoint: {
                 "@type": "ContactPoint",

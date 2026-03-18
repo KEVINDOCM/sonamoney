@@ -112,9 +112,7 @@ export function Sidebar({ budgetWarningCount, children }: SidebarProps) {
         {/* Logo section */}
         <div className="mb-8 px-3 flex items-center gap-3 overflow-hidden">
           <Link href="/dashboard" aria-label="SonaMoney Home" className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-lg bg-[#00B9A7] flex items-center justify-center shrink-0">
-              <span className="text-white font-bold text-sm">S</span>
-            </div>
+            <img src="/logo-navbar.svg" alt="SonaMoney" className="h-8 w-8 shrink-0" />
             <span className="font-bold text-gray-900 dark:text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
               SonaMoney
             </span>

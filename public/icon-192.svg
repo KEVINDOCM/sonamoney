@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#00B9A7"/>
+      <stop offset="100%" stop-color="#005C54"/>
+    </linearGradient>
+    <clipPath id="clip">
+      <rect width="192" height="192" rx="44"/>
+    </clipPath>
+  </defs>
+  <rect width="192" height="192" rx="44" fill="url(#g)"/>
+  <g clip-path="url(#clip)">
+    <!-- S letter -->
+    <text x="96" y="128" font-family="Georgia, serif" font-size="118"
+      font-weight="bold" fill="white" text-anchor="middle">S</text>
+    <!-- Trend line -->
+    <polyline points="28,150 52,110 76,126 116,76 162,38"
+      stroke="white" stroke-width="10"
+      fill="none" stroke-linecap="round" stroke-linejoin="round"
+      opacity="0.9"/>
+    <!-- Arrowhead -->
+    <polygon points="162,38 144,52 156,68" fill="white" opacity="0.9"/>
+    <!-- Dots -->
+    <circle cx="28" cy="150" r="6" fill="white" opacity="0.5"/>
+    <circle cx="52" cy="110" r="6" fill="white" opacity="0.5"/>
+    <circle cx="76" cy="126" r="6" fill="white" opacity="0.5"/>
+    <circle cx="116" cy="76" r="6" fill="white" opacity="0.5"/>
+  </g>
+</svg>

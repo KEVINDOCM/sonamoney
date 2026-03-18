@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     description:
       "Mint shut down? Switch to SonaMoney. Free forever, no ads, import your Mint data in 2 minutes.",
     url: "https://sona-money.vercel.app/mint-alternative",
-    images: ["/og-image.png"],
+    images: ["/og-image.svg"],
   },
 }
 

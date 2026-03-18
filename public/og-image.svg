@@ -1,33 +1,147 @@
-<svg
-  xmlns="http://www.w3.org/2000/svg"
-  width="1200"
-  height="630"
-  viewBox="0 0 1200 630"
->
-  <rect width="1200" height="630" fill="#00B9A7"/>
-  <rect x="0" y="0" width="1200" height="630"
-    fill="url(#grad)"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
   <defs>
-    <linearGradient id="grad" x1="0" y1="0"
-      x2="1" y2="1">
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0F172A"/>
+      <stop offset="100%" stop-color="#1A1A2E"/>
+    </linearGradient>
+    <linearGradient id="logoGrad" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="#00B9A7"/>
-      <stop offset="100%" stop-color="#0099A0"/>
+      <stop offset="100%" stop-color="#005C54"/>
+    </linearGradient>
+    <linearGradient id="tealLine" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#00B9A7" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#00B9A7"/>
+      <stop offset="100%" stop-color="#00B9A7" stop-opacity="0"/>
     </linearGradient>
   </defs>
-  <rect x="80" y="200" width="80" height="80"
-    rx="20" fill="white" opacity="0.9"/>
-  <text x="120" y="257" font-family="Arial"
-    font-size="48" font-weight="bold"
-    fill="#00B9A7" text-anchor="middle">S</text>
-  <text x="200" y="262" font-family="Arial"
-    font-size="56" font-weight="bold"
-    fill="white">SonaMoney</text>
-  <text x="80" y="340" font-family="Arial"
-    font-size="28" fill="white" opacity="0.85">
-    Personal finance, made simple.
-  </text>
-  <text x="80" y="390" font-family="Arial"
-    font-size="22" fill="white" opacity="0.65">
-    Track income, expenses, and budgets — free forever.
-  </text>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bgGrad)"/>
+
+  <!-- Subtle grid pattern -->
+  <g opacity="0.04">
+    <line x1="0" y1="105" x2="1200" y2="105" stroke="white" stroke-width="1"/>
+    <line x1="0" y1="210" x2="1200" y2="210" stroke="white" stroke-width="1"/>
+    <line x1="0" y1="315" x2="1200" y2="315" stroke="white" stroke-width="1"/>
+    <line x1="0" y1="420" x2="1200" y2="420" stroke="white" stroke-width="1"/>
+    <line x1="0" y1="525" x2="1200" y2="525" stroke="white" stroke-width="1"/>
+    <line x1="200" y1="0" x2="200" y2="630" stroke="white" stroke-width="1"/>
+    <line x1="400" y1="0" x2="400" y2="630" stroke="white" stroke-width="1"/>
+    <line x1="600" y1="0" x2="600" y2="630" stroke="white" stroke-width="1"/>
+    <line x1="800" y1="0" x2="800" y2="630" stroke="white" stroke-width="1"/>
+    <line x1="1000" y1="0" x2="1000" y2="630" stroke="white" stroke-width="1"/>
+  </g>
+
+  <!-- Teal glow circle left -->
+  <circle cx="200" cy="315" r="280" fill="#00B9A7" opacity="0.06"/>
+
+  <!-- Logo icon -->
+  <rect x="80" y="200" width="180" height="180" rx="42" fill="url(#logoGrad)"/>
+  <!-- S letter in logo -->
+  <text x="170" y="322" font-family="Georgia, serif" font-size="130"
+    font-weight="bold" fill="white" text-anchor="middle">S</text>
+  <!-- Trend line in logo -->
+  <polyline points="100,360 125,318 148,334 183,295 242,255"
+    stroke="white" stroke-width="8"
+    fill="none" stroke-linecap="round" stroke-linejoin="round"
+    opacity="0.9"/>
+  <polygon points="242,255 226,268 236,282" fill="white" opacity="0.9"/>
+  <circle cx="100" cy="360" r="5" fill="white" opacity="0.5"/>
+  <circle cx="125" cy="318" r="5" fill="white" opacity="0.5"/>
+  <circle cx="148" cy="334" r="5" fill="white" opacity="0.5"/>
+  <circle cx="183" cy="295" r="5" fill="white" opacity="0.5"/>
+
+  <!-- Brand name -->
+  <text x="300" y="298" font-family="Georgia, serif" font-size="72"
+    font-weight="bold" fill="white" letter-spacing="-1">Sona</text>
+  <text x="300" y="360" font-family="Arial" font-size="56"
+    font-weight="600" fill="#00B9A7" letter-spacing="2">Money</text>
+
+  <!-- Tagline -->
+  <text x="300" y="408" font-family="Arial" font-size="22"
+    fill="white" opacity="0.45" letter-spacing="4">PERSONAL FINANCE, MADE SIMPLE</text>
+
+  <!-- Divider line -->
+  <line x1="80" y1="445" x2="520" y2="445" stroke="url(#tealLine)" stroke-width="1.5"/>
+
+  <!-- Feature pills -->
+  <g transform="translate(80, 462)">
+    <!-- Pill 1 -->
+    <rect width="110" height="30" rx="15" fill="#00B9A7" fill-opacity="0.15"
+      stroke="#00B9A7" stroke-width="1" stroke-opacity="0.4"/>
+    <text x="55" y="20" font-family="Arial" font-size="13" fill="#00B9A7"
+      text-anchor="middle">📊 Analytics</text>
+  </g>
+  <g transform="translate(204, 462)">
+    <rect width="100" height="30" rx="15" fill="#00B9A7" fill-opacity="0.15"
+      stroke="#00B9A7" stroke-width="1" stroke-opacity="0.4"/>
+    <text x="50" y="20" font-family="Arial" font-size="13" fill="#00B9A7"
+      text-anchor="middle">🎯 Budget</text>
+  </g>
+  <g transform="translate(318, 462)">
+    <rect width="90" height="30" rx="15" fill="#00B9A7" fill-opacity="0.15"
+      stroke="#00B9A7" stroke-width="1" stroke-opacity="0.4"/>
+    <text x="45" y="20" font-family="Arial" font-size="13" fill="#00B9A7"
+      text-anchor="middle">🤖 AI</text>
+  </g>
+  <g transform="translate(422, 462)">
+    <rect width="90" height="30" rx="15" fill="#00B9A7" fill-opacity="0.15"
+      stroke="#00B9A7" stroke-width="1" stroke-opacity="0.4"/>
+    <text x="45" y="20" font-family="Arial" font-size="13" fill="#00B9A7"
+      text-anchor="middle">🆓 Free</text>
+  </g>
+
+  <!-- Right side: Mock dashboard card -->
+  <g transform="translate(700, 140)">
+    <rect width="420" height="340" rx="24" fill="white" fill-opacity="0.04"
+      stroke="white" stroke-opacity="0.08" stroke-width="1"/>
+
+    <!-- Card header -->
+    <rect width="420" height="60" rx="24" fill="white" fill-opacity="0.05"/>
+    <text x="24" y="26" font-family="Arial" font-size="12" fill="white" opacity="0.4">Total Balance</text>
+    <text x="24" y="48" font-family="Arial" font-size="22" font-weight="bold" fill="white">Rp 12.450.000</text>
+
+    <!-- Income/Expense row -->
+    <rect x="16" y="76" width="180" height="60" rx="12" fill="#00C48C" fill-opacity="0.1"
+      stroke="#00C48C" stroke-opacity="0.2" stroke-width="1"/>
+    <text x="28" y="100" font-family="Arial" font-size="11" fill="#00C48C" opacity="0.7">Income</text>
+    <text x="28" y="122" font-family="Arial" font-size="16" font-weight="bold" fill="#00C48C">+Rp 8.500.000</text>
+
+    <rect x="212" y="76" width="192" height="60" rx="12" fill="#FF5B5B" fill-opacity="0.1"
+      stroke="#FF5B5B" stroke-opacity="0.2" stroke-width="1"/>
+    <text x="224" y="100" font-family="Arial" font-size="11" fill="#FF5B5B" opacity="0.7">Expense</text>
+    <text x="224" y="122" font-family="Arial" font-size="16" font-weight="bold" fill="#FF5B5B">-Rp 4.200.000</text>
+
+    <!-- Budget bars -->
+    <text x="16" y="162" font-family="Arial" font-size="11" fill="white" opacity="0.4">Budget Overview</text>
+
+    <!-- Bar 1 -->
+    <text x="16" y="184" font-family="Arial" font-size="11" fill="white" opacity="0.6">Food</text>
+    <text x="388" y="184" font-family="Arial" font-size="11" fill="#FFB800" text-anchor="end">72%</text>
+    <rect x="16" y="188" width="388" height="6" rx="3" fill="white" fill-opacity="0.08"/>
+    <rect x="16" y="188" width="280" height="6" rx="3" fill="#FFB800"/>
+
+    <!-- Bar 2 -->
+    <text x="16" y="214" font-family="Arial" font-size="11" fill="white" opacity="0.6">Transport</text>
+    <text x="388" y="214" font-family="Arial" font-size="11" fill="#00C48C" text-anchor="end">35%</text>
+    <rect x="16" y="218" width="388" height="6" rx="3" fill="white" fill-opacity="0.08"/>
+    <rect x="16" y="218" width="136" height="6" rx="3" fill="#00C48C"/>
+
+    <!-- Bar 3 -->
+    <text x="16" y="244" font-family="Arial" font-size="11" fill="white" opacity="0.6">Shopping</text>
+    <text x="388" y="244" font-family="Arial" font-size="11" fill="#FF5B5B" text-anchor="end">91%</text>
+    <rect x="16" y="248" width="388" height="6" rx="3" fill="white" fill-opacity="0.08"/>
+    <rect x="16" y="248" width="353" height="6" rx="3" fill="#FF5B5B"/>
+
+    <!-- Bottom CTA -->
+    <rect x="16" y="276" width="388" height="44" rx="22" fill="url(#logoGrad)"/>
+    <text x="210" y="303" font-family="Arial" font-size="14" font-weight="bold"
+      fill="white" text-anchor="middle">Get Started Free →</text>
+  </g>
+
+  <!-- URL badge -->
+  <rect x="80" y="566" width="240" height="28" rx="14"
+    fill="white" fill-opacity="0.06"/>
+  <text x="200" y="585" font-family="Arial" font-size="13"
+    fill="white" opacity="0.35" text-anchor="middle">sona-money.vercel.app</text>
 </svg>

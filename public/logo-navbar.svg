@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 36" width="140" height="36">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#00B9A7"/>
+      <stop offset="100%" stop-color="#005C54"/>
+    </linearGradient>
+  </defs>
+  <!-- Icon -->
+  <rect width="32" height="32" rx="8" fill="url(#g)" y="2"/>
+  <!-- S -->
+  <text x="16" y="23" font-family="Georgia, serif" font-size="20"
+    font-weight="bold" fill="white" text-anchor="middle">S</text>
+  <!-- Trend line -->
+  <polyline points="4,27 9,20 14,23 21,15 28,9"
+    stroke="white" stroke-width="1.8"
+    fill="none" stroke-linecap="round" stroke-linejoin="round"
+    opacity="0.85"/>
+  <polygon points="28,9 23,13 26,17" fill="white" opacity="0.85"/>
+  <!-- Wordmark -->
+  <text x="40" y="16" font-family="Georgia, serif" font-size="16"
+    font-weight="bold" fill="#1A1A2E">Sona</text>
+  <text x="40" y="30" font-family="Arial" font-size="11"
+    font-weight="700" fill="#00B9A7" letter-spacing="0.5">Money</text>
+</svg>

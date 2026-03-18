@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     description:
       "Track spending without linking your bank. Full privacy, manual entry, data export. Free forever.",
     url: "https://sona-money.vercel.app/manual-tracker",
-    images: ["/og-image.png"],
+    images: ["/og-image.svg"],
   },
 }
 
