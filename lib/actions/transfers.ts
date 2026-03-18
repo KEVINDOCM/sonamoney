@@ -73,9 +73,15 @@ export async function createTransfer(data: CreateTransferPayload): Promise<Actio
 
   if (insertError) return { success: false, error: insertError.message };
 
-  // Adjust balances using utility functions
+  // Calculate converted amount for different currencies
+  const fromCurrency = data.from_currency ?? "IDR";
+  const toCurrency = data.to_currency ?? "IDR";
+  const exchangeRate = data.exchange_rate ?? 1;
+  const convertedAmount = data.converted_amount ?? (fromCurrency === toCurrency ? data.amount : data.amount * exchangeRate);
+
+  // Adjust balances using utility functions - use converted amount for destination if different currency
   await adjustAccountBalance(typedSupabase as unknown as Parameters<typeof adjustAccountBalance>[0], data.from_account_id, -data.amount);
-  await adjustAccountBalance(typedSupabase as unknown as Parameters<typeof adjustAccountBalance>[0], data.to_account_id, data.amount);
+  await adjustAccountBalance(typedSupabase as unknown as Parameters<typeof adjustAccountBalance>[0], data.to_account_id, convertedAmount);
 
   revalidateAccountPaths();
   return { success: true };
@@ -121,11 +127,25 @@ export async function deleteTransfer(id: string): Promise<ActionResult> {
 
   if (fetchError || !transfer) return { success: false, error: "Transfer not found" };
 
-  const typedTransfer = transfer as { from_account_id: string; to_account_id: string; amount: number };
+  const typedTransfer = transfer as { 
+    from_account_id: string; 
+    to_account_id: string; 
+    amount: number;
+    converted_amount?: number;
+    from_currency?: string;
+    to_currency?: string;
+    exchange_rate?: number;
+  };
 
-  // Revert balances using utility functions
+  // Calculate the amount to revert for destination account
+  const fromCurrency = typedTransfer.from_currency ?? "IDR";
+  const toCurrency = typedTransfer.to_currency ?? "IDR";
+  const exchangeRate = typedTransfer.exchange_rate ?? 1;
+  const convertedAmount = typedTransfer.converted_amount ?? (fromCurrency === toCurrency ? typedTransfer.amount : typedTransfer.amount * exchangeRate);
+
+  // Revert balances using utility functions - restore original amounts
   await adjustAccountBalance(typedSupabase as unknown as Parameters<typeof adjustAccountBalance>[0], typedTransfer.from_account_id, typedTransfer.amount);
-  await adjustAccountBalance(typedSupabase as unknown as Parameters<typeof adjustAccountBalance>[0], typedTransfer.to_account_id, -typedTransfer.amount);
+  await adjustAccountBalance(typedSupabase as unknown as Parameters<typeof adjustAccountBalance>[0], typedTransfer.to_account_id, -convertedAmount);
 
   // Delete transfer
   const { error: deleteError } = await supabase
