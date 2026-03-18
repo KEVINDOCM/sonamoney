@@ -19,7 +19,7 @@ export const metadata: Metadata = {
       "Catat pengeluaran harian dalam Rupiah. Gratis selamanya, kurs real-time, bisa offline.",
     url: "https://sona-money.vercel.app/id",
     locale: "id_ID",
-    images: ["/og-image.svg"],
+    images: ["/og-image.png"],
   },
   alternates: {
     canonical: "https://sona-money.vercel.app/id",
