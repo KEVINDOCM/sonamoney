@@ -57,7 +57,7 @@ export const metadata: Metadata = {
       "Free personal finance app with analytics and AI.",
     images: [
       {
-        url: "https://sona-money.vercel.app/?v=1",
+        url: "https://sona-money.vercel.app/og-image.png",
         width: 1200,
         height: 630,
         alt: "SonaMoney — Personal Finance Tracker",
