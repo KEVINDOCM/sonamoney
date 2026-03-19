@@ -301,11 +301,16 @@ export async function scanReceiptWithGemini(
   category: string | null
   notes: string | null
 }> {
-  const genAI = new GoogleGenerativeAI(
-    process.env.GEMINI_API_KEY ?? ""
-  )
+  const apiKey = process.env.GEMINI_API_KEY
+
+  if (!apiKey) {
+    console.error("[DEBUG-GEMINI] GEMINI_API_KEY not configured for receipt scan")
+    throw new Error("GEMINI_API_KEY not configured")
+  }
+
+  const genAI = new GoogleGenerativeAI(apiKey)
   const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash",
+    model: AI_MODEL,
   })
 
   const prompt = `
@@ -333,22 +338,30 @@ Rules:
 - category must be exactly one of the listed options
 `
 
-  const result = await model.generateContent([
-    {
-      inlineData: {
-        mimeType,
-        data: base64Image,
+  let text = ""
+  try {
+    const result = await model.generateContent([
+      {
+        inlineData: {
+          mimeType,
+          data: base64Image,
+        },
       },
-    },
-    prompt,
-  ])
+      prompt,
+    ])
+    text = result.response.text()
+  } catch (err) {
+    console.error("Gemini Vision API error:", err)
+    throw new Error("Gemini API call failed")
+  }
 
-  const text = result.response.text()
   const clean = text.replace(/```json|```/g, "").trim()
 
   try {
     return JSON.parse(clean)
-  } catch {
+  } catch (err) {
+    console.error("scanReceiptWithGemini parse error:", err)
+    console.error("Raw Gemini response:", text ?? "no response")
     return {
       merchant: null,
       date: null,
