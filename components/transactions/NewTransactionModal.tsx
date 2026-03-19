@@ -11,6 +11,8 @@ import type { Category, Account } from "@/types";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import TypeToggle from "@/components/ui/TypeToggle";
 import CurrencySelector from "@/components/ui/CurrencySelector";
+import { ReceiptScanner } from "@/components/transactions/ReceiptScanner";
+import { Camera } from "lucide-react";
 
 // Client-side helper to compute next recurring date
 function computeNextDateClient(
@@ -75,6 +77,7 @@ export const NewTransactionModal = ({ isOpen, onClose, categories, accounts, onS
   const [selectedCurrency, setSelectedCurrency] = useState<string>("IDR");
   const [taxRate, setTaxRate] = useState("");
   const [commissionRate, setCommissionRate] = useState("");
+  const [showScanner, setShowScanner] = useState(false);
 
   // Get currency from selected account (for display purposes)
   const selectedAccount = accounts.find(a => a.id === selectedAccountId);
@@ -177,12 +180,65 @@ export const NewTransactionModal = ({ isOpen, onClose, categories, accounts, onS
     });
   };
 
+  function handleScanComplete(data: {
+    merchant: string | null
+    date: string | null
+    total: number | null
+    currency: string | null
+    items: Array<{ name: string; amount: number }>
+    category: string | null
+    notes: string | null
+  }) {
+    if (data.merchant) {
+      setValue("payee", data.merchant)
+    }
+    if (data.date) {
+      setValue("date", data.date)
+    }
+    if (data.total) {
+      setValue("amount", String(data.total))
+    }
+    if (data.notes) {
+      setValue("notes", data.notes)
+    }
+    if (data.category && categories.length > 0) {
+      const matched = categories.find(
+        (c) =>
+          c.name.toLowerCase().includes(data.category!.toLowerCase()) ||
+          data.category!.toLowerCase().includes(c.name.toLowerCase())
+      )
+      if (matched) {
+        setValue("categoryId", matched.id)
+      }
+    }
+    if (data.currency) {
+      setSelectedCurrency(data.currency)
+    }
+    setShowScanner(false)
+  }
+
   return (
     <Modal title={mounted ? t("transactions.add") : "Add Transaction"} isOpen={isOpen} onClose={onClose}>
       <form
         className="flex flex-col gap-3"
         onSubmit={handleSubmit(onFormSubmit)}
       >
+        {showScanner ? (
+          <ReceiptScanner
+            onScanComplete={handleScanComplete}
+            onClose={() => setShowScanner(false)}
+          />
+        ) : (
+          <button
+            type="button"
+            onClick={() => setShowScanner(true)}
+            className="w-full flex items-center justify-center gap-2 h-10 rounded-2xl border-2 border-dashed border-gray-200 hover:border-[#00B9A7] hover:bg-[#E6F7F6] transition-all duration-200 text-sm font-medium text-gray-500 hover:text-[#00B9A7]"
+          >
+            <Camera className="w-4 h-4" />
+            Scan Receipt
+          </button>
+        )}
+
         <Input
           label="Date"
           type="date"

@@ -288,3 +288,75 @@ export async function generateAIResponse(
     throw error
   }
 }
+
+export async function scanReceiptWithGemini(
+  base64Image: string,
+  mimeType: string
+): Promise<{
+  merchant: string | null
+  date: string | null
+  total: number | null
+  currency: string | null
+  items: Array<{ name: string; amount: number }>
+  category: string | null
+  notes: string | null
+}> {
+  const genAI = new GoogleGenerativeAI(
+    process.env.GEMINI_API_KEY ?? ""
+  )
+  const model = genAI.getGenerativeModel({
+    model: "gemini-1.5-flash",
+  })
+
+  const prompt = `
+You are a receipt parser. Extract data from this receipt image.
+Respond ONLY with a valid JSON object, no markdown, no explanation.
+
+Required JSON format:
+{
+  "merchant": "store or restaurant name or null",
+  "date": "YYYY-MM-DD format or null",
+  "total": number or null,
+  "currency": "IDR or USD or other ISO code or null",
+  "items": [
+    { "name": "item name", "amount": number }
+  ],
+  "category": "one of: Food, Transport, Shopping, Entertainment, Health, Education, Bills, Other",
+  "notes": "brief description of purchase or null"
+}
+
+Rules:
+- date must be YYYY-MM-DD format
+- total must be a number, no currency symbols
+- items array can be empty if not visible
+- currency should be IDR if receipt shows Rp or Indonesian context
+- category must be exactly one of the listed options
+`
+
+  const result = await model.generateContent([
+    {
+      inlineData: {
+        mimeType,
+        data: base64Image,
+      },
+    },
+    prompt,
+  ])
+
+  const text = result.response.text()
+  const clean = text.replace(/```json|```/g, "").trim()
+
+  try {
+    return JSON.parse(clean)
+  } catch {
+    return {
+      merchant: null,
+      date: null,
+      total: null,
+      currency: null,
+      items: [],
+      category: null,
+      notes: null,
+    }
+  }
+}
