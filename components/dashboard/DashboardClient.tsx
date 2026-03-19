@@ -12,9 +12,12 @@ import { useTranslation } from "@/lib/i18n/useTranslation";
 import { useCurrency } from "@/lib/hooks/useCurrency";
 import type { Transaction, Category, Account } from "@/types";
 import type { Goal } from "@/lib/actions/goals";
+import type { SavedHealthScore } from "@/lib/actions/healthScore";
 import StatCard from "@/components/ui/StatCard";
 import { GoalsWidget } from "./GoalsWidget";
 import { BudgetNotification } from "./BudgetNotification";
+import { HealthScoreWidget } from "./HealthScoreWidget";
+import { HealthScoreFAB } from "./HealthScoreFAB";
 
 // Animated number counter component
 function AnimatedNumber({ value, prefix = "" }: { value: number; prefix?: string }) {
@@ -72,6 +75,7 @@ interface DashboardClientProps {
   budgetSummary: BudgetSummary;
   budgetWarningCount: number;
   goals: Goal[];
+  healthScore: SavedHealthScore;
 }
 
 export function DashboardClient({
@@ -83,6 +87,7 @@ export function DashboardClient({
   budgetSummary,
   budgetWarningCount,
   goals,
+  healthScore,
 }: DashboardClientProps) {
   const { t, mounted } = useTranslation();
   const { baseCurrency, convert, rates, mounted: currencyMounted } = useCurrency();
@@ -494,6 +499,7 @@ export function DashboardClient({
           <BudgetOverview
             budgetSummary={budgetSummary}
           />
+          <HealthScoreWidget healthScore={healthScore} />
           {goals && goals.length > 0 && (
             <GoalsWidget
               goals={goals}
@@ -509,6 +515,8 @@ export function DashboardClient({
         mounted={mounted}
         t={t}
       />
+
+      <HealthScoreFAB healthScore={healthScore} />
 
       {/* Mobile Add Button */}
       <div className="

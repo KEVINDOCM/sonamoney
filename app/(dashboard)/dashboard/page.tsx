@@ -2,6 +2,7 @@ import { fetchDashboardSummary, fetchTransactions } from "@/lib/actions/transact
 import { fetchCategories } from "@/lib/actions/categories";
 import { getOrSeedAccounts } from "@/lib/actions/accounts";
 import { fetchGoals } from "@/lib/actions/goals";
+import { getOrComputeHealthScore } from "@/lib/actions/healthScore";
 import { DashboardClient } from "@/components/dashboard/DashboardClient";
 import { getAuthenticatedClient } from "@/lib/utils/auth";
 import type { Category } from "@/types";
@@ -84,6 +85,12 @@ export default async function DashboardPage() {
     hasBudgets: categoriesWithLimit.length > 0,
   };
 
+  // Compute health score after other data is fetched
+  const healthScore = await getOrComputeHealthScore(
+    allTransactions ?? [],
+    categories as Category[]
+  );
+
   return (
     <DashboardClient
       summary={summary}
@@ -94,6 +101,7 @@ export default async function DashboardPage() {
       budgetSummary={budgetSummary}
       budgetWarningCount={budgetWarningCount}
       goals={goals}
+      healthScore={healthScore}
     />
   );
 }
