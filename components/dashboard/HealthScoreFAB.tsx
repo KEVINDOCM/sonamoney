@@ -32,10 +32,10 @@ export function HealthScoreFAB({ healthScore }: HealthScoreFABProps) {
 
   return (
     <>
-      {/* FAB Button */}
+      {/* FAB Button - Positioned above AI chat button (bottom-20) */}
       <motion.button
         onClick={() => setOpen(true)}
-        className="fixed bottom-24 right-4 z-40 md:bottom-8 md:right-8 flex items-center justify-center w-14 h-14 rounded-full shadow-lg shadow-black/20 border-2 border-white dark:border-gray-800"
+        className="fixed bottom-36 right-4 z-[55] md:bottom-24 md:right-6 flex items-center justify-center w-14 h-14 rounded-full shadow-lg shadow-black/20 border-2 border-white dark:border-gray-800"
         style={{ backgroundColor: scoreColor }}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
