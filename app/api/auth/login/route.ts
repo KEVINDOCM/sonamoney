@@ -6,6 +6,7 @@ import {
   getClientIp,
 } from "@/lib/utils/authSecurity"
 import { loginSchema } from "@/lib/utils/validation"
+import { logAuditEvent } from "@/lib/utils/auditLog"
 
 const MAX_ATTEMPTS = 5
 const GENERIC_ERROR = "Invalid email or password"
@@ -37,6 +38,12 @@ export async function POST(req: Request): Promise<Response> {
     const lockout = await isLockedOut(email)
     if (lockout.locked) {
       const minutes = Math.ceil(lockout.remainingMs / 60000)
+      await logAuditEvent({
+        eventType: "auth.login.locked",
+        eventStatus: "blocked",
+        ipAddress: ip,
+        metadata: { email: email.slice(0, 3) + "***" },
+      })
       return Response.json(
         {
           error: `Account temporarily locked. Try again in ${minutes} minute${minutes !== 1 ? "s" : ""}.`,
@@ -66,6 +73,12 @@ export async function POST(req: Request): Promise<Response> {
       // Check if now locked after this attempt
       if (attemptResult.locked) {
         const minutes = Math.ceil(attemptResult.remainingMs / 60000)
+        await logAuditEvent({
+          eventType: "auth.login.locked",
+          eventStatus: "blocked",
+          ipAddress: ip,
+          metadata: { email: email.slice(0, 3) + "***", attempts: attemptResult.attempts },
+        })
       return Response.json(
         {
           error: `Too many failed attempts. Account locked for ${minutes} minute${minutes !== 1 ? "s" : ""}.`,
@@ -81,11 +94,25 @@ export async function POST(req: Request): Promise<Response> {
         ? ` ${remaining} attempt${remaining !== 1 ? "s" : ""} remaining.`
         : ""
 
+      await logAuditEvent({
+        eventType: "auth.login.failure",
+        eventStatus: "failure",
+        ipAddress: ip,
+        metadata: { email: email.slice(0, 3) + "***", remainingAttempts: remaining },
+      })
+
       return Response.json(
         { error: `${GENERIC_ERROR}.${attemptsMsg}` },
         { status: 401 }
       )
     }
+
+    await logAuditEvent({
+      eventType: "auth.login.success",
+      eventStatus: "success",
+      ipAddress: ip,
+      metadata: { email: email.slice(0, 3) + "***" },
+    })
 
     return Response.json({ success: true }, { status: 200 })
   } catch {

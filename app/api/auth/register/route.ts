@@ -2,6 +2,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server"
 import { sanitizeEmail, getClientIp } from "@/lib/utils/authSecurity"
 import { signupSchema } from "@/lib/utils/validation"
 import { checkPasswordBreached } from "@/lib/utils/passwordSecurity"
+import { logAuditEvent } from "@/lib/utils/auditLog"
 
 // Generic message to prevent user enumeration
 const GENERIC_SUCCESS = "If this email is not registered, you will receive a confirmation email."
@@ -57,12 +58,24 @@ export async function POST(req: Request): Promise<Response> {
     // Always return generic success to prevent user enumeration
     // Even if email already exists, Supabase handles silently
     if (error && !error.message.includes("already registered")) {
-      console.error("Signup error:", error.message)
+      await logAuditEvent({
+        eventType: "auth.register.failure",
+        eventStatus: "failure",
+        ipAddress: ip,
+        metadata: { reason: "signup_error" },
+      })
       return Response.json(
         { error: "Failed to create account. Please try again." },
         { status: 500 }
       )
     }
+
+    await logAuditEvent({
+      eventType: "auth.register.success",
+      eventStatus: "success",
+      ipAddress: ip,
+      metadata: { email: email.slice(0, 3) + "***" },
+    })
 
     return Response.json(
       { success: true, message: GENERIC_SUCCESS },

@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server"
 import { createSupabaseServerClient } from "@/lib/supabase/server"
 import { scanReceiptWithGemini } from "@/lib/services/gemini"
+import { logAuditEvent, getRequestMeta } from "@/lib/utils/auditLog"
 
 interface SupabaseAuthClient {
   auth: {
@@ -33,6 +34,8 @@ async function validateImageMagicBytes(buffer: ArrayBuffer): Promise<boolean> {
 }
 
 export async function POST(request: Request): Promise<Response> {
+  const { ipAddress, userAgent } = getRequestMeta(request)
+
   try {
     const supabase = await createSupabaseServerClient() as unknown as SupabaseAuthClient
     const { data: { user } } = await supabase.auth.getUser()
@@ -101,12 +104,24 @@ export async function POST(request: Request): Promise<Response> {
 
     const result = await scanReceiptWithGemini(base64, safeMimeType)
 
+    await logAuditEvent({
+      eventType: "scan.receipt.success",
+      eventStatus: "success",
+      ipAddress: ipAddress,
+      userId: user.id,
+    })
+
     return new Response(
       JSON.stringify({ success: true, data: result }),
       { status: 200, headers: { "Content-Type": "application/json" } }
     )
   } catch (error) {
-    console.error("Receipt scan error:", error)
+    await logAuditEvent({
+      eventType: "scan.receipt.failure",
+      eventStatus: "failure",
+      ipAddress: ipAddress,
+      metadata: { reason: "scan_error" },
+    })
     return new Response(
       JSON.stringify({ error: "Failed to scan receipt" }),
       { status: 500, headers: { "Content-Type": "application/json" } }

@@ -8,7 +8,6 @@ import { useTranslation } from "@/lib/i18n/useTranslation";
 import { useToast } from "@/lib/hooks/useToast";
 import { ToastContainer } from "@/components/ui/Toast";
 import { useCurrency } from "@/lib/hooks/useCurrency";
-import ConfirmDeleteModal from "@/components/ui/ConfirmDeleteModal";
 import { AppearanceSection } from "./AppearanceSection";
 import { LanguageSection } from "./LanguageSection";
 import { CurrencySection } from "./CurrencySection";
@@ -30,6 +29,7 @@ export function SettingsClient({ email, displayName: initialDisplayName }: Setti
   const [hasResetSuccess, setHasResetSuccess] = useState(false);
 
   const [deleteConfirmationInput, setDeleteConfirmationInput] = useState("");
+  const [deletePassword, setDeletePassword] = useState("");
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
@@ -59,10 +59,14 @@ export function SettingsClient({ email, displayName: initialDisplayName }: Setti
   }
 
   async function handleDeleteAccount(): Promise<void> {
-    if (deleteConfirmationInput !== "DELETE") return;
-    setIsDeletingAccount(true);
-    const result = await deleteAccount();
-    setIsDeletingAccount(false);
+    if (deleteConfirmationInput !== "DELETE") return
+    if (!deletePassword.trim()) {
+      toast.error("Please enter your password to confirm deletion")
+      return
+    }
+    setIsDeletingAccount(true)
+    const result = await deleteAccount(deletePassword)
+    setIsDeletingAccount(false)
     if (result.error) {
       toast.error(result.error ?? t("common.error"));
     } else {
@@ -232,22 +236,64 @@ export function SettingsClient({ email, displayName: initialDisplayName }: Setti
         >
           {i18nMounted ? t("settings.deleteAccount") : "Delete account"}
         </button>
-      </div>
 
-      {/* Delete Confirmation Modal */}
-      <ConfirmDeleteModal
-        isOpen={isDeleteModalOpen}
-        onClose={() => {
-          setIsDeleteModalOpen(false);
-          setDeleteConfirmationInput("");
-        }}
-        onConfirm={handleDeleteAccount}
-        isLoading={isDeletingAccount}
-        title={i18nMounted ? t("settings.deleteAccountTitle") : "Delete Account"}
-        description={`${i18nMounted ? t("settings.deleteAccountDesc") : "This will permanently delete all your data."} ${i18nMounted ? t("settings.deleteConfirmHint") : "Type DELETE to confirm."}`}
-        confirmLabel={isDeletingAccount ? (i18nMounted ? t("settings.deleting") : "Deleting...") : (i18nMounted ? t("settings.deleteAccountTitle") : "Delete Account")}
-        cancelLabel={i18nMounted ? t("common.cancel") : "Cancel"}
-      />
+        {isDeleteModalOpen && (
+          <div className="mt-4 p-4 bg-rose-50 dark:bg-rose-900/20 rounded-2xl border border-rose-200 dark:border-rose-800 space-y-3">
+            <p className="text-xs font-semibold text-rose-700 dark:text-rose-400 uppercase tracking-wide">
+              Confirm deletion
+            </p>
+            <div>
+              <label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">
+                Type DELETE to confirm
+              </label>
+              <input
+                type="text"
+                value={deleteConfirmationInput}
+                onChange={(e) => setDeleteConfirmationInput(e.target.value)}
+                placeholder="DELETE"
+                className="w-full h-10 border border-rose-200 dark:border-rose-700 rounded-xl px-3 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 dark:bg-gray-800 dark:text-white"
+                autoComplete="off"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">
+                Enter your password to confirm
+              </label>
+              <input
+                type="password"
+                value={deletePassword}
+                onChange={(e) => setDeletePassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full h-10 border border-rose-200 dark:border-rose-700 rounded-xl px-3 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 dark:bg-gray-800 dark:text-white"
+                autoComplete="current-password"
+              />
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  setIsDeleteModalOpen(false)
+                  setDeleteConfirmationInput("")
+                  setDeletePassword("")
+                }}
+                className="flex-1 h-10 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={
+                  isDeletingAccount ||
+                  deleteConfirmationInput !== "DELETE" ||
+                  !deletePassword.trim()
+                }
+                className="flex-1 h-10 bg-rose-500 hover:bg-rose-600 disabled:opacity-50 text-white text-sm font-medium rounded-xl transition-colors"
+              >
+                {isDeletingAccount ? "Deleting..." : "Delete Account"}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
 
       <ToastContainer toasts={toasts} onRemove={removeToast} />
     </div>

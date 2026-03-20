@@ -161,6 +161,7 @@ export default function AuthLoginPage() {
                   type="email"
                   name="email"
                   required
+                  autoComplete="email"
                   placeholder="you@example.com"
                   className="w-full h-11 border border-gray-200 rounded-xl px-4 text-sm text-[#1A1A2E] placeholder-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#00B9A7]/30 focus:border-[#00B9A7] transition-all duration-200 bg-white"
                 />
@@ -173,9 +174,19 @@ export default function AuthLoginPage() {
                   type="password"
                   name="password"
                   required
+                  autoComplete="current-password"
                   placeholder="••••••••"
                   className="w-full h-11 border border-gray-200 rounded-xl px-4 text-sm text-[#1A1A2E] placeholder-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#00B9A7]/30 focus:border-[#00B9A7] transition-all duration-200 bg-white"
                 />
+              </div>
+
+              <div className="flex justify-end">
+                <Link
+                  href="/forgot-password"
+                  className="text-xs text-[#6B7280] hover:text-[#00B9A7] transition-colors"
+                >
+                  Forgot password?
+                </Link>
               </div>
 
               {/* Submit */}

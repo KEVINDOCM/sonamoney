@@ -196,6 +196,7 @@ export default function SignupPage() {
                   type="email"
                   name="email"
                   required
+                  autoComplete="email"
                   placeholder="you@example.com"
                   className="
                     w-full h-11 border border-gray-200
@@ -220,6 +221,7 @@ export default function SignupPage() {
                   type="password"
                   name="password"
                   required
+                  autoComplete="new-password"
                   placeholder="••••••••"
                   value={password}
                   onChange={handlePasswordChange}
