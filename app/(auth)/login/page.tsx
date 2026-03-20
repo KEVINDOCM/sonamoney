@@ -23,6 +23,7 @@ export default function AuthLoginPage() {
   const [isPending, startTransition] = useTransition();
   const [authError, setAuthError] = useState<AuthErrorState | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [lockoutMs, setLockoutMs] = useState<number>(0);
   const { t, mounted } = useTranslation();
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -32,9 +33,9 @@ export default function AuthLoginPage() {
     const password = String(formData.get("password") ?? "");
 
     setAuthError(null);
+    setLockoutMs(0);
     setIsSubmitting(true);
 
-    // Validate form data
     const parsed = loginSchema.safeParse({ email, password });
     if (!parsed.success) {
       setAuthError({
@@ -44,23 +45,42 @@ export default function AuthLoginPage() {
       return;
     }
 
-    const supabase = createSupabaseBrowserClient() as AuthClient;
-
     void (async () => {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-
-      setIsSubmitting(false);
-
-      if (error) {
-        setAuthError({
-          message: mounted ? t("auth.loginError") : "Failed to log in. Please check your credentials and try again.",
+      try {
+        const res = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
         });
-        return;
-      }
 
-      startTransition(() => {
-        router.push("/dashboard");
-      });
+        const data: unknown = await res.json();
+        const json = data as {
+          error?: string;
+          locked?: boolean;
+          remainingMs?: number;
+        };
+
+        setIsSubmitting(false);
+
+        if (!res.ok) {
+          if (json.locked && json.remainingMs) {
+            setLockoutMs(json.remainingMs);
+          }
+          setAuthError({
+            message: json.error ?? "Failed to log in. Please try again.",
+          });
+          return;
+        }
+
+        startTransition(() => {
+          router.push("/dashboard");
+        });
+      } catch {
+        setIsSubmitting(false);
+        setAuthError({
+          message: "Network error. Please try again.",
+        });
+      }
     })();
   };
 
@@ -119,6 +139,16 @@ export default function AuthLoginPage() {
               <div className="rounded-2xl bg-[#FFF0F0] border border-[#FF5B5B]/20 px-4 py-3 flex items-center gap-2">
                 <span>⚠️</span>
                 <p className="text-sm text-[#FF5B5B] font-medium">{error}</p>
+              </div>
+            )}
+
+            {/* Lockout countdown */}
+            {lockoutMs > 0 && (
+              <div className="rounded-2xl bg-amber-50 border border-amber-200 px-4 py-3">
+                <p className="text-sm text-amber-700 font-medium">
+                  🔒 Account locked. Try again in{" "}
+                  {Math.ceil(lockoutMs / 60000)} minute{Math.ceil(lockoutMs / 60000) !== 1 ? "s" : ""}.
+                </p>
               </div>
             )}
 

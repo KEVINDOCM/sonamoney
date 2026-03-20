@@ -3,7 +3,7 @@
 import { getAuthenticatedClient } from "@/lib/utils/auth"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
-import { validateOrThrow } from "@/lib/utils/validation"
+import { validateUUID, sanitizeText, sanitizeNotes, validateOrThrow } from "@/lib/utils/validation"
 
 export interface Goal {
   id: string
@@ -98,19 +98,25 @@ export async function createGoal(
     const { error } = await supabase
       .from("goals")
       .insert({
-        ...validated,
         user_id: user.id,
+        name: sanitizeText(validated.name, 50),
+        target_amount: validated.target_amount,
+        current_amount: validated.current_amount ?? 0,
+        currency: validated.currency ?? "IDR",
+        deadline: validated.deadline ?? null,
+        icon: validated.icon ? sanitizeText(validated.icon, 10) : "🎯",
+        color: validated.color ? sanitizeText(validated.color, 20) : "#00B9A7",
       })
 
-    if (error) return { success: false, error: error.message }
+    if (error) return { success: false, error: "Failed to create goal. Please try again." }
 
     revalidatePath("/dashboard")
     revalidatePath("/goals")
     return { success: true }
-  } catch (err) {
+  } catch {
     return {
       success: false,
-      error: err instanceof Error ? err.message : "Failed",
+      error: "An error occurred. Please try again.",
     }
   }
 }
@@ -120,6 +126,13 @@ export async function updateGoalAmount(
   currentAmount: number
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    // Validate UUID at start
+    try {
+      validateUUID(goalId)
+    } catch {
+      return { success: false, error: "Invalid goal ID" }
+    }
+
     const { supabase: rawSupabase, user } = await getAuthenticatedClient()
     const supabase: SupabaseAuthClient = rawSupabase as unknown as SupabaseAuthClient
 
@@ -156,15 +169,15 @@ export async function updateGoalAmount(
       .eq("id", goalId)
       .eq("user_id", user.id)
 
-    if (error) return { success: false, error: error.message }
+    if (error) return { success: false, error: "Failed to update goal. Please try again." }
 
     revalidatePath("/dashboard")
     revalidatePath("/goals")
     return { success: true }
-  } catch (err) {
+  } catch {
     return {
       success: false,
-      error: err instanceof Error ? err.message : "Failed",
+      error: "An error occurred. Please try again.",
     }
   }
 }
@@ -173,6 +186,13 @@ export async function deleteGoal(
   goalId: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    // Validate UUID at start
+    try {
+      validateUUID(goalId)
+    } catch {
+      return { success: false, error: "Invalid goal ID" }
+    }
+
     const { supabase: rawSupabase, user } = await getAuthenticatedClient()
     const supabase: SupabaseAuthClient = rawSupabase as unknown as SupabaseAuthClient
 
@@ -186,15 +206,15 @@ export async function deleteGoal(
       .eq("id", goalId)
       .eq("user_id", user.id)
 
-    if (error) return { success: false, error: error.message }
+    if (error) return { success: false, error: "Failed to delete goal. Please try again." }
 
     revalidatePath("/dashboard")
     revalidatePath("/goals")
     return { success: true }
-  } catch (err) {
+  } catch {
     return {
       success: false,
-      error: err instanceof Error ? err.message : "Failed",
+      error: "An error occurred. Please try again.",
     }
   }
 }

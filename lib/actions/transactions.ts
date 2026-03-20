@@ -6,6 +6,7 @@ import { getAuthenticatedClient } from "@/lib/utils/auth";
 import { revalidateTransactionPaths } from "@/lib/utils/revalidate";
 import { adjustAccountBalance } from "@/lib/utils/balance";
 import { withActionResult } from "@/lib/utils/actions";
+import { validateUUID, sanitizeText, sanitizeNotes } from "@/lib/utils/validation";
 import { ActionResult } from "@/lib/types/actions";
 import type {
   CreateTransactionPayload,
@@ -202,6 +203,23 @@ async function updateAccountBalance(
   await adjustAccountBalance(supabase as unknown as Parameters<typeof adjustAccountBalance>[0], accountId, delta);
 }
 
+const createTransactionSchema = z.object({
+  category_id: z.string().uuid("Invalid category ID"),
+  amount: z.number().positive("Amount must be positive").max(999999999999, "Amount too large"),
+  type: z.enum(["income", "expense"]),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format"),
+  notes: z.string().max(500).nullable().optional(),
+  account_id: z.string().uuid().nullable().optional(),
+  tax_rate: z.number().min(0).max(100).nullable().optional(),
+  commission_rate: z.number().min(0).max(100).nullable().optional(),
+  currency: z.string().max(10).default("IDR"),
+  exchange_rate_at_time: z.number().positive().default(1),
+  is_recurring: z.boolean().default(false),
+  recurring_interval: z.number().int().positive().nullable().optional(),
+  recurring_unit: z.enum(["day", "week", "month"]).nullable().optional(),
+  recurring_next_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
+})
+
 export async function createTransaction(payload: CreateTransactionPayload): Promise<ActionResult> {
   const { supabase: rawSupabase, user } = await getAuthenticatedClient();
   const supabase: SupabaseAuthClient = rawSupabase;
@@ -211,22 +229,28 @@ export async function createTransaction(payload: CreateTransactionPayload): Prom
     return { success: false, error: "Database client not available" };
   }
 
+  const validationResult = createTransactionSchema.safeParse(payload)
+  if (!validationResult.success) {
+    return { success: false, error: "Invalid transaction data" }
+  }
+  const safePayload = validationResult.data
+
   const { error } = await supabase.from("transactions").insert({
     user_id: user.id,
-    category_id: payload.category_id,
-    amount: Number(payload.amount),
-    type: payload.type,
-    date: payload.date,
-    notes: payload.notes ?? null,
-    is_recurring: payload.is_recurring ?? false,
-    recurring_interval: payload.is_recurring ? payload.recurring_interval ?? DEFAULT_RECURRING_INTERVAL : null,
-    recurring_unit: payload.is_recurring ? payload.recurring_unit ?? DEFAULT_RECURRING_UNIT : null,
-    recurring_next_date: payload.is_recurring ? payload.recurring_next_date ?? null : null,
-    account_id: payload.account_id ?? null,
-    tax_rate: payload.tax_rate ?? null,
-    commission_rate: payload.commission_rate ?? null,
-    currency: payload.currency ?? "IDR",
-    exchange_rate_at_time: payload.exchange_rate_at_time ?? 1,
+    category_id: safePayload.category_id,
+    amount: Number(safePayload.amount),
+    type: safePayload.type,
+    date: safePayload.date,
+    notes: sanitizeNotes(safePayload.notes),
+    is_recurring: safePayload.is_recurring,
+    recurring_interval: safePayload.is_recurring ? safePayload.recurring_interval ?? DEFAULT_RECURRING_INTERVAL : null,
+    recurring_unit: safePayload.is_recurring ? safePayload.recurring_unit ?? DEFAULT_RECURRING_UNIT : null,
+    recurring_next_date: safePayload.is_recurring ? safePayload.recurring_next_date ?? null : null,
+    account_id: safePayload.account_id ?? null,
+    tax_rate: safePayload.tax_rate ?? null,
+    commission_rate: safePayload.commission_rate ?? null,
+    currency: safePayload.currency ?? "IDR",
+    exchange_rate_at_time: safePayload.exchange_rate_at_time ?? 1,
   });
 
   if (error) {
@@ -257,6 +281,13 @@ const transactionSchema = z.object({
 });
 
 export async function updateTransaction(id: string, payload: UpdateTransactionPayload): Promise<ActionResult> {
+  // Validate UUID at start
+  try {
+    validateUUID(id)
+  } catch {
+    return { success: false, error: "Invalid transaction ID" }
+  }
+
   const { supabase: rawSupabase, user } = await getAuthenticatedClient();
   const supabase: SupabaseAuthClient = rawSupabase;
   const typedSupabase = rawSupabase as SupabaseClient;
@@ -310,7 +341,7 @@ export async function updateTransaction(id: string, payload: UpdateTransactionPa
     .eq("user_id", user.id);
 
   if (error) {
-    return { success: false, error: error.message };
+    return { success: false, error: "Failed to update transaction. Please try again." }
   }
 
   // Step 1 — revert old account balance if had account
@@ -340,6 +371,13 @@ export async function updateTransaction(id: string, payload: UpdateTransactionPa
 }
 
 export async function deleteTransaction(id: string): Promise<ActionResult> {
+  // Validate UUID at start
+  try {
+    validateUUID(id)
+  } catch {
+    return { success: false, error: "Invalid transaction ID" }
+  }
+
   const { supabase: rawSupabase, user } = await getAuthenticatedClient();
   const supabase: SupabaseAuthClient = rawSupabase;
   const typedSupabase = rawSupabase as SupabaseClient;
@@ -369,7 +407,7 @@ export async function deleteTransaction(id: string): Promise<ActionResult> {
     .eq("user_id", user.id);
 
   if (error) {
-    return { success: false, error: error.message };
+    return { success: false, error: "Failed to delete transaction. Please try again." }
   }
 
   // Revert account balance if had account
@@ -407,6 +445,13 @@ function computeNextDate(
 export async function logRecurringTransaction(
   parentId: string
 ): Promise<ActionResult> {
+  // Validate UUID at start
+  try {
+    validateUUID(parentId)
+  } catch {
+    return { success: false, error: "Invalid transaction ID" }
+  }
+
   const { supabase: rawSupabase, user } = await getAuthenticatedClient();
   const supabase: SupabaseAuthClient = rawSupabase;
 
@@ -441,7 +486,7 @@ export async function logRecurringTransaction(
       recurring_parent_id: parentId,
     });
 
-  if (insertError) return { success: false, error: insertError.message };
+  if (insertError) return { success: false, error: "Failed to log recurring transaction" }
 
   // Update next date on parent
   const nextDate = computeNextDate(

@@ -4,7 +4,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getAuthenticatedClient } from "@/lib/utils/auth";
 import { revalidateAccountPaths, revalidateFinancePaths } from "@/lib/utils/revalidate";
 import { ActionResult, CreateAccountPayload, UpdateAccountPayload } from "@/lib/types/actions";
-import { validateOrThrow } from "@/lib/utils/validation";
+import { validateUUID, sanitizeText, validateOrThrow } from "@/lib/utils/validation";
 import { z } from "zod";
 import type { Account } from "@/types";
 
@@ -126,10 +126,18 @@ export async function createAccount(data: CreateAccountPayload): Promise<ActionR
 
   const { error } = await supabase
     .from("accounts")
-    .insert({ ...validated, user_id: user.id, balance: validated.balance ?? 0 })
-    .select();
+    .insert({
+      user_id: user.id,
+      name: sanitizeText(validated.name, 50),
+      type: validated.type,
+      currency: validated.currency ?? "IDR",
+      balance: validated.balance ?? 0,
+      icon: validated.icon ? sanitizeText(validated.icon, 10) : null,
+      is_default: validated.is_default ?? false,
+    })
+    .select()
 
-  if (error) return { success: false, error: error.message };
+  if (error) return { success: false, error: "Failed to create account. Please try again." }
   revalidateAccountPaths();
   return { success: true };
 }
@@ -138,6 +146,13 @@ export async function updateAccount(
   id: string,
   data: UpdateAccountPayload
 ): Promise<ActionResult> {
+  // Validate UUID at start
+  try {
+    validateUUID(id)
+  } catch {
+    return { success: false, error: "Invalid account ID" }
+  }
+
   const { supabase: rawSupabase, user } = await getAuthenticatedClient();
   const supabase: SupabaseAuthClient = rawSupabase;
 
@@ -147,11 +162,19 @@ export async function updateAccount(
 
   const validated = validateOrThrow(updateAccountSchema, { ...data, id });
 
+  const updateData: Record<string, unknown> = {}
+  if (validated.name !== undefined) updateData.name = sanitizeText(validated.name, 50)
+  if (validated.type !== undefined) updateData.type = validated.type
+  if (validated.currency !== undefined) updateData.currency = validated.currency
+  if (validated.balance !== undefined) updateData.balance = validated.balance
+  if (validated.icon !== undefined) updateData.icon = validated.icon ? sanitizeText(validated.icon, 10) : null
+  if (validated.is_default !== undefined) updateData.is_default = validated.is_default
+
   const { error } = await supabase
     .from("accounts")
-    .update(validated)
+    .update(updateData)
     .eq("id", id)
-    .eq("user_id", user.id);
+    .eq("user_id", user.id)
 
   if (error) return { success: false, error: error.message };
   revalidateAccountPaths();
@@ -159,6 +182,13 @@ export async function updateAccount(
 }
 
 export async function deleteAccount(id: string): Promise<ActionResult> {
+  // Validate UUID at start
+  try {
+    validateUUID(id)
+  } catch {
+    return { success: false, error: "Invalid account ID" }
+  }
+
   const { supabase: rawSupabase, user } = await getAuthenticatedClient();
   const supabase: SupabaseAuthClient = rawSupabase;
 

@@ -5,10 +5,7 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { createSupabaseBrowserClient } from "@/lib/supabase/client"
 import { signupSchema } from "@/lib/utils/validation"
-import {
-  validatePasswordStrength,
-  checkPasswordBreached,
-} from "@/lib/utils/passwordSecurity"
+import { validatePasswordStrength } from "@/lib/utils/passwordSecurity"
 
 interface AuthClient {
   auth: {
@@ -50,9 +47,7 @@ export default function SignupPage() {
     }
   }
 
-  const handleSubmit = async (
-    e: FormEvent<HTMLFormElement>
-  ) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError("")
     setIsSubmitting(true)
@@ -61,50 +56,37 @@ export default function SignupPage() {
     const email = String(formData.get("email") ?? "")
     const password = String(formData.get("password") ?? "")
 
-    // Zod validation
-    const parsed = signupSchema.safeParse({
-      email,
-      password,
-    })
+    const parsed = signupSchema.safeParse({ email, password })
     if (!parsed.success) {
-      setError(
-        parsed.error.issues[0]?.message ??
-        "Invalid input"
-      )
+      setError(parsed.error.issues[0]?.message ?? "Invalid input")
       setIsSubmitting(false)
       return
     }
 
-    // Check if password has been breached
-    const breach = await checkPasswordBreached(password)
-    if (breach.breached) {
-      setError(
-        `This password appeared in ${breach.count.toLocaleString()} data breaches. Please choose a stronger password.`
-      )
-      setIsSubmitting(false)
-      return
-    }
-
-    const supabase = createSupabaseBrowserClient() as AuthClient
-    const { error: signUpError } =
-      await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/callback`,
-        },
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
       })
 
-    setIsSubmitting(false)
+      const data: unknown = await res.json()
+      const json = data as { error?: string; success?: boolean }
 
-    if (signUpError) {
-      setError(signUpError.message)
-      return
+      setIsSubmitting(false)
+
+      if (!res.ok) {
+        setError(json.error ?? "Failed to create account.")
+        return
+      }
+
+      startTransition(() => {
+        router.push("/dashboard")
+      })
+    } catch {
+      setIsSubmitting(false)
+      setError("Network error. Please try again.")
     }
-
-    startTransition(() => {
-      router.push("/dashboard")
-    })
   }
 
   const strengthColor =

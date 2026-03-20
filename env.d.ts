@@ -26,18 +26,42 @@ declare module "next/link" {
 }
 
 declare module "@supabase/supabase-js" {
+  interface QueryBuilder {
+    insert: (data: Record<string, unknown>) => Promise<{ error: unknown | null }>;
+    delete: () => {
+      eq: (column: string, value: unknown) => {
+        eq: (column: string, value: unknown) => Promise<{ error: unknown | null }>;
+      };
+    };
+    select: (columns: string) => {
+      eq: (column: string, value: unknown) => {
+        eq: (column: string, value: unknown) => {
+          gte: (column: string, value: unknown) => {
+            order: (column: string, options: { ascending: boolean }) => Promise<{ data: { attempted_at: string }[] | null; error: unknown | null }>;
+          };
+        };
+      };
+    };
+  }
+
   export interface SupabaseClient<Database = unknown> {
     auth: {
       getUser: () => Promise<{
         data: { user: unknown | null };
       }>;
       signOut?: () => Promise<unknown>;
-      signInWithPassword?: (params: { email: string; password: string }) => Promise<{ error: unknown | null }>;
-      signUp?: (params: { email: string; password: string }) => Promise<{ error: unknown | null }>;
+      signInWithPassword?: (params: { email: string; password: string }) => Promise<{ data: { user: unknown | null } | null; error: unknown | null }>;
+      signUp?: (params: { email: string; password: string; options?: { emailRedirectTo?: string } }) => Promise<{ error: unknown | null }>;
       signInWithOAuth?: (params: { provider: string; options?: { redirectTo?: string } }) => Promise<{ error: unknown | null }>;
     };
-    from: (table: string) => unknown;
+    from: (table: string) => QueryBuilder;
   }
+
+  export function createClient(
+    supabaseUrl: string,
+    supabaseKey: string,
+    options?: { auth?: { persistSession?: boolean } }
+  ): SupabaseClient;
 }
 
 declare module "@supabase/ssr" {

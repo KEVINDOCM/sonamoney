@@ -50,6 +50,26 @@ function maybeCleanup() {
   }
 }
 
+// ============================================
+// AUTH ENDPOINT RATE LIMITER
+// 10 requests per 15 minutes per IP for auth endpoints
+// ============================================
+const authRateLimitMap = new Map<string, { count: number; resetAt: number }>()
+const AUTH_RATE_LIMIT = 10
+const AUTH_RATE_WINDOW_MS = 15 * 60 * 1000
+
+function checkAuthRateLimit(ip: string): boolean {
+  const now = Date.now()
+  const entry = authRateLimitMap.get(ip)
+  if (!entry || now > entry.resetAt) {
+    authRateLimitMap.set(ip, { count: 1, resetAt: now + AUTH_RATE_WINDOW_MS })
+    return true
+  }
+  if (entry.count >= AUTH_RATE_LIMIT) return false
+  entry.count++
+  return true
+}
+
 interface MiddlewareRequest {
   url: string
   nextUrl: {
@@ -83,6 +103,24 @@ export async function middleware(request: MiddlewareRequest) {
         headers: {
           "Content-Type": "application/json",
           "Retry-After": "60",
+        },
+      }
+    )
+  }
+
+  // Stricter rate limiting for auth endpoints
+  const isAuthEndpoint =
+    pathname === "/api/auth/login" ||
+    pathname === "/api/auth/register"
+
+  if (isAuthEndpoint && !checkAuthRateLimit(ip)) {
+    return new Response(
+      JSON.stringify({ error: "Too many requests. Please try again later." }),
+      {
+        status: 429,
+        headers: {
+          "Content-Type": "application/json",
+          "Retry-After": "900",
         },
       }
     )

@@ -72,3 +72,26 @@ export const signupSchema = z.object({
     .max(254, "Email too long"),
   password: passwordSchema,
 })
+
+// UUID validation helper
+export function validateUUID(id: unknown): string {
+  const result = uuidSchema.safeParse(id)
+  if (!result.success) throw new Error("Invalid ID")
+  return result.data
+}
+
+// Text sanitization utils
+export function sanitizeText(input: string, maxLength: number = 255): string {
+  return input
+    .trim()
+    .slice(0, maxLength)
+    .replace(/[<>]/g, "")
+}
+
+export function sanitizeNotes(input: string | null | undefined): string | null {
+  if (!input) return null
+  return input
+    .trim()
+    .slice(0, 500)
+    .replace(/[<>]/g, "")
+}
