@@ -61,8 +61,8 @@ const securityHeaders = [
     value: [
       // Default: only same origin
       "default-src 'self'",
-      // Scripts: self + inline + eval (required for Next.js client-side navigation)
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+      // Scripts: self + inline
+      "script-src 'self' 'unsafe-inline'",
       // Styles: self + inline + Google Fonts
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       // Images: self + data URIs + Supabase storage
@@ -87,6 +87,11 @@ const securityHeaders = [
   {
     key: "X-RateLimit-Limit",
     value: "60",
+  },
+  // CORS for all routes
+  {
+    key: "Access-Control-Allow-Origin",
+    value: "https://sonamoney.my.id",
   },
 ]
 
