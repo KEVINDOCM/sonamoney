@@ -74,7 +74,7 @@ export async function sendPasswordReset(email: string): Promise<{ success: boole
     return { success: false, error: "Reset not available" }
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://sona-money.vercel.app"
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://sonamoney.my.id"
 
   await supabase.auth.resetPasswordForEmail(parsed.data, {
     redirectTo: siteUrl + "/reset-password"

@@ -19,6 +19,6 @@ export default function robots(): MetadataRoute.Robots {
         ],
       },
     ],
-    sitemap: "https://sona-money.vercel.app/sitemap.xml",
+    sitemap: "https://sonamoney.my.id/sitemap.xml",
   }
 }

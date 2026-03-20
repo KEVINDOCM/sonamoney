@@ -131,7 +131,7 @@ module.exports = withPWA({
           },
           {
             key: "Access-Control-Allow-Origin",
-            value: "https://sona-money.vercel.app",
+            value: "https://sonamoney.my.id",
           },
           {
             key: "Access-Control-Allow-Methods",

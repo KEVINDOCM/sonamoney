@@ -169,7 +169,7 @@ export default function HomePage() {
     "@context": "https://schema.org",
     "@type": "WebApplication",
     name: "SonaMoney",
-    url: "https://sonamoney.vercel.app",
+    url: "https://sonamoney.my.id",
     description:
       "Free personal finance tracker. Track income, " +
       "expenses, budgets, and insights with analytics " +

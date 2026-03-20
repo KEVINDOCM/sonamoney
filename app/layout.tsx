@@ -7,7 +7,7 @@ import { TranslationProvider } from "@/lib/contexts/TranslationContext";
 
 export const metadata: Metadata = {
   metadataBase: new URL(
-    "https://sona-money.vercel.app"
+    "https://sonamoney.my.id"
   ),
   title: {
     default: "SonaMoney — Personal Finance Tracker",
@@ -49,7 +49,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "id_ID",
     alternateLocale: ["en_US"],
-    url: "https://sona-money.vercel.app",
+    url: "https://sonamoney.my.id",
     siteName: "SonaMoney",
     title: "SonaMoney — Personal Finance Tracker",
     description:
@@ -57,7 +57,7 @@ export const metadata: Metadata = {
       "Free personal finance app with analytics and AI.",
     images: [
       {
-        url: "https://sona-money.vercel.app/og-image.png",
+        url: "https://sonamoney.my.id/og-image.png",
         width: 1200,
         height: 630,
         alt: "SonaMoney — Personal Finance Tracker",
@@ -70,13 +70,13 @@ export const metadata: Metadata = {
     description:
       "Free personal finance tracker. " +
       "Track income, expenses, budgets, and insights.",
-    images: ["https://sona-money.vercel.app/og-image.png"],
+    images: ["https://sonamoney.my.id/og-image.png"],
   },
   alternates: {
-    canonical: "https://sona-money.vercel.app",
+    canonical: "https://sonamoney.my.id",
     languages: {
-      "en-US": "https://sona-money.vercel.app",
-      "id-ID": "https://sona-money.vercel.app",
+      "en-US": "https://sonamoney.my.id",
+      "id-ID": "https://sonamoney.my.id",
     },
   },
   category: "finance",
@@ -128,8 +128,8 @@ export default function RootLayout({ children }: RootLayoutProps) {
               "@context": "https://schema.org",
               "@type": "Organization",
               name: "SonaMoney",
-              url: "https://sona-money.vercel.app",
-              logo: "https://sona-money.vercel.app/icon-512.svg",
+              url: "https://sonamoney.my.id",
+              logo: "https://sonamoney.my.id/icon-512.svg",
               sameAs: [],
               contactPoint: {
                 "@type": "ContactPoint",
