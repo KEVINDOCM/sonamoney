@@ -113,6 +113,22 @@ export async function middleware(request: MiddlewareRequest) {
     pathname === "/api/auth/login" ||
     pathname === "/api/auth/register"
 
+  const isSensitiveEndpoint =
+    pathname === "/api/scan-receipt"
+
+  if (isSensitiveEndpoint && !checkAuthRateLimit(ip)) {
+    return new Response(
+      JSON.stringify({ error: "Too many requests. Please try again later." }),
+      {
+        status: 429,
+        headers: {
+          "Content-Type": "application/json",
+          "Retry-After": "900",
+        },
+      }
+    )
+  }
+
   if (isAuthEndpoint && !checkAuthRateLimit(ip)) {
     return new Response(
       JSON.stringify({ error: "Too many requests. Please try again later." }),
@@ -128,9 +144,19 @@ export async function middleware(request: MiddlewareRequest) {
 
   let response = NextResponse.next()
 
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    return new Response(
+      JSON.stringify({ error: "Server configuration error" }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    )
+  }
+
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseAnonKey,
     {
       cookies: {
         get: (name: string) => {
@@ -161,6 +187,11 @@ export async function middleware(request: MiddlewareRequest) {
     "/categories",
     "/settings",
     "/calendar",
+    "/goals",
+    "/recurring",
+    "/reports",
+    "/debt",
+    "/notifications",
   ]
 
   const isProtected = protectedPaths.some((path) =>
@@ -182,6 +213,15 @@ export async function middleware(request: MiddlewareRequest) {
       new URL("/dashboard", requestUrl)
     )
   }
+
+  // Add security headers for authenticated users
+  if (user) {
+    (response as unknown as { headers: { set: (key: string, value: string) => void } }).headers.set("Cache-Control", "no-store, no-cache, must-revalidate, private")
+    ;(response as unknown as { headers: { set: (key: string, value: string) => void } }).headers.set("Pragma", "no-cache")
+  }
+
+  // Add X-Content-Type-Options to all responses
+  ;(response as unknown as { headers: { set: (key: string, value: string) => void } }).headers.set("X-Content-Type-Options", "nosniff")
 
   return response
 }

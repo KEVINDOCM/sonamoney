@@ -37,6 +37,19 @@ const securityHeaders = [
       "interest-cohort=()",
     ].join(", "),
   },
+  // Cross-Origin policies
+  {
+    key: "Cross-Origin-Opener-Policy",
+    value: "same-origin",
+  },
+  {
+    key: "Cross-Origin-Resource-Policy",
+    value: "same-origin",
+  },
+  {
+    key: "Cross-Origin-Embedder-Policy",
+    value: "unsafe-none",
+  },
   // HSTS — force HTTPS
   {
     key: "Strict-Transport-Security",
@@ -48,14 +61,14 @@ const securityHeaders = [
     value: [
       // Default: only same origin
       "default-src 'self'",
-      // Scripts: self + Next.js inline scripts
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-      // Styles: self + inline (needed for Tailwind)
-      "style-src 'self' 'unsafe-inline'",
+      // Scripts: self + inline (Next.js App Router does not need unsafe-eval)
+      "script-src 'self' 'unsafe-inline'",
+      // Styles: self + inline + Google Fonts
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       // Images: self + data URIs + Supabase storage
       "img-src 'self' data: blob: https://*.supabase.co",
-      // Fonts: self
-      "font-src 'self'",
+      // Fonts: self + Google Fonts
+      "font-src 'self' https://fonts.gstatic.com",
       // API connections allowed
       "connect-src 'self' https://*.supabase.co https://generativelanguage.googleapis.com https://api.pwnedpasswords.com https://open.er-api.com https://api.frankfurter.app",
       // Frames: none
@@ -112,16 +125,15 @@ module.exports = withPWA({
           },
           {
             key: "Cache-Control",
-            value: "no-store, no-cache, must-revalidate",
+            value: "no-store, no-cache, must-revalidate, private",
           },
           {
             key: "Access-Control-Allow-Origin",
-            value: process.env.NEXT_PUBLIC_SITE_URL
-              ?? "https://sona-money.vercel.app",
+            value: "https://sona-money.vercel.app",
           },
           {
             key: "Access-Control-Allow-Methods",
-            value: "GET, POST, PUT, DELETE, OPTIONS",
+            value: "GET, POST, OPTIONS",
           },
           {
             key: "Access-Control-Allow-Headers",

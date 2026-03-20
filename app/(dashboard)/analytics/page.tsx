@@ -1,7 +1,7 @@
 import * as React from "react";
-import { redirect } from "next/navigation";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { AnalyticsClient } from "@/components/analytics/AnalyticsClient";
+import { getAuthenticatedClient } from "@/lib/utils/auth"
+import type { SupabaseClient } from "@supabase/supabase-js"
 import type { Transaction } from "@/types";
 
 export const metadata = {
@@ -69,35 +69,18 @@ export default async function AnalyticsPage() {
 }
 
 async function AnalyticsContent() {
-    const supabase = await createSupabaseServerClient();
-    const typedSupabase = supabase as {
-        auth: { getUser: () => Promise<{ data: { user: unknown } }> };
-        from: (table: string) => {
-            select: (columns: string) => {
-                eq: (column: string, value: string) => {
-                    order: (column: string, options: { ascending: boolean }) => Promise<{ data: unknown[] | null }>
-                }
-            }
-        }
-    };
+    const { supabase: rawSupabase, user } = await getAuthenticatedClient()
+    const supabase = rawSupabase as SupabaseClient
 
-    const {
-        data: { user },
-    } = await typedSupabase.auth.getUser();
-
-    if (!user) {
-        redirect("/login");
-    }
-
-    const { data: transactions } = await typedSupabase
+    const { data: transactions } = await supabase
         .from("transactions")
         .select("*")
-        .eq("user_id", (user as { id: string }).id)
-        .order("date", { ascending: false });
+        .eq("user_id", user.id)
+        .order("date", { ascending: false })
 
     return (
         <AnalyticsClient
-            transactions={(transactions as Transaction[]) || []}
+            transactions={(transactions as unknown as Transaction[]) || []}
         />
-    );
+    )
 }

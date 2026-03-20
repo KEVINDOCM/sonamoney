@@ -40,6 +40,12 @@ declare module "@supabase/supabase-js" {
             order: (column: string, options: { ascending: boolean }) => Promise<{ data: { attempted_at: string }[] | null; error: unknown | null }>;
           };
         };
+        gte: (column: string, value: unknown) => {
+          lte: (column: string, value: unknown) => {
+            eq: (column: string, value: unknown) => Promise<{ data: unknown[] | null; error: unknown | null }>;
+          };
+        };
+        order: (column: string, options: { ascending: boolean }) => Promise<{ data: { attempted_at: string }[] | null; error: unknown | null }>;
       };
     };
   }

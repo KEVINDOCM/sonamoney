@@ -8,6 +8,8 @@ import { ActionResult, CreateTransferPayload } from "@/lib/types/actions";
 import { TRANSFERS_PAGE_SIZE } from "@/lib/constants";
 import type { TransferWithAccounts } from "@/types";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { z } from "zod"
+import { validateUUID, sanitizeNotes } from "@/lib/utils/validation"
 
 interface SupabaseAuthClient {
   auth: {
@@ -31,22 +33,56 @@ interface FilterBuilder {
 }
 
 interface PromiseExecutor {
-  then: (onfulfilled: (value: { error: Error | null }) => void) => Promise<void>;
+  then: (onfulfilled: (value: { data: unknown[] | null; error: Error | null }) => void) => Promise<void>;
 }
 
+const createTransferSchema = z.object({
+  from_account_id: z.string().uuid("Invalid source account"),
+  to_account_id: z.string().uuid("Invalid destination account"),
+  amount: z.number().positive("Amount must be positive").max(999999999999, "Amount too large"),
+  from_currency: z.string().max(10).default("IDR"),
+  to_currency: z.string().max(10).default("IDR"),
+  exchange_rate: z.number().positive().default(1),
+  converted_amount: z.number().positive().nullable().optional(),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format"),
+  notes: z.string().max(500).nullable().optional(),
+})
+
 export async function createTransfer(data: CreateTransferPayload): Promise<ActionResult> {
+  const validationResult = createTransferSchema.safeParse(data)
+  if (!validationResult.success) {
+    return { success: false, error: "Invalid transfer data" }
+  }
+  const safeData = validationResult.data
+
   const { supabase: rawSupabase, user } = await getAuthenticatedClient();
   const supabase: SupabaseAuthClient = rawSupabase;
   const typedSupabase = rawSupabase as SupabaseClient;
 
-  if (data.from_account_id === data.to_account_id) {
+  if (safeData.from_account_id === safeData.to_account_id) {
     return { success: false, error: "Cannot transfer to the same account" };
   }
 
-  if (data.amount <= 0) return { success: false, error: "Amount must be greater than 0" };
+  // Verify both accounts belong to authenticated user
+  if (!supabase.from) {
+    return { success: false, error: "Database client not available" }
+  }
+
+  const { data: ownedAccounts } = await supabase
+    .from("accounts")
+    .select("id")
+    .eq("user_id", user.id)
+
+  const ownedIds = (ownedAccounts as { id: string }[] ?? []).map((a) => a.id)
+  if (
+    !ownedIds.includes(safeData.from_account_id) ||
+    !ownedIds.includes(safeData.to_account_id)
+  ) {
+    return { success: false, error: "Account not found" }
+  }
 
   // Check sufficient balance
-  const hasBalance = await hasSufficientBalance(typedSupabase as unknown as Parameters<typeof hasSufficientBalance>[0], data.from_account_id, data.amount);
+  const hasBalance = await hasSufficientBalance(typedSupabase as unknown as Parameters<typeof hasSufficientBalance>[0], safeData.from_account_id, safeData.amount);
   if (!hasBalance) {
     return { success: false, error: "Insufficient balance in source account" };
   }
@@ -59,19 +95,19 @@ export async function createTransfer(data: CreateTransferPayload): Promise<Actio
   const { error: insertError } = await supabase
     .from("transfers")
     .insert({
-      from_account_id: data.from_account_id,
-      to_account_id: data.to_account_id,
-      amount: data.amount,
-      from_currency: data.from_currency ?? "IDR",
-      to_currency: data.to_currency ?? "IDR",
-      exchange_rate: data.exchange_rate ?? 1,
-      converted_amount: data.converted_amount ?? data.amount,
-      date: data.date,
-      notes: data.notes ?? null,
+      from_account_id: safeData.from_account_id,
+      to_account_id: safeData.to_account_id,
+      amount: safeData.amount,
+      from_currency: safeData.from_currency,
+      to_currency: safeData.to_currency,
+      exchange_rate: safeData.exchange_rate,
+      converted_amount: safeData.converted_amount ?? safeData.amount,
+      date: safeData.date,
+      notes: sanitizeNotes(safeData.notes),
       user_id: user.id,
     });
 
-  if (insertError) return { success: false, error: insertError.message };
+  if (insertError) return { success: false, error: "Failed to create transfer. Please try again." };
 
   // Calculate converted amount for different currencies
   const fromCurrency = data.from_currency ?? "IDR";
@@ -109,6 +145,13 @@ export async function getTransfers(): Promise<TransferWithAccounts[]> {
 }
 
 export async function deleteTransfer(id: string): Promise<ActionResult> {
+  // Validate UUID at start
+  try {
+    validateUUID(id)
+  } catch {
+    return { success: false, error: "Invalid transfer ID" }
+  }
+
   const { supabase: rawSupabase, user } = await getAuthenticatedClient();
   const supabase: SupabaseAuthClient = rawSupabase;
   const typedSupabase = rawSupabase as SupabaseClient;
@@ -151,9 +194,10 @@ export async function deleteTransfer(id: string): Promise<ActionResult> {
   const { error: deleteError } = await supabase
     .from("transfers")
     .delete()
-    .eq("id", id);
+    .eq("id", id)
+    .eq("user_id", user.id);
 
-  if (deleteError) return { success: false, error: deleteError.message };
+  if (deleteError) return { success: false, error: "Failed to delete transfer. Please try again." };
 
   revalidateAccountPaths();
   return { success: true };
