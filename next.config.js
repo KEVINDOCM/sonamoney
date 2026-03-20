@@ -61,8 +61,8 @@ const securityHeaders = [
     value: [
       // Default: only same origin
       "default-src 'self'",
-      // Scripts: self + inline (Next.js App Router does not need unsafe-eval)
-      "script-src 'self' 'unsafe-inline'",
+      // Scripts: self only (Next.js handles inline scripts with nonces automatically)
+      "script-src 'self'",
       // Styles: self + inline + Google Fonts
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       // Images: self + data URIs + Supabase storage
@@ -81,6 +81,8 @@ const securityHeaders = [
       "form-action 'self'",
       // Upgrade insecure requests
       "upgrade-insecure-requests",
+      // Trusted Types to prevent DOM XSS
+      "require-trusted-types-for 'script'",
     ].join("; "),
   },
   // Rate limit hint for clients
