@@ -20,7 +20,7 @@ interface AuthClient {
 
 export default function AuthLoginPage() {
   const router = useRouter();
-  const [isPending, startTransition] = useTransition();
+  const [isPending] = useTransition();
   const [authError, setAuthError] = useState<AuthErrorState | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [lockoutMs, setLockoutMs] = useState<number>(0);
@@ -99,9 +99,7 @@ export default function AuthLoginPage() {
         }
 
         // Step 4: Redirect on success
-        startTransition(() => {
-          router.push("/dashboard")
-        })
+        window.location.href = "/dashboard"
       } catch {
         setIsSubmitting(false)
         setAuthError({
@@ -121,7 +119,7 @@ export default function AuthLoginPage() {
     });
   };
 
-  const isLoading = isSubmitting || isPending;
+  const isLoading = isSubmitting;
   const error = authError?.message ?? null;
 
   return (
