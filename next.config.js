@@ -61,8 +61,8 @@ const securityHeaders = [
     value: [
       // Default: only same origin
       "default-src 'self'",
-      // Scripts: self + inline
-      "script-src 'self' 'unsafe-inline'",
+      // Scripts: self + inline + Cloudflare Insights
+      "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com",
       // Styles: self + inline + Google Fonts
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       // Images: self + data URIs + Supabase storage
