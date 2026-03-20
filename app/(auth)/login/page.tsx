@@ -47,39 +47,66 @@ export default function AuthLoginPage() {
 
     void (async () => {
       try {
-        const res = await fetch("/api/auth/login", {
+        // Step 1: Pre-check lockout
+        const preCheck = await fetch("/api/auth/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, password }),
-        });
+        })
 
-        const data: unknown = await res.json();
-        const json = data as {
-          error?: string;
-          locked?: boolean;
-          remainingMs?: number;
-        };
-
-        setIsSubmitting(false);
-
-        if (!res.ok) {
-          if (json.locked && json.remainingMs) {
-            setLockoutMs(json.remainingMs);
-          }
-          setAuthError({
-            message: json.error ?? "Failed to log in. Please try again.",
-          });
-          return;
+        const preData: unknown = await preCheck.json()
+        const preJson = preData as {
+          error?: string
+          locked?: boolean
+          remainingMs?: number
+          proceed?: boolean
         }
 
+        if (!preCheck.ok) {
+          setIsSubmitting(false)
+          if (preJson.locked && preJson.remainingMs) {
+            setLockoutMs(preJson.remainingMs)
+          }
+          setAuthError({
+            message: preJson.error ?? "Failed to log in. Please try again.",
+          })
+          return
+        }
+
+        // Step 2: Client-side Supabase sign in (sets session cookie)
+        const supabase = createSupabaseBrowserClient() as AuthClient
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        })
+
+        const success = !signInError
+
+        // Step 3: Record attempt result
+        await fetch("/api/auth/login", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, success }),
+        })
+
+        setIsSubmitting(false)
+
+        if (!success) {
+          setAuthError({
+            message: "Invalid email or password. Please try again.",
+          })
+          return
+        }
+
+        // Step 4: Redirect on success
         startTransition(() => {
-          router.push("/dashboard");
-        });
+          router.push("/dashboard")
+        })
       } catch {
-        setIsSubmitting(false);
+        setIsSubmitting(false)
         setAuthError({
           message: "Network error. Please try again.",
-        });
+        })
       }
     })();
   };
