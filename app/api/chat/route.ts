@@ -213,11 +213,7 @@ export async function POST(request: NextRequest): Promise<Response> {
   try {
     const reply = await generateAIResponse(sanitizedMessage, sanitizedHistory, context)
     return createSuccessResponse(reply)
-  } catch (genError) {
-    console.error("Gemini error:", {
-      message: genError instanceof Error ? genError.message : "unknown",
-      name: genError instanceof Error ? genError.name : "unknown",
-    })
+  } catch {
     return createErrorResponse("Sona sedang tidak tersedia. Coba lagi.", 500)
   }
 }

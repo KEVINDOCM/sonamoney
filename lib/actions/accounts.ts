@@ -176,7 +176,7 @@ export async function updateAccount(
     .eq("id", id)
     .eq("user_id", user.id)
 
-  if (error) return { success: false, error: error.message };
+  if (error) return { success: false, error: "Failed to update account. Please try again." };
   revalidateAccountPaths();
   return { success: true };
 }
@@ -216,7 +216,7 @@ export async function deleteAccount(id: string): Promise<ActionResult> {
     .eq("id", id)
     .eq("user_id", user.id);
 
-  if (error) return { success: false, error: error.message };
+  if (error) return { success: false, error: "Failed to delete account. Please try again." };
   revalidateFinancePaths();
   return { success: true };
 }
