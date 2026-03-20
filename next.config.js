@@ -61,8 +61,8 @@ const securityHeaders = [
     value: [
       // Default: only same origin
       "default-src 'self'",
-      // Scripts: self + inline (required for Next.js hydration)
-      "script-src 'self' 'unsafe-inline'",
+      // Scripts: self + inline + eval (required for Next.js client-side navigation)
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
       // Styles: self + inline + Google Fonts
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       // Images: self + data URIs + Supabase storage
@@ -81,8 +81,6 @@ const securityHeaders = [
       "form-action 'self'",
       // Upgrade insecure requests
       "upgrade-insecure-requests",
-      // Trusted Types to prevent DOM XSS
-      "require-trusted-types-for 'script'",
     ].join("; "),
   },
   // Rate limit hint for clients

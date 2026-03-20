@@ -1,11 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Target, Plus, Trash2, Pencil } from "lucide-react"
 import {
   createGoal,
   updateGoalAmount,
   deleteGoal,
+  fetchGoals,
   type Goal,
 } from "@/lib/actions/goals"
 import { useTranslation } from "@/lib/i18n/useTranslation"
@@ -34,6 +35,8 @@ export function GoalsClient({
   const { baseCurrency } = useCurrency()
   const { toast, toasts, removeToast } = useToast()
   const [goals, setGoals] = useState<Goal[]>(initialGoals)
+  const [isLoading, setIsLoading] = useState(initialGoals.length === 0)
+  const [loadError, setLoadError] = useState(false)
   const [isAddOpen, setIsAddOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [editingGoalId, setEditingGoalId] =
@@ -50,6 +53,39 @@ export function GoalsClient({
     icon: "🎯",
     color: "#00B9A7",
   })
+
+  // Client-side fetch with retry for session initialization issues
+  const loadGoals = useCallback(async (retryCount: number = 0) => {
+    // Skip if we already have goals from server
+    if (initialGoals.length > 0 && retryCount === 0) return
+
+    setIsLoading(true)
+    setLoadError(false)
+
+    try {
+      const data = await fetchGoals()
+      setGoals(data)
+      setLoadError(false)
+    } catch (error) {
+      console.error("Failed to load goals:", error)
+      if (retryCount < 3) {
+        // Exponential backoff: 500ms, 1000ms, 2000ms
+        const delay = Math.min(500 * Math.pow(2, retryCount), 2000)
+        setTimeout(() => loadGoals(retryCount + 1), delay)
+        return
+      }
+      setLoadError(true)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [initialGoals.length])
+
+  useEffect(() => {
+    // If no initial goals, try client-side fetch (handles session init delay)
+    if (initialGoals.length === 0 && mounted) {
+      loadGoals()
+    }
+  }, [initialGoals.length, mounted, loadGoals])
 
   const handleCreate = async () => {
     setIsSubmitting(true)
@@ -164,7 +200,47 @@ export function GoalsClient({
       </div>
 
       {/* Goals list */}
-      {goals.length === 0 ? (
+      {isLoading ? (
+        <div className="
+          mx-4 md:mx-0
+          bg-white dark:bg-gray-900
+          rounded-2xl shadow-sm p-10
+          flex flex-col items-center
+          text-center
+        ">
+          <div className="w-10 h-10 border-2 border-[#00B9A7] border-t-transparent rounded-full animate-spin mb-4"/>
+          <p className="text-sm text-[#6B7280] dark:text-gray-400">
+            Loading goals...
+          </p>
+        </div>
+      ) : loadError ? (
+        <div className="
+          mx-4 md:mx-0
+          bg-white dark:bg-gray-900
+          rounded-2xl shadow-sm p-10
+          flex flex-col items-center
+          text-center
+        ">
+          <span className="text-5xl mb-4">⚠️</span>
+          <h3 className="
+            text-base font-bold
+            text-[#1A1A2E] dark:text-white mb-2
+          ">
+            Failed to load goals
+          </h3>
+          <p className="
+            text-sm text-[#6B7280] mt-1 mb-4
+          ">
+            There was an error loading your goals.
+          </p>
+          <button
+            onClick={() => loadGoals()}
+            className="btn-primary text-sm"
+          >
+            Try Again
+          </button>
+        </div>
+      ) : goals.length === 0 ? (
         <div className="
           mx-4 md:mx-0
           bg-white dark:bg-gray-900
