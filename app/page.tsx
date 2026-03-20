@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
+import { useTranslation } from "@/lib/i18n/useTranslation"
 import {
   ChevronDown,
   ArrowRight,
@@ -20,6 +21,7 @@ import {
 } from "lucide-react"
 
 export default function HomePage() {
+  const { t } = useTranslation()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [openFaq, setOpenFaq] = useState<number | null>(null)
 
@@ -274,6 +276,7 @@ export default function HomePage() {
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="md:hidden p-2 rounded-xl text-[#6B7280] hover:bg-gray-100 transition-colors"
+            aria-label={mobileMenuOpen ? t("common.closeMenu") : t("common.openMenu")}
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>

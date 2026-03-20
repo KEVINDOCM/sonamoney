@@ -26,6 +26,8 @@ export const translations = {
       rateUpdated: "Rates updated",
       confirmDelete: "This action cannot be undone. Are you sure?",
       processing: "Processing...",
+      openMenu: "Open menu",
+      closeMenu: "Close menu",
     },
     nav: {
       dashboard: "Dashboard",
@@ -443,6 +445,8 @@ export const translations = {
       rateUpdated: "Kurs diperbarui",
       confirmDelete: "Tindakan ini tidak dapat dibatalkan. Apakah Anda yakin?",
       processing: "Memproses...",
+      openMenu: "Buka menu",
+      closeMenu: "Tutup menu",
     },
     nav: {
       dashboard: "Dasbor",
