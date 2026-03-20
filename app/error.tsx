@@ -10,8 +10,12 @@ export default function GlobalError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error(error);
+    console.error("Global Error:", error);
+    console.error("Error Stack:", error.stack);
+    console.error("Error Digest:", error.digest);
   }, [error]);
+
+  const errorMessage = error.message || "Unknown error occurred";
 
   return (
     <html>
@@ -24,9 +28,20 @@ export default function GlobalError({
             <h1 className="text-xl font-bold text-gray-900 mb-2">
               Something went wrong
             </h1>
-            <p className="text-sm text-gray-500 mb-6">
+            <p className="text-sm text-gray-500 mb-4">
               An unexpected error occurred. Please try again.
             </p>
+            {/* Error details for debugging */}
+            <div className="mb-6 p-3 bg-gray-100 rounded-lg max-w-sm overflow-auto">
+              <p className="text-xs text-gray-600 font-mono break-words">
+                {errorMessage}
+              </p>
+              {error.digest && (
+                <p className="text-xs text-gray-400 mt-2">
+                  Digest: {error.digest}
+                </p>
+              )}
+            </div>
             <button
               onClick={reset}
               className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition-colors duration-200"

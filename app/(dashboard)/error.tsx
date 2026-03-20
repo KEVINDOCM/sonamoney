@@ -10,8 +10,12 @@ export default function DashboardError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error(error);
+    console.error("Dashboard Error:", error);
+    console.error("Error Stack:", error.stack);
+    console.error("Error Digest:", error.digest);
   }, [error]);
+
+  const errorMessage = error.message || "Unknown error occurred";
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] px-4 text-center">
@@ -21,9 +25,20 @@ export default function DashboardError({
       <h2 className="text-lg font-bold text-gray-900 mb-2">
         Something went wrong
       </h2>
-      <p className="text-sm text-gray-500 mb-6 max-w-xs">
+      <p className="text-sm text-gray-500 mb-4 max-w-xs">
         This page encountered an error. Your data is safe — try refreshing.
       </p>
+      {/* Error details for debugging */}
+      <div className="mb-6 p-3 bg-gray-100 rounded-lg max-w-sm overflow-auto">
+        <p className="text-xs text-gray-600 font-mono break-words">
+          {errorMessage}
+        </p>
+        {error.digest && (
+          <p className="text-xs text-gray-400 mt-2">
+            Digest: {error.digest}
+          </p>
+        )}
+      </div>
       <div className="flex gap-3">
         <button
           onClick={reset}
