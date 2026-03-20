@@ -13,7 +13,9 @@
     "lint": "next lint",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "maintenance:on": "vercel env set NEXT_PUBLIC_MAINTENANCE_MODE true production && vercel --prod",
+    "maintenance:off": "vercel env set NEXT_PUBLIC_MAINTENANCE_MODE false production && vercel --prod"
   },
   "keywords": [],
   "author": "",

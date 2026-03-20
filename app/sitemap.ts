@@ -1,7 +1,8 @@
 import type { MetadataRoute } from "next"
+import { getSiteUrl } from "@/lib/utils/url"
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://sonamoney.my.id"
+  const baseUrl = getSiteUrl()
 
   return [
     {

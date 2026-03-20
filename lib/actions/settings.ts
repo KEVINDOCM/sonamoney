@@ -8,6 +8,7 @@ import { z } from "zod"
 import { sanitizeText } from "@/lib/utils/validation"
 import { createClient } from "@supabase/supabase-js"
 import { logAuditEvent } from "@/lib/utils/auditLog"
+import { getSiteUrl } from "@/lib/utils/url"
 
 interface SupabaseAuthClient {
   auth: {
@@ -74,7 +75,7 @@ export async function sendPasswordReset(email: string): Promise<{ success: boole
     return { success: false, error: "Reset not available" }
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://sonamoney.my.id"
+  const siteUrl = getSiteUrl()
 
   await supabase.auth.resetPasswordForEmail(parsed.data, {
     redirectTo: siteUrl + "/reset-password"

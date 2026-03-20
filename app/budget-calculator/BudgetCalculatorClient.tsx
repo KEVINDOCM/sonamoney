@@ -3,7 +3,15 @@
 import Link from "next/link"
 import { useState } from "react"
 
+const getSiteUrl = () => {
+  if (typeof window !== "undefined") {
+    return window.location.origin
+  }
+  return "https://sonamoney.my.id"
+}
+
 export default function BudgetCalculatorClient() {
+  const baseUrl = getSiteUrl()
   const breadcrumbLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -12,13 +20,13 @@ export default function BudgetCalculatorClient() {
         "@type": "ListItem",
         position: 1,
         name: "Home",
-        item: "https://sonamoney.my.id",
+        item: baseUrl,
       },
       {
         "@type": "ListItem",
         position: 2,
         name: "Budget Calculator",
-        item: "https://sonamoney.my.id/budget-calculator",
+        item: `${baseUrl}/budget-calculator`,
       },
     ],
   }

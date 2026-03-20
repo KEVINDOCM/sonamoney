@@ -85,6 +85,38 @@ export async function middleware(request: MiddlewareRequest) {
   const { pathname } = request.nextUrl
   const requestUrl = request.url
 
+  // ============================================
+  // MAINTENANCE MODE CHECK
+  // ============================================
+  // Validate maintenance mode env var format
+  const maintenanceModeEnv = process.env.NEXT_PUBLIC_MAINTENANCE_MODE
+  const isMaintenanceMode = maintenanceModeEnv === "true"
+  
+  // Log warning if invalid value detected (not boolean string)
+  if (maintenanceModeEnv && maintenanceModeEnv !== "true" && maintenanceModeEnv !== "false") {
+    console.warn(`[MIDDLEWARE WARNING] Invalid NEXT_PUBLIC_MAINTENANCE_MODE value: "${maintenanceModeEnv}". Expected "true" or "false". Treating as false.`)
+  }
+  
+  const maintenanceBypassCookie = request.cookies.get("x-maintenance-bypass")?.value
+  const isMaintenancePage = pathname === "/maintenance"
+  const isBypassRoute = pathname === "/api/auth/maintenance-bypass"
+
+  // If maintenance mode is ON:
+  // - Allow access to /maintenance page (so users see the message)
+  // - Allow access to /api/auth/maintenance-bypass (to set bypass cookie)
+  // - Allow access if bypass cookie is present
+  // - Otherwise redirect to /maintenance
+  if (isMaintenanceMode && !isMaintenancePage && !isBypassRoute && maintenanceBypassCookie !== "true") {
+    return NextResponse.redirect(new URL("/maintenance", requestUrl))
+  }
+
+  // If maintenance mode is OFF but user is on maintenance page with bypass,
+  // let them proceed (they'll naturally navigate away)
+  // Also redirect from maintenance page to home if maintenance is OFF
+  if (!isMaintenanceMode && isMaintenancePage) {
+    return NextResponse.redirect(new URL("/", requestUrl))
+  }
+
   // IP-based rate limiting
   const ip =
     (request as { headers?: { get?: (h: string) => string | null } })
@@ -147,7 +179,28 @@ export async function middleware(request: MiddlewareRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
+  // Validate Supabase environment variables
   if (!supabaseUrl || !supabaseAnonKey) {
+    const missingVars = []
+    if (!supabaseUrl) missingVars.push("NEXT_PUBLIC_SUPABASE_URL")
+    if (!supabaseAnonKey) missingVars.push("NEXT_PUBLIC_SUPABASE_ANON_KEY")
+    
+    console.error(`[MIDDLEWARE ERROR] Missing required environment variables: ${missingVars.join(", ")}`)
+    
+    return new Response(
+      JSON.stringify({ 
+        error: "Server configuration error", 
+        details: process.env.NODE_ENV === "development" 
+          ? `Missing: ${missingVars.join(", ")}` 
+          : "Contact support if this persists." 
+      }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    )
+  }
+  
+  // Validate Supabase URL format
+  if (!supabaseUrl.startsWith("https://") && !supabaseUrl.startsWith("http://")) {
+    console.error(`[MIDDLEWARE ERROR] Invalid NEXT_PUBLIC_SUPABASE_URL format: ${supabaseUrl}`)
     return new Response(
       JSON.stringify({ error: "Server configuration error" }),
       { status: 500, headers: { "Content-Type": "application/json" } }

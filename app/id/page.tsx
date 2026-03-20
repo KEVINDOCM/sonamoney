@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import Link from "next/link"
+import { getSiteUrl } from "@/lib/utils/url"
 
 export const metadata: Metadata = {
   title: "Aplikasi Pengeluaran Terbaik Indonesia 2025 | SonaMoney",
@@ -17,20 +18,21 @@ export const metadata: Metadata = {
     title: "Aplikasi Pengeluaran Terbaik Indonesia 2025 | SonaMoney",
     description:
       "Catat pengeluaran harian dalam Rupiah. Gratis selamanya, kurs real-time, bisa offline.",
-    url: "https://sonamoney.my.id/id",
+    url: `${getSiteUrl()}/id`,
     locale: "id_ID",
     images: ["/og-image.png"],
   },
   alternates: {
-    canonical: "https://sonamoney.my.id/id",
+    canonical: `${getSiteUrl()}/id`,
     languages: {
-      "en-US": "https://sonamoney.my.id",
-      "id-ID": "https://sonamoney.my.id/id",
+      "en-US": getSiteUrl(),
+      "id-ID": `${getSiteUrl()}/id`,
     },
   },
 }
 
 export default function IndonesiaPage() {
+  const baseUrl = getSiteUrl()
   const breadcrumbLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -39,13 +41,13 @@ export default function IndonesiaPage() {
         "@type": "ListItem",
         position: 1,
         name: "Home",
-        item: "https://sonamoney.my.id",
+        item: baseUrl,
       },
       {
         "@type": "ListItem",
         position: 2,
         name: "Indonesia",
-        item: "https://sonamoney.my.id/id",
+        item: `${baseUrl}/id`,
       },
     ],
   }

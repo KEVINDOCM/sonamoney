@@ -171,7 +171,7 @@ export default function HomePage() {
     "@context": "https://schema.org",
     "@type": "WebApplication",
     name: "SonaMoney",
-    url: "https://sonamoney.my.id",
+    url: process.env.NEXT_PUBLIC_APP_URL || "https://sonamoney.my.id",
     description:
       "Free personal finance tracker. Track income, " +
       "expenses, budgets, and insights with analytics " +

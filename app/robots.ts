@@ -1,6 +1,9 @@
 import type { MetadataRoute } from "next"
+import { getSiteUrl } from "@/lib/utils/url"
 
 export default function robots(): MetadataRoute.Robots {
+  const baseUrl = getSiteUrl()
+
   return {
     rules: [
       {
@@ -19,6 +22,6 @@ export default function robots(): MetadataRoute.Robots {
         ],
       },
     ],
-    sitemap: "https://sonamoney.my.id/sitemap.xml",
+    sitemap: `${baseUrl}/sitemap.xml`,
   }
 }

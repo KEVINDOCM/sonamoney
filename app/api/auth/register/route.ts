@@ -3,6 +3,7 @@ import { sanitizeEmail, getClientIp } from "@/lib/utils/authSecurity"
 import { signupSchema } from "@/lib/utils/validation"
 import { checkPasswordBreached } from "@/lib/utils/passwordSecurity"
 import { logAuditEvent } from "@/lib/utils/auditLog"
+import { getSiteUrl } from "@/lib/utils/url"
 
 // Generic message to prevent user enumeration
 const GENERIC_SUCCESS = "If this email is not registered, you will receive a confirmation email."
@@ -45,7 +46,7 @@ export async function POST(req: Request): Promise<Response> {
     }
 
     const supabase = await createSupabaseServerClient() as unknown as SupabaseAuthApi
-    const origin = req.headers.get("origin") ?? "https://sonamoney.my.id"
+    const origin = req.headers.get("origin") ?? getSiteUrl()
 
     const { error } = await supabase.auth.signUp({
       email,

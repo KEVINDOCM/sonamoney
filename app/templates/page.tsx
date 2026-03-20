@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import Link from "next/link"
+import { getSiteUrl } from "@/lib/utils/url"
 
 export const metadata: Metadata = {
   title: "Free Budget Templates | Excel, PDF & In-App — SonaMoney",
@@ -17,12 +18,13 @@ export const metadata: Metadata = {
     title: "Free Budget Templates | Excel, PDF & Google Sheets",
     description:
       "12 free budget templates that actually work. Download Excel, Google Sheets, or PDF. Plus free expense tracker app.",
-    url: "https://sonamoney.my.id/templates",
+    url: `${getSiteUrl()}/templates`,
     images: ["/og-image.png"],
   },
 }
 
 export default function TemplatesPage() {
+  const baseUrl = getSiteUrl()
   const breadcrumbLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -31,13 +33,13 @@ export default function TemplatesPage() {
         "@type": "ListItem",
         position: 1,
         name: "Home",
-        item: "https://sonamoney.my.id",
+        item: baseUrl,
       },
       {
         "@type": "ListItem",
         position: 2,
         name: "Templates",
-        item: "https://sonamoney.my.id/templates",
+        item: `${baseUrl}/templates`,
       },
     ],
   }

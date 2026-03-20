@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import BudgetCalculatorClient from "./BudgetCalculatorClient"
+import { getSiteUrl } from "@/lib/utils/url"
 
 export const metadata: Metadata = {
   title: "50/30/20 Rule Calculator | Free Budget Planner — SonaMoney",
@@ -25,7 +26,7 @@ export const metadata: Metadata = {
     title: "50/30/20 Rule Calculator | Free Budget Planner",
     description:
       "Calculate your perfect budget in 30 seconds. Interactive 50/30/20 calculator with personalized template download.",
-    url: "https://sonamoney.my.id/budget-calculator",
+    url: `${getSiteUrl()}/budget-calculator`,
     images: ["/og-image.png"],
   },
 }

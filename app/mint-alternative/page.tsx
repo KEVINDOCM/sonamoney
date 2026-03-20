@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import Link from "next/link"
+import { getSiteUrl } from "@/lib/utils/url"
 
 export const metadata: Metadata = {
   title: "The Best Mint Alternative in 2026 | Free Budget App — SonaMoney",
@@ -17,12 +18,13 @@ export const metadata: Metadata = {
     title: "The Best Mint Alternative in 2026 | Free Budget App",
     description:
       "Mint shut down? Switch to SonaMoney. Free forever, no ads, import your Mint data in 2 minutes.",
-    url: "https://sonamoney.my.id/mint-alternative",
+    url: `${getSiteUrl()}/mint-alternative`,
     images: ["/og-image.png"],
   },
 }
 
 export default function MintAlternativePage() {
+  const baseUrl = getSiteUrl()
   const breadcrumbLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -31,13 +33,13 @@ export default function MintAlternativePage() {
         "@type": "ListItem",
         position: 1,
         name: "Home",
-        item: "https://sonamoney.my.id",
+        item: baseUrl,
       },
       {
         "@type": "ListItem",
         position: 2,
         name: "Mint Alternative",
-        item: "https://sonamoney.my.id/mint-alternative",
+        item: `${baseUrl}/mint-alternative`,
       },
     ],
   }

@@ -1,14 +1,13 @@
 import type { ReactNode } from "react";
 import type { Metadata, Viewport } from "next";
+import { getSiteUrl } from "@/lib/utils/url";
 import "./globals.css";
 import { ToastProvider } from "@/components/ui/ToastProvider";
 import { CurrencyProvider } from "@/lib/contexts/CurrencyContext";
 import { TranslationProvider } from "@/lib/contexts/TranslationContext";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    "https://sonamoney.my.id"
-  ),
+  metadataBase: new URL(getSiteUrl()),
   title: {
     default: "SonaMoney — Personal Finance Tracker",
     template: "%s | SonaMoney",
@@ -49,7 +48,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "id_ID",
     alternateLocale: ["en_US"],
-    url: "https://sonamoney.my.id",
+    url: getSiteUrl(),
     siteName: "SonaMoney",
     title: "SonaMoney — Personal Finance Tracker",
     description:
@@ -57,7 +56,7 @@ export const metadata: Metadata = {
       "Free personal finance app with analytics and AI.",
     images: [
       {
-        url: "https://sonamoney.my.id/og-image.png",
+        url: `${getSiteUrl()}/og-image.png`,
         width: 1200,
         height: 630,
         alt: "SonaMoney — Personal Finance Tracker",
@@ -70,13 +69,13 @@ export const metadata: Metadata = {
     description:
       "Free personal finance tracker. " +
       "Track income, expenses, budgets, and insights.",
-    images: ["https://sonamoney.my.id/og-image.png"],
+    images: [`${getSiteUrl()}/og-image.png`],
   },
   alternates: {
-    canonical: "https://sonamoney.my.id",
+    canonical: getSiteUrl(),
     languages: {
-      "en-US": "https://sonamoney.my.id",
-      "id-ID": "https://sonamoney.my.id",
+      "en-US": getSiteUrl(),
+      "id-ID": getSiteUrl(),
     },
   },
   category: "finance",
@@ -128,8 +127,8 @@ export default function RootLayout({ children }: RootLayoutProps) {
               "@context": "https://schema.org",
               "@type": "Organization",
               name: "SonaMoney",
-              url: "https://sonamoney.my.id",
-              logo: "https://sonamoney.my.id/icon-512.svg",
+              url: getSiteUrl(),
+              logo: `${getSiteUrl()}/icon-512.svg`,
               sameAs: [],
               contactPoint: {
                 "@type": "ContactPoint",

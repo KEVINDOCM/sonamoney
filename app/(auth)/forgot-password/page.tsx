@@ -6,6 +6,13 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import Link from "next/link";
 
+const getSiteUrl = () => {
+  if (typeof window !== "undefined") {
+    return window.location.origin;
+  }
+  return process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || "https://sonamoney.my.id";
+};
+
 interface SupabaseAuthClient {
   auth: {
     resetPasswordForEmail: (email: string, options: { redirectTo: string }) => Promise<{ error: { message: string } | null }>;
@@ -31,7 +38,7 @@ export default function ForgotPasswordPage() {
 
     setLoading(true);
     const supabase = createSupabaseBrowserClient() as unknown as SupabaseAuthClient;
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://sonamoney.my.id";
+    const siteUrl = getSiteUrl();
 
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${siteUrl}/reset-password`,

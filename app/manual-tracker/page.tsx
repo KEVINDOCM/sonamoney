@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import Link from "next/link"
+import { getSiteUrl } from "@/lib/utils/url"
 
 export const metadata: Metadata = {
   title: "Manual Expense Tracker App | No Bank Connection Required — SonaMoney",
@@ -17,12 +18,13 @@ export const metadata: Metadata = {
     title: "Manual Expense Tracker | No Bank Connection Required",
     description:
       "Track spending without linking your bank. Full privacy, manual entry, data export. Free forever.",
-    url: "https://sonamoney.my.id/manual-tracker",
+    url: `${getSiteUrl()}/manual-tracker`,
     images: ["/og-image.png"],
   },
 }
 
 export default function ManualTrackerPage() {
+  const baseUrl = getSiteUrl()
   const breadcrumbLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -31,13 +33,13 @@ export default function ManualTrackerPage() {
         "@type": "ListItem",
         position: 1,
         name: "Home",
-        item: "https://sonamoney.my.id",
+        item: baseUrl,
       },
       {
         "@type": "ListItem",
         position: 2,
         name: "Manual Tracker",
-        item: "https://sonamoney.my.id/manual-tracker",
+        item: `${baseUrl}/manual-tracker`,
       },
     ],
   }

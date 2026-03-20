@@ -6,6 +6,14 @@ const withPWA = require("next-pwa")({
   disable: process.env.NODE_ENV === "development",
 })
 
+// Dynamic origin for CORS based on environment
+const getOrigin = () => {
+  return process.env.NEXT_PUBLIC_APP_URL || 
+         process.env.NEXT_PUBLIC_SITE_URL || 
+         (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) ||
+         "https://sonamoney.my.id"
+}
+
 const securityHeaders = [
   // Prevent clickjacking
   {
@@ -91,7 +99,7 @@ const securityHeaders = [
   // CORS for all routes
   {
     key: "Access-Control-Allow-Origin",
-    value: "https://sonamoney.my.id",
+    value: getOrigin(),
   },
 ]
 
@@ -134,7 +142,7 @@ module.exports = withPWA({
           },
           {
             key: "Access-Control-Allow-Origin",
-            value: "https://sonamoney.my.id",
+            value: getOrigin(),
           },
           {
             key: "Access-Control-Allow-Methods",
