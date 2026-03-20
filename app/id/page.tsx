@@ -17,15 +17,15 @@ export const metadata: Metadata = {
     title: "Aplikasi Pengeluaran Terbaik Indonesia 2025 | SonaMoney",
     description:
       "Catat pengeluaran harian dalam Rupiah. Gratis selamanya, kurs real-time, bisa offline.",
-    url: "https://sona-money.vercel.app/id",
+    url: "https://sonamoney.my.id/id",
     locale: "id_ID",
     images: ["/og-image.png"],
   },
   alternates: {
-    canonical: "https://sona-money.vercel.app/id",
+    canonical: "https://sonamoney.my.id/id",
     languages: {
-      "en-US": "https://sona-money.vercel.app",
-      "id-ID": "https://sona-money.vercel.app/id",
+      "en-US": "https://sonamoney.my.id",
+      "id-ID": "https://sonamoney.my.id/id",
     },
   },
 }
@@ -39,13 +39,13 @@ export default function IndonesiaPage() {
         "@type": "ListItem",
         position: 1,
         name: "Home",
-        item: "https://sona-money.vercel.app",
+        item: "https://sonamoney.my.id",
       },
       {
         "@type": "ListItem",
         position: 2,
         name: "Indonesia",
-        item: "https://sona-money.vercel.app/id",
+        item: "https://sonamoney.my.id/id",
       },
     ],
   }

@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     title: "The Best Mint Alternative in 2026 | Free Budget App",
     description:
       "Mint shut down? Switch to SonaMoney. Free forever, no ads, import your Mint data in 2 minutes.",
-    url: "https://sona-money.vercel.app/mint-alternative",
+    url: "https://sonamoney.my.id/mint-alternative",
     images: ["/og-image.png"],
   },
 }
@@ -31,13 +31,13 @@ export default function MintAlternativePage() {
         "@type": "ListItem",
         position: 1,
         name: "Home",
-        item: "https://sona-money.vercel.app",
+        item: "https://sonamoney.my.id",
       },
       {
         "@type": "ListItem",
         position: 2,
         name: "Mint Alternative",
-        item: "https://sona-money.vercel.app/mint-alternative",
+        item: "https://sonamoney.my.id/mint-alternative",
       },
     ],
   }

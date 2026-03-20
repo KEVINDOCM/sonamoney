@@ -45,7 +45,7 @@ export async function POST(req: Request): Promise<Response> {
     }
 
     const supabase = await createSupabaseServerClient() as unknown as SupabaseAuthApi
-    const origin = req.headers.get("origin") ?? "https://sona-money.vercel.app"
+    const origin = req.headers.get("origin") ?? "https://sonamoney.my.id"
 
     const { error } = await supabase.auth.signUp({
       email,

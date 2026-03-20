@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     title: "Manual Expense Tracker | No Bank Connection Required",
     description:
       "Track spending without linking your bank. Full privacy, manual entry, data export. Free forever.",
-    url: "https://sona-money.vercel.app/manual-tracker",
+    url: "https://sonamoney.my.id/manual-tracker",
     images: ["/og-image.png"],
   },
 }
@@ -31,13 +31,13 @@ export default function ManualTrackerPage() {
         "@type": "ListItem",
         position: 1,
         name: "Home",
-        item: "https://sona-money.vercel.app",
+        item: "https://sonamoney.my.id",
       },
       {
         "@type": "ListItem",
         position: 2,
         name: "Manual Tracker",
-        item: "https://sona-money.vercel.app/manual-tracker",
+        item: "https://sonamoney.my.id/manual-tracker",
       },
     ],
   }

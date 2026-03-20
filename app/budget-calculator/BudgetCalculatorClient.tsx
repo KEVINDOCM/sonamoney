@@ -12,13 +12,13 @@ export default function BudgetCalculatorClient() {
         "@type": "ListItem",
         position: 1,
         name: "Home",
-        item: "https://sona-money.vercel.app",
+        item: "https://sonamoney.my.id",
       },
       {
         "@type": "ListItem",
         position: 2,
         name: "Budget Calculator",
-        item: "https://sona-money.vercel.app/budget-calculator",
+        item: "https://sonamoney.my.id/budget-calculator",
       },
     ],
   }

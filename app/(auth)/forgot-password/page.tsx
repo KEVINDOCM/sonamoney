@@ -31,7 +31,7 @@ export default function ForgotPasswordPage() {
 
     setLoading(true);
     const supabase = createSupabaseBrowserClient() as unknown as SupabaseAuthClient;
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://sona-money.vercel.app";
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://sonamoney.my.id";
 
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${siteUrl}/reset-password`,

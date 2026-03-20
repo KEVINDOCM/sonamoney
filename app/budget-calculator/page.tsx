@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     title: "50/30/20 Rule Calculator | Free Budget Planner",
     description:
       "Calculate your perfect budget in 30 seconds. Interactive 50/30/20 calculator with personalized template download.",
-    url: "https://sona-money.vercel.app/budget-calculator",
+    url: "https://sonamoney.my.id/budget-calculator",
     images: ["/og-image.png"],
   },
 }

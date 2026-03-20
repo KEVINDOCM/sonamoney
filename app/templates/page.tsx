@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     title: "Free Budget Templates | Excel, PDF & Google Sheets",
     description:
       "12 free budget templates that actually work. Download Excel, Google Sheets, or PDF. Plus free expense tracker app.",
-    url: "https://sona-money.vercel.app/templates",
+    url: "https://sonamoney.my.id/templates",
     images: ["/og-image.png"],
   },
 }
@@ -31,13 +31,13 @@ export default function TemplatesPage() {
         "@type": "ListItem",
         position: 1,
         name: "Home",
-        item: "https://sona-money.vercel.app",
+        item: "https://sonamoney.my.id",
       },
       {
         "@type": "ListItem",
         position: 2,
         name: "Templates",
-        item: "https://sona-money.vercel.app/templates",
+        item: "https://sonamoney.my.id/templates",
       },
     ],
   }
