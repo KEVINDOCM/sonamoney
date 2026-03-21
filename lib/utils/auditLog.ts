@@ -14,6 +14,15 @@ export type AuditEventType =
   | "scan.receipt.success"
   | "scan.receipt.failure"
   | "security.rate_limit_hit"
+  | "transaction.create.success"
+  | "transaction.create.failure"
+  | "transaction.create.blocked"
+  | "transaction.update.success"
+  | "transaction.update.failure"
+  | "transaction.update.blocked"
+  | "transaction.delete.success"
+  | "transaction.delete.failure"
+  | "transaction.delete.blocked"
 
 export type AuditEventStatus = "success" | "failure" | "blocked"
 
