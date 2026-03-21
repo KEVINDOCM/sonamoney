@@ -19,7 +19,8 @@ vi.mock('@/lib/security/config', () => ({
 }))
 
 // Import after mocking
-import { generateRequestSignature, verifyRequestSignature, REQUEST_TIMEOUT_MS, isRequestFresh } from '@/lib/security'
+import { generateRequestSignature, verifyRequestSignature } from '@/lib/security/server'
+import { REQUEST_TIMEOUT_MS, isRequestFresh } from '@/lib/security'
 
 describe('SECURITY AUDIT: HMAC Signature Validation', () => {
   describe('Signature Generation', () => {
