@@ -1,12 +1,11 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server"
-import { sanitizeEmail, getClientIp } from "@/lib/utils/authSecurity"
-import { signupSchema } from "@/lib/utils/validation"
-import { checkPasswordBreached } from "@/lib/utils/passwordSecurity"
 import { logAuditEvent } from "@/lib/utils/auditLog"
 import { getSiteUrl } from "@/lib/utils/url"
+import { checkPasswordBreached } from "@/lib/utils/passwordSecurity"
+import { validateRequest, signupSchema, sanitizeEmail, getClientIp } from "@/lib/security"
 
-// Generic message to prevent user enumeration
 const GENERIC_SUCCESS = "If this email is not registered, you will receive a confirmation email."
+const GENERIC_ERROR = "Failed to create account. Please try again."
 
 interface SupabaseAuthApi {
   auth: {
@@ -17,30 +16,42 @@ interface SupabaseAuthApi {
 export async function POST(req: Request): Promise<Response> {
   try {
     const ip = getClientIp(req)
+    const body = await req.json()
 
-    // Basic rate limit — max 3 registrations per IP per hour
-    // (handled by middleware IP rate limiter as baseline)
-
-    const body: unknown = await req.json()
-
-    const parsed = signupSchema.safeParse(body)
-    if (!parsed.success) {
-      return Response.json(
-        { error: parsed.error.issues[0]?.message ?? "Invalid input" },
-        { status: 400 }
-      )
+    // Validate request (signature, timestamp, XSS, schema)
+    const validation = await validateRequest(req, body, signupSchema)
+    if (!validation.success) {
+      const errorReason = validation.error ?? "validation_failed"
+      await logAuditEvent({
+        eventType: "auth.register.blocked",
+        eventStatus: "blocked",
+        ipAddress: ip,
+        metadata: { reason: errorReason },
+      })
+      return Response.json({ error: GENERIC_ERROR }, { status: validation.status })
     }
 
-    const email = sanitizeEmail(parsed.data.email)
-    const { password } = parsed.data
+    const data = validation.data!
 
-    // Check password breach server-side
+    // Honeypot check
+    if (data.website && String(data.website).trim().length > 0) {
+      await logAuditEvent({
+        eventType: "auth.register.blocked",
+        eventStatus: "blocked",
+        ipAddress: ip,
+        metadata: { reason: "honeypot" },
+      })
+      return Response.json({ success: true, message: GENERIC_SUCCESS }, { status: 200 })
+    }
+
+    const email = sanitizeEmail(String(data.email))
+    const password = String(data.password)
+
+    // Check breached password
     const breach = await checkPasswordBreached(password)
     if (breach.breached) {
       return Response.json(
-        {
-          error: `This password appeared in ${breach.count.toLocaleString()} data breaches. Please choose a stronger password.`,
-        },
+        { error: `This password appeared in ${breach.count.toLocaleString()} data breaches. Please choose a stronger password.` },
         { status: 400 }
       )
     }
@@ -51,13 +62,9 @@ export async function POST(req: Request): Promise<Response> {
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        emailRedirectTo: `${origin}/callback`,
-      },
+      options: { emailRedirectTo: `${origin}/callback` },
     })
 
-    // Always return generic success to prevent user enumeration
-    // Even if email already exists, Supabase handles silently
     if (error && !error.message.includes("already registered")) {
       await logAuditEvent({
         eventType: "auth.register.failure",
@@ -65,10 +72,7 @@ export async function POST(req: Request): Promise<Response> {
         ipAddress: ip,
         metadata: { reason: "signup_error" },
       })
-      return Response.json(
-        { error: "Failed to create account. Please try again." },
-        { status: 500 }
-      )
+      return Response.json({ error: GENERIC_ERROR }, { status: 500 })
     }
 
     await logAuditEvent({
@@ -78,14 +82,8 @@ export async function POST(req: Request): Promise<Response> {
       metadata: { email: email.slice(0, 3) + "***" },
     })
 
-    return Response.json(
-      { success: true, message: GENERIC_SUCCESS },
-      { status: 200 }
-    )
+    return Response.json({ success: true, message: GENERIC_SUCCESS }, { status: 200 })
   } catch {
-    return Response.json(
-      { error: "An error occurred. Please try again." },
-      { status: 500 }
-    )
+    return Response.json({ error: GENERIC_ERROR }, { status: 500 })
   }
 }

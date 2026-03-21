@@ -1,7 +1,7 @@
-import { checkAndRecordAttempt, isLockedOut, sanitizeEmail, getClientIp } from "@/lib/utils/authSecurity"
-import { loginSchema } from "@/lib/utils/validation"
-import { logAuditEvent } from "@/lib/utils/auditLog"
 import { z } from "zod"
+import { logAuditEvent } from "@/lib/utils/auditLog"
+import { checkAndRecordAttempt, isLockedOut } from "@/lib/utils/authSecurity"
+import { validateRequest, loginSchema, sanitizeEmail, getClientIp } from "@/lib/security"
 
 const MAX_ATTEMPTS = 5
 const GENERIC_ERROR = "Invalid email or password"
@@ -9,18 +9,16 @@ const GENERIC_ERROR = "Invalid email or password"
 export async function POST(req: Request): Promise<Response> {
   try {
     const ip = getClientIp(req)
+    const body = await req.json()
 
-    const body: unknown = await req.json()
-
-    const parsed = loginSchema.safeParse(body)
-    if (!parsed.success) {
-      return Response.json(
-        { error: GENERIC_ERROR },
-        { status: 400 }
-      )
+    // Validate request (signature, timestamp, XSS, schema)
+    const validation = await validateRequest(req, body, loginSchema)
+    if (!validation.success) {
+      return Response.json({ error: GENERIC_ERROR }, { status: validation.status })
     }
 
-    const email = sanitizeEmail(parsed.data.email)
+    const data = validation.data!
+    const email = sanitizeEmail(String(data.email))
 
     // Check lockout BEFORE attempting login
     const lockout = await isLockedOut(email)
@@ -42,27 +40,29 @@ export async function POST(req: Request): Promise<Response> {
       )
     }
 
-    // Return ok — client will perform actual sign in
     return Response.json({ proceed: true }, { status: 200 })
   } catch {
-    return Response.json(
-      { error: "An error occurred. Please try again." },
-      { status: 500 }
-    )
+    return Response.json({ error: GENERIC_ERROR }, { status: 500 })
   }
 }
 
 export async function PUT(req: Request): Promise<Response> {
   try {
     const ip = getClientIp(req)
-    const body: unknown = await req.json()
+    const body = await req.json()
+
+    // Validate request (signature, timestamp, XSS)
+    const validation = await validateRequest(req, body)
+    if (!validation.success) {
+      return Response.json({ ok: true }, { status: 200 })
+    }
 
     const schema = z.object({
       email: z.string().email().max(254),
       success: z.boolean(),
     })
 
-    const parsed = schema.safeParse(body)
+    const parsed = schema.safeParse(validation.data)
     if (!parsed.success) {
       return Response.json({ ok: true }, { status: 200 })
     }

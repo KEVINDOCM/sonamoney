@@ -6,6 +6,7 @@ export type AuditEventType =
   | "auth.login.locked"
   | "auth.register.success"
   | "auth.register.failure"
+  | "auth.register.blocked"
   | "auth.logout"
   | "auth.password_reset.requested"
   | "account.deleted"

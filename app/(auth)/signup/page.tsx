@@ -4,8 +4,9 @@ import { useState, useTransition, FormEvent } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { createSupabaseBrowserClient } from "@/lib/supabase/client"
-import { signupSchema } from "@/lib/utils/validation"
+import { signupSchema } from "@/lib/security"
 import { validatePasswordStrength } from "@/lib/utils/passwordSecurity"
+import { generateSecureHeaders } from "@/lib/security/client"
 
 interface AuthClient {
   auth: {
@@ -55,8 +56,9 @@ export default function SignupPage() {
     const formData = new FormData(e.currentTarget)
     const email = String(formData.get("email") ?? "")
     const password = String(formData.get("password") ?? "")
+    const website = String(formData.get("website") ?? "") // Honeypot field
 
-    const parsed = signupSchema.safeParse({ email, password })
+    const parsed = signupSchema.safeParse({ email, password, website })
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? "Invalid input")
       setIsSubmitting(false)
@@ -64,10 +66,13 @@ export default function SignupPage() {
     }
 
     try {
+      const payload = { email, password, website }
+      const headers = await generateSecureHeaders(payload)
+
       const res = await fetch("/api/auth/register", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        headers,
+        body: JSON.stringify(payload),
       })
 
       const data: unknown = await res.json()
@@ -265,6 +270,18 @@ export default function SignupPage() {
                     </div>
                   </div>
                 )}
+              </div>
+
+              {/* Honeypot field - hidden from real users, bots will fill this */}
+              <div className="absolute opacity-0 -z-10" aria-hidden="true">
+                <input
+                  type="text"
+                  name="website"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  placeholder="Leave this field empty"
+                  className="w-px h-px"
+                />
               </div>
 
               {/* Submit */}

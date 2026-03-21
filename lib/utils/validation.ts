@@ -64,14 +64,28 @@ export const loginSchema = z.object({
     .max(128, "Password too long"),
 })
 
-// Signup schema (strict password)
+// Signup schema (strict password) - includes honeypot field
 export const signupSchema = z.object({
   email: z
     .string()
     .email("Invalid email address")
     .max(254, "Email too long"),
   password: passwordSchema,
+  website: z.string().optional(), // Honeypot field - bots will fill this
 })
+
+// Enhanced XSS sanitization - removes dangerous characters
+export function sanitizeXSS(input: string): string {
+  return input
+    .replace(/[<>]/g, "")     // Remove < and > (script tags)
+    .replace(/[\"']/g, "")   // Remove quotes (attributes)
+    .replace(/\//g, "")       // Remove forward slashes
+    .replace(/\\/g, "")       // Remove backslashes
+    .replace(/&/g, "&amp;")   // Escape ampersands
+    .replace(/javascript:/gi, "") // Remove javascript: protocol
+    .replace(/on\w+=/gi, "")  // Remove event handlers (onclick, onerror, etc)
+    .trim()
+}
 
 // UUID validation helper
 export function validateUUID(id: unknown): string {

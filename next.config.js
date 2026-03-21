@@ -6,12 +6,30 @@ const withPWA = require("next-pwa")({
   disable: process.env.NODE_ENV === "development",
 })
 
+const isProd = process.env.NODE_ENV === "production"
+
 // Dynamic origin for CORS based on environment
 const getOrigin = () => {
   return process.env.NEXT_PUBLIC_APP_URL || 
          process.env.NEXT_PUBLIC_SITE_URL || 
          (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) ||
          "https://sonamoney.my.id"
+}
+
+// Allowed origins for strict CORS
+const allowedOrigins = [
+  "https://sonamoney.my.id",
+  "https://www.sonamoney.my.id",
+]
+
+// Add development origins if not in production
+if (!isProd) {
+  allowedOrigins.push("http://localhost:3000")
+}
+
+// Add Vercel preview URLs if available
+if (process.env.VERCEL_URL) {
+  allowedOrigins.push(`https://${process.env.VERCEL_URL}`)
 }
 
 const securityHeaders = [
@@ -96,11 +114,6 @@ const securityHeaders = [
     key: "X-RateLimit-Limit",
     value: "60",
   },
-  // CORS for all routes
-  {
-    key: "Access-Control-Allow-Origin",
-    value: getOrigin(),
-  },
 ]
 
 module.exports = withPWA({
@@ -108,6 +121,9 @@ module.exports = withPWA({
 
   // Compress responses
   compress: true,
+
+  // Disable source maps in production
+  productionBrowserSourceMaps: false,
 
   // Image optimization
   images: {
@@ -121,7 +137,28 @@ module.exports = withPWA({
     scrollRestoration: true,
   },
 
+  // Webpack config to disable console in production
+  webpack: (config, { isServer }) => {
+    if (isProd && !isServer) {
+      // Strip console logs in production
+      const TerserPlugin = require("terser-webpack-plugin")
+      config.optimization.minimizer.push(
+        new TerserPlugin({
+          terserOptions: {
+            compress: {
+              drop_console: true,
+              drop_debugger: true,
+            },
+          },
+        })
+      )
+    }
+    return config
+  },
+
   async headers() {
+    const origin = getOrigin()
+    
     return [
       {
         // Apply to all routes
@@ -140,9 +177,10 @@ module.exports = withPWA({
             key: "Cache-Control",
             value: "no-store, no-cache, must-revalidate, private",
           },
+          // Strict CORS - only allow specific origins
           {
             key: "Access-Control-Allow-Origin",
-            value: getOrigin(),
+            value: origin || allowedOrigins[0] || "https://sonamoney.my.id",
           },
           {
             key: "Access-Control-Allow-Methods",
@@ -150,11 +188,15 @@ module.exports = withPWA({
           },
           {
             key: "Access-Control-Allow-Headers",
-            value: "Content-Type, Authorization",
+            value: "Content-Type, Authorization, X-Request-Signature, X-Request-Timestamp",
           },
           {
             key: "Access-Control-Max-Age",
             value: "86400",
+          },
+          {
+            key: "Vary",
+            value: "Origin",
           },
         ],
       },
