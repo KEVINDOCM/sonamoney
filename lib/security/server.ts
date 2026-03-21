@@ -192,13 +192,17 @@ export async function validateRequest(
     }
 
     // Anti-replay: Check freshness
-    const freshnessWindow = actualMode === "admin" ? REQUEST_TIMEOUT_MS * 10 : REQUEST_TIMEOUT_MS
+    const freshnessWindow = actualMode === "admin" ? REQUEST_TIMEOUT_MS * 10 : REQUEST_TIMEOUT_MS * 2 // 60s for users
     if (!isRequestFresh(ts, freshnessWindow)) {
-      // Admin gets leniency
+      // User gets leniency for clock skew issues
       if (actualMode !== "admin") {
+        // Log detailed info for debugging clock skew
+        const now = Date.now()
+        const diff = now - ts
+        console.log(`[SECURITY] User timestamp rejected: diff=${diff}ms, server=${now}, client=${ts}`)
         return {
           success: false,
-          error: "Request expired",
+          error: "Request expired - please check your system clock",
           status: 401,
           mode: actualMode,
         }
