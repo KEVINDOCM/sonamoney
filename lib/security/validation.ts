@@ -34,3 +34,21 @@ export const secureRequestSchema = z.object({
 })
 
 export type SecureRequest = z.infer<typeof secureRequestSchema>
+
+// ============================================================================
+// AUTH SCHEMAS
+// ============================================================================
+
+export const loginSchema = z.object({
+  email: emailSchema,
+  password: z
+    .string()
+    .min(1, "Password is required")
+    .max(128, "Password too long"),
+})
+
+export const signupSchema = z.object({
+  email: emailSchema,
+  password: passwordSchema,
+  website: z.string().optional(), // Honeypot field
+})
