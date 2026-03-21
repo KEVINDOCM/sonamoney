@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { NewTransactionModal } from "@/components/transactions/NewTransactionModal";
 import { useTranslation } from "@/lib/i18n/useTranslation";
-import { createTransaction } from "@/lib/actions/transactions";
+import { createTransactionApi } from "@/lib/api/transactions";
 import { useToast } from "@/lib/hooks/useToast";
 import { useUserData } from "@/lib/contexts/UserDataContext";
 
@@ -30,7 +30,7 @@ export function AddTransactionButton() {
     commission_rate?: number | null;
   }) => {
     setIsLoading(true);
-    const result = await createTransaction({
+    const result = await createTransactionApi({
       category_id: data.categoryId,
       amount: data.amount,
       type: data.type,
@@ -41,8 +41,6 @@ export function AddTransactionButton() {
       recurring_unit: data.recurring_unit ?? undefined,
       recurring_next_date: data.recurring_next_date ?? undefined,
       account_id: data.account_id ?? undefined,
-      tax_rate: data.tax_rate ?? undefined,
-      commission_rate: data.commission_rate ?? undefined,
     });
     setIsLoading(false);
 

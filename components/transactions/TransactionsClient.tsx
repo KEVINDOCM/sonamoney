@@ -14,7 +14,8 @@ import { useTranslation } from "@/lib/i18n/useTranslation";
 import { useCurrency } from "@/lib/hooks/useCurrency";
 import { Search, SlidersHorizontal, X, Receipt, Repeat, Plus, CheckCircle, ChevronDown } from "lucide-react";
 import { CategoryIcon } from "@/components/ui/CategoryIcon";
-import { createTransaction, updateTransaction, deleteTransaction, logRecurringTransaction, skipRecurringOccurrence, stopRecurring } from "@/lib/actions/transactions";
+import { createTransactionApi, updateTransactionApi, deleteTransactionApi } from "@/lib/api/transactions";
+import { logRecurringTransaction, skipRecurringOccurrence, stopRecurring } from "@/lib/actions/transactions";
 import PaginationControls from "./PaginationControls";
 import TransactionTable from "./TransactionTable";
 import TransactionCardList from "./TransactionCardList";
@@ -278,7 +279,7 @@ export function TransactionsClient({
     setIsAddOpen(false);
     setIsSubmitting(true);
 
-    const result = await createTransaction({
+    const result = await createTransactionApi({
       category_id: data.categoryId,
       amount: data.amount,
       type: data.type,
@@ -345,8 +346,7 @@ export function TransactionsClient({
     setIsEditOpen(false);
     setIsSubmitting(true);
 
-    const result = await updateTransaction(data.id, {
-      id: data.id,
+    const result = await updateTransactionApi(data.id, {
       category_id: data.categoryId,
       amount: data.amount,
       type: data.type,
@@ -379,7 +379,7 @@ export function TransactionsClient({
     setIsDeleteOpen(false);
     setIsSubmitting(true);
 
-    const result = await deleteTransaction(id);
+    const result = await deleteTransactionApi(id);
 
     setIsSubmitting(false);
 
