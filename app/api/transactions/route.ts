@@ -1,6 +1,6 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server"
 import { logAuditEvent } from "@/lib/utils/auditLog"
-import { validateRequest, getClientIp } from "@/lib/security"
+import { validateRequest, getClientIp, whitelistFields, TransactionWhitelist } from "@/lib/security"
 import { z } from "zod"
 
 const MAX_AMOUNT = 999999999999
@@ -33,8 +33,11 @@ export async function POST(req: Request): Promise<Response> {
     const ip = getClientIp(req)
     const body = await req.json()
 
+    // STRICT WHITELISTING: Block any extra fields like 'role', 'is_admin'
+    const whitelistedBody = whitelistFields(body, TransactionWhitelist.CREATE, { strict: true })
+
     // Validate request (signature, timestamp, XSS, schema)
-    const validation = await validateRequest(req, body, createTransactionSchema)
+    const validation = await validateRequest(req, whitelistedBody, createTransactionSchema)
     if (!validation.success) {
       const errorReason = validation.error ?? "validation_failed"
       await logAuditEvent({
@@ -57,7 +60,7 @@ export async function POST(req: Request): Promise<Response> {
 
     const userId = userData.user.id
 
-    // Create transaction with user_id
+    // Create transaction with user_id - ONLY whitelisted fields
     const { error } = await supabase.from("transactions").insert({
       user_id: userId,
       category_id: data.category_id,
@@ -90,7 +93,17 @@ export async function POST(req: Request): Promise<Response> {
     })
 
     return Response.json({ success: true }, { status: 201 })
-  } catch {
+  } catch (err) {
+    // Log mass assignment attempt
+    if (err instanceof Error && err.message.includes("Forbidden fields")) {
+      await logAuditEvent({
+        eventType: "transaction.create.blocked",
+        eventStatus: "blocked",
+        ipAddress: getClientIp(req),
+        metadata: { reason: "mass_assignment_attempt", details: err.message },
+      })
+      return Response.json({ error: "Invalid request" }, { status: 400 })
+    }
     return Response.json({ error: "An error occurred" }, { status: 500 })
   }
 }

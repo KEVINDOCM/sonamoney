@@ -1,6 +1,6 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server"
 import { logAuditEvent } from "@/lib/utils/auditLog"
-import { validateRequest, getClientIp } from "@/lib/security"
+import { validateRequest, getClientIp, whitelistFields, TransactionWhitelist } from "@/lib/security"
 import { z } from "zod"
 
 const MAX_AMOUNT = 999999999999
@@ -18,13 +18,18 @@ export async function PUT(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ): Promise<Response> {
+  // Extract id first so it's available in catch block
+  const { id } = await params
+  
   try {
     const ip = getClientIp(req)
-    const { id } = await params
     const body = await req.json()
 
+    // STRICT WHITELISTING: Block any extra fields like 'role', 'is_admin'
+    const whitelistedBody = whitelistFields(body, TransactionWhitelist.UPDATE, { strict: true })
+
     // Validate request (signature, timestamp, XSS, schema)
-    const validation = await validateRequest(req, body, updateTransactionSchema)
+    const validation = await validateRequest(req, whitelistedBody, updateTransactionSchema)
     if (!validation.success) {
       const errorReason = validation.error ?? "validation_failed"
       await logAuditEvent({
@@ -111,7 +116,17 @@ export async function PUT(
     })
 
     return Response.json({ success: true }, { status: 200 })
-  } catch {
+  } catch (err) {
+    // Log mass assignment attempt
+    if (err instanceof Error && err.message.includes("Forbidden fields")) {
+      await logAuditEvent({
+        eventType: "transaction.update.blocked",
+        eventStatus: "blocked",
+        ipAddress: getClientIp(req),
+        metadata: { reason: "mass_assignment_attempt", details: err.message, transaction_id: id },
+      })
+      return Response.json({ error: "Invalid request" }, { status: 400 })
+    }
     return Response.json({ error: "An error occurred" }, { status: 500 })
   }
 }

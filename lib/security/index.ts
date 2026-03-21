@@ -345,3 +345,140 @@ export function getClientIp(req: Request | { headers: Headers }): string {
   }
   return "unknown"
 }
+
+// ============================================================================
+// FIELD WHITELISTING - Prevent mass assignment attacks
+// ============================================================================
+
+/**
+ * Whitelist object fields - only keep allowed fields
+ * Use this to prevent attackers from injecting extra fields like 'role', 'is_admin'
+ * @param input - The input object
+ * @param allowedFields - Array of allowed field names
+ * @returns Object with only allowed fields
+ * @throws Error if extra fields are detected (optional strict mode)
+ *
+ * Example:
+ * const safeData = whitelistFields(req.body, ['email', 'password', 'name'])
+ */
+export function whitelistFields<T extends Record<string, unknown>>(
+  input: T,
+  allowedFields: string[],
+  options?: { strict?: boolean }
+): Pick<T, keyof T> {
+  const result = {} as Record<string, unknown>
+  const extraFields: string[] = []
+
+  for (const key of Object.keys(input)) {
+    if (allowedFields.includes(key)) {
+      result[key] = input[key]
+    } else {
+      extraFields.push(key)
+    }
+  }
+
+  // In strict mode, throw error if extra fields found
+  if (options?.strict && extraFields.length > 0) {
+    throw new Error(`Forbidden fields detected: ${extraFields.join(", ")}`)
+  }
+
+  // Log blocked fields for security audit
+  if (extraFields.length > 0) {
+    console.warn(`[SECURITY] Blocked fields in request: ${extraFields.join(", ")}`)
+  }
+
+  return result as Pick<T, keyof T>
+}
+
+/**
+ * Common field whitelists for different operations
+ */
+export const TransactionWhitelist = {
+  CREATE: [
+    "category_id",
+    "amount",
+    "type",
+    "date",
+    "notes",
+    "account_id",
+    "is_recurring",
+    "recurring_interval",
+    "recurring_unit",
+    "recurring_next_date",
+    "tax_rate",
+    "commission_rate",
+    "currency",
+    "exchange_rate_at_time",
+  ],
+  UPDATE: [
+    "category_id",
+    "amount",
+    "type",
+    "date",
+    "notes",
+    "account_id",
+    "is_recurring",
+    "recurring_interval",
+    "recurring_unit",
+    "recurring_next_date",
+    "currency",
+    "exchange_rate_at_time",
+  ],
+}
+
+export const AuthWhitelist = {
+  LOGIN: ["email", "password"],
+  REGISTER: ["email", "password", "website"], // website is honeypot
+}
+
+// ============================================================================
+// ATOMIC OPERATIONS - Race condition prevention
+// ============================================================================
+
+/**
+ * Build atomic increment operation for database
+ * Use this instead of calculating balances in code
+ * @param amount - Amount to add (positive for income, negative for expense)
+ * @returns Database increment operation object
+ *
+ * Example with Supabase:
+ * await supabase.from('accounts')
+ *   .update({ balance: atomicIncrement(100) })
+ *   .eq('id', accountId)
+ */
+export function atomicIncrement(amount: number): { increment: number } {
+  return { increment: amount }
+}
+
+/**
+ * Build atomic decrement operation
+ * @param amount - Amount to subtract
+ */
+export function atomicDecrement(amount: number): { increment: number } {
+  return { increment: -amount }
+}
+
+// ============================================================================
+// SECURITY HEADERS
+// ============================================================================
+
+/**
+ * Default security headers for all responses
+ */
+export const securityHeaders = {
+  "Content-Security-Policy":
+    "default-src 'self'; " +
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
+    "style-src 'self' 'unsafe-inline'; " +
+    "img-src 'self' data: https:; " +
+    "font-src 'self'; " +
+    "connect-src 'self' https://*.supabase.co; " +
+    "frame-ancestors 'none'; " +
+    "base-uri 'self'; " +
+    "form-action 'self';",
+  "X-Frame-Options": "DENY",
+  "X-Content-Type-Options": "nosniff",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+  "Permissions-Policy": "camera=self, microphone=(), geolocation=(), payment=()",
+  "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
+}

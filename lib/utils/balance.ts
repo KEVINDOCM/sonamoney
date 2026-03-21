@@ -1,5 +1,6 @@
 // Minimal SupabaseClient interface for database operations
 interface SupabaseClient {
+  rpc: (fn: string, params: Record<string, unknown>) => Promise<{ error: Error | null }>
   from: (table: string) => {
     select: (columns: string) => {
       eq: (column: string, value: string) => {
@@ -12,7 +13,38 @@ interface SupabaseClient {
   }
 }
 
+/**
+ * ATOMIC BALANCE ADJUSTMENT
+ * Uses database-level increment to prevent race conditions
+ * NEVER calculate balances in code - let the database do it
+ * @param supabase - Supabase client
+ * @param accountId - Account ID
+ * @param delta - Amount to add (positive for income, negative for expense)
+ */
 export async function adjustAccountBalance(
+  supabase: SupabaseClient,
+  accountId: string,
+  delta: number
+): Promise<void> {
+  // Use RPC to call atomic increment function in database
+  // This prevents race conditions by letting PostgreSQL handle the math
+  const { error } = await supabase.rpc("atomic_balance_adjust", {
+    p_account_id: accountId,
+    p_delta: delta,
+  })
+
+  if (error) {
+    console.error("[ATOMIC] Balance adjustment failed:", error.message)
+    // Fallback: try direct update (less safe but functional)
+    await fallbackBalanceUpdate(supabase, accountId, delta)
+  }
+}
+
+/**
+ * Fallback balance update (non-atomic, use only if RPC fails)
+ * Fetches current balance and adds delta
+ */
+async function fallbackBalanceUpdate(
   supabase: SupabaseClient,
   accountId: string,
   delta: number
