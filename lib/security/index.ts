@@ -297,6 +297,12 @@ export async function validateRequest(
   }
 }
 
+/**
+ * Security configuration exports
+ */
+export { REQUEST_TIMEOUT_MS, REQUEST_SECRET, validateSecurityConfig } from "./config"
+export { generateClientSignature, generateSecureHeaders } from "./client"
+
 // ============================================================================
 // UTILITY FUNCTIONS
 // ============================================================================
