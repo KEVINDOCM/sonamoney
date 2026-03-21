@@ -14,8 +14,8 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
-    "maintenance:on": "vercel env add NEXT_PUBLIC_MAINTENANCE_MODE true production --yes && vercel --prod",
-    "maintenance:off": "vercel env add NEXT_PUBLIC_MAINTENANCE_MODE false production --yes && vercel --prod"
+    "maintenance:on": "vercel env rm NEXT_PUBLIC_MAINTENANCE_MODE production --yes 2>nul || true && echo 'true' | vercel env add NEXT_PUBLIC_MAINTENANCE_MODE production --yes && vercel --prod",
+    "maintenance:off": "vercel env rm NEXT_PUBLIC_MAINTENANCE_MODE production --yes 2>nul || true && echo 'false' | vercel env add NEXT_PUBLIC_MAINTENANCE_MODE production --yes && vercel --prod"
   },
   "keywords": [],
   "author": "",

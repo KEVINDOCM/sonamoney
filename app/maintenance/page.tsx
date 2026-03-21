@@ -6,13 +6,10 @@ import {
   Settings,
   Clock,
   ShieldCheck,
-  ArrowRight,
-  Loader2,
 } from "lucide-react";
 
 export default function MaintenancePage() {
   const [estimatedTime, setEstimatedTime] = useState<string>("");
-  const [isBypassing, setIsBypassing] = useState(false);
 
   useEffect(() => {
     // Set estimated time to 2 hours from now
@@ -25,27 +22,6 @@ export default function MaintenancePage() {
       })
     );
   }, []);
-
-  const handleBypass = async () => {
-    setIsBypassing(true);
-    try {
-      const response = await fetch("/api/auth/maintenance-bypass", {
-        method: "POST",
-        credentials: "include",
-      });
-
-      if (response.ok) {
-        // Reload to let middleware redirect properly
-        window.location.href = "/dashboard";
-      } else {
-        console.error("Failed to bypass maintenance mode");
-        setIsBypassing(false);
-      }
-    } catch (error) {
-      console.error("Error bypassing maintenance mode:", error);
-      setIsBypassing(false);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-[#F5F7FA] dark:bg-[#0F172A] flex items-center justify-center p-4">
@@ -133,35 +109,6 @@ export default function MaintenancePage() {
             </div>
             <p className="text-xs text-[#6B7280] dark:text-gray-500 mt-2">
               Maintenance in progress...
-            </p>
-          </motion.div>
-
-          {/* Admin Bypass Button (Hidden in plain sight) */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
-            className="pt-4 border-t border-gray-100 dark:border-gray-800"
-          >
-            <button
-              onClick={handleBypass}
-              disabled={isBypassing}
-              className="group flex items-center justify-center gap-2 mx-auto text-sm text-[#6B7280] dark:text-gray-500 hover:text-[#00B9A7] dark:hover:text-[#00B9A7] transition-colors duration-200 disabled:opacity-50"
-            >
-              {isBypassing ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Verifying access...</span>
-                </>
-              ) : (
-                <>
-                  <span>Admin Access</span>
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </>
-              )}
-            </button>
-            <p className="text-xs text-gray-400 dark:text-gray-600 mt-2">
-              Authorized personnel only
             </p>
           </motion.div>
         </motion.div>
