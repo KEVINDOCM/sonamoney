@@ -33,10 +33,10 @@ if (process.env.VERCEL_URL) {
 }
 
 const securityHeaders = [
-  // Prevent clickjacking
+  // Prevent clickjacking - DENY is stronger than SAMEORIGIN
   {
     key: "X-Frame-Options",
-    value: "SAMEORIGIN",
+    value: "DENY",
   },
   // Prevent MIME type sniffing
   {

@@ -218,11 +218,11 @@ export async function validateRequest(
   body: Record<string, unknown>,
   schema?: z.ZodSchema
 ): Promise<ValidationResult> {
-  // 1. Check signature headers exist
+  // 1. Check timestamp header exists (required for anti-replay)
   const signature = req.headers.get("x-request-signature")
   const timestamp = req.headers.get("x-request-timestamp")
 
-  if (!signature || !timestamp) {
+  if (!timestamp) {
     return {
       success: false,
       error: "Invalid request",
@@ -240,7 +240,7 @@ export async function validateRequest(
     }
   }
 
-  // 3. Anti-replay: Check freshness
+  // 3. Anti-replay: Check freshness (always required)
   if (!isRequestFresh(ts)) {
     return {
       success: false,
@@ -249,13 +249,17 @@ export async function validateRequest(
     }
   }
 
-  // 4. Verify HMAC signature
-  const isValid = await verifyRequestSignature(body, ts, signature)
-  if (!isValid) {
-    return {
-      success: false,
-      error: "Invalid request",
-      status: 401,
+  // 4. Verify HMAC signature if provided (optional for backward compat)
+  // Client-side signing disabled to prevent secret exposure
+  // Primary auth is now via Supabase session
+  if (signature) {
+    const isValid = await verifyRequestSignature(body, ts, signature)
+    if (!isValid) {
+      return {
+        success: false,
+        error: "Invalid request",
+        status: 401,
+      }
     }
   }
 

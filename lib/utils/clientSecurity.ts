@@ -1,77 +1,50 @@
 // Client-side request security utilities
-// Uses Web Crypto API for HMAC-SHA256
+// DEPRECATED: Client-side HMAC signing has been disabled for security
+// Server-side secret cannot be exposed to client - use Supabase session auth instead
 
-// Get secret from environment - injected at build time
-const getClientSecret = (): string => {
-  return process.env.NEXT_PUBLIC_REQUEST_SECRET || ""
-}
+// Client-side signatures are DISABLED to prevent secret exposure
+// The server validates requests via Supabase session authentication
+const CLIENT_SIGNATURE_DISABLED = true
+
 /**
- * Generate HMAC-SHA256 signature for request body (client-side)
- * @param payload - The request body data
- * @param timestamp - Request timestamp
- * @returns HMAC-SHA256 hex string
+ * Generate HMAC-SHA256 signature (DISABLED for security)
+ * ⚠️ DEPRECATED: Returns empty string - server-side secret cannot be exposed
+ * @returns Empty string (client-side signing disabled)
  */
 export async function generateClientSignature(
-  payload: Record<string, unknown>,
-  timestamp: number
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _payload: Record<string, unknown>,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _timestamp: number
 ): Promise<string> {
-  const secret = getClientSecret()
-  if (!secret) {
-    console.warn("Request signature secret not configured")
+  if (CLIENT_SIGNATURE_DISABLED) {
+    console.warn("[SECURITY] Client-side request signing is disabled. Using Supabase session auth.")
     return ""
   }
-
-  // Sort keys for consistent hashing
-  const sortedPayload = sortObjectKeys(payload)
-  const dataString = JSON.stringify(sortedPayload) + timestamp
-
-  const encoder = new TextEncoder()
-  const keyData = encoder.encode(secret)
-  const messageData = encoder.encode(dataString)
-
-  const cryptoKey = await crypto.subtle.importKey(
-    "raw",
-    keyData,
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"]
-  )
-
-  const signature = await crypto.subtle.sign("HMAC", cryptoKey, messageData)
-  return Array.from(new Uint8Array(signature))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("")
+  return ""
 }
 
 /**
- * Generate authenticated request headers
- * @param payload - Request body data
- * @returns Headers object with signature and timestamp
+ * Generate request headers with timestamp (signature disabled)
+ * @returns Headers object with Content-Type and timestamp only
  */
-export async function generateSecureHeaders(
-  payload: Record<string, unknown>
-): Promise<Record<string, string>> {
-  const timestamp = Date.now().toString()
-  const signature = await generateClientSignature(payload, parseInt(timestamp, 10))
-
+export async function generateSecureHeaders(): Promise<Record<string, string>> {
   return {
     "Content-Type": "application/json",
-    "X-Request-Timestamp": timestamp,
-    "X-Request-Signature": signature,
+    "X-Request-Timestamp": Date.now().toString(),
+    "X-Request-Signature": "", // Disabled - secret cannot be exposed
   }
 }
 
 /**
- * Make a secure POST request with signature
- * @param url - API endpoint
- * @param payload - Request body
- * @returns Fetch response
+ * Make a secure POST request
+ * Relies on Supabase session authentication instead of HMAC signatures
  */
 export async function securePost(
   url: string,
   payload: Record<string, unknown>
 ): Promise<Response> {
-  const headers = await generateSecureHeaders(payload)
+  const headers = await generateSecureHeaders()
 
   return fetch(url, {
     method: "POST",
@@ -80,22 +53,3 @@ export async function securePost(
   })
 }
 
-/**
- * Sort object keys recursively for consistent hashing
- */
-function sortObjectKeys(obj: unknown): unknown {
-  if (obj === null || typeof obj !== "object") {
-    return obj
-  }
-
-  if (Array.isArray(obj)) {
-    return obj.map(sortObjectKeys)
-  }
-
-  const sorted: Record<string, unknown> = {}
-  const keys = Object.keys(obj as Record<string, unknown>).sort()
-  for (const key of keys) {
-    sorted[key] = sortObjectKeys((obj as Record<string, unknown>)[key])
-  }
-  return sorted
-}

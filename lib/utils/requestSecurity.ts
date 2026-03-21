@@ -1,10 +1,18 @@
-// Request signature and anti-replay protection utilities
+// Request signature and anti-replay protection utilities (Server-side only)
 // Uses Web Crypto API for HMAC-SHA256
+// NOTE: Client-side HMAC signing has been disabled for security.
+// This server-side code is kept for backward compatibility but signature validation
+// is now optional when signature header is empty (relying on Supabase session auth).
 
-// Secret key for HMAC - should match on client and server
-// In production, this should be injected at build time
+// Import server-only secret (not accessible to client)
+import { REQUEST_SECRET } from "@/lib/security/config"
+
+/**
+ * Get the server-side HMAC secret
+ * Returns empty string if not configured
+ */
 const getSecretKey = (): string => {
-  return process.env.NEXT_PUBLIC_REQUEST_SECRET || ""
+  return REQUEST_SECRET || ""
 }
 /**
  * Generate HMAC-SHA256 signature for request body
@@ -48,13 +56,19 @@ export async function generateRequestSignature(
  * @param payload - The request body data
  * @param timestamp - Request timestamp
  * @param signature - Provided signature to verify
- * @returns boolean indicating if signature is valid
+ * @returns boolean indicating if signature is valid (or true if empty signature for backward compat)
  */
 export async function verifyRequestSignature(
   payload: Record<string, unknown>,
   timestamp: number,
   signature: string
 ): Promise<boolean> {
+  // Allow empty signatures for backward compatibility during transition
+  // (primary auth now via Supabase session)
+  if (!signature) {
+    return true
+  }
+
   try {
     const expected = await generateRequestSignature(payload, timestamp)
     // Constant-time comparison to prevent timing attacks
@@ -129,6 +143,8 @@ function timingSafeEqual(a: string, b: string): boolean {
 /**
  * Middleware function to validate request signature and freshness
  * Returns null if valid, error response if invalid
+ * NOTE: Signature validation is now optional - empty signatures are accepted
+ * for backward compatibility. Primary authentication is via Supabase session.
  */
 export async function validateSecureRequest(
   req: Request,
@@ -137,8 +153,8 @@ export async function validateSecureRequest(
   const signature = req.headers.get("x-request-signature")
   const timestamp = req.headers.get("x-request-timestamp")
 
-  if (!signature || !timestamp) {
-    return { error: "Missing authentication headers", status: 401 }
+  if (!timestamp) {
+    return { error: "Missing timestamp header", status: 401 }
   }
 
   const ts = parseInt(timestamp, 10)
@@ -146,15 +162,17 @@ export async function validateSecureRequest(
     return { error: "Invalid timestamp", status: 400 }
   }
 
-  // Check freshness (anti-replay)
+  // Check freshness (anti-replay) - always required
   if (!isRequestFresh(ts)) {
     return { error: "Request expired", status: 401 }
   }
 
-  // Verify signature
-  const isValid = await verifyRequestSignature(body, ts, signature)
-  if (!isValid) {
-    return { error: "Invalid request signature", status: 401 }
+  // Verify signature if provided (optional for backward compatibility)
+  if (signature) {
+    const isValid = await verifyRequestSignature(body, ts, signature)
+    if (!isValid) {
+      return { error: "Invalid request signature", status: 401 }
+    }
   }
 
   return null

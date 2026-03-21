@@ -1,5 +1,12 @@
 import { NextResponse } from "next/server"
 import { createServerClient, type CookieOptions } from "@supabase/ssr"
+import {
+  checkGeneralRateLimit,
+  checkAuthRateLimit,
+  checkSensitiveRateLimit,
+  isBlocked,
+  recordFailedAttempt,
+} from "@/lib/security/rateLimiter"
 
 // ============================================
 // CRITICAL: ADMIN IP WHITELIST
@@ -32,72 +39,10 @@ function logSecurityEvent(entry: SecurityLogEntry): void {
 }
 
 // ============================================
-// IN-MEMORY IP RATE LIMITER
-// 60 requests per minute per IP
-// Resets every minute
+// DISTRIBUTED RATE LIMITING (Redis + Fallback)
+// Uses Upstash Redis for multi-instance scaling
+// Falls back to in-memory if Redis unavailable
 // ============================================
-interface IpRateLimitEntry {
-  count: number
-  resetAt: number
-}
-
-const ipRateLimitMap = new Map<string, IpRateLimitEntry>()
-const IP_RATE_LIMIT = 60
-const IP_RATE_WINDOW_MS = 60 * 1000
-
-function checkIpRateLimit(ip: string): boolean {
-  const now = Date.now()
-  const entry = ipRateLimitMap.get(ip)
-
-  if (!entry || now > entry.resetAt) {
-    ipRateLimitMap.set(ip, {
-      count: 1,
-      resetAt: now + IP_RATE_WINDOW_MS,
-    })
-    return true
-  }
-
-  if (entry.count >= IP_RATE_LIMIT) {
-    return false
-  }
-
-  entry.count++
-  return true
-}
-
-// Clean up old entries every 100 requests
-let cleanupCounter = 0
-function maybeCleanup() {
-  cleanupCounter++
-  if (cleanupCounter < 100) return
-  cleanupCounter = 0
-  const now = Date.now()
-  for (const [key, entry] of ipRateLimitMap.entries()) {
-    if (now > entry.resetAt) {
-      ipRateLimitMap.delete(key)
-    }
-  }
-}
-
-// ============================================
-// AUTH ENDPOINT RATE LIMITER
-// 10 requests per 15 minutes per IP for auth endpoints
-// ============================================
-const authRateLimitMap = new Map<string, { count: number; resetAt: number }>()
-const AUTH_RATE_LIMIT = 10
-const AUTH_RATE_WINDOW_MS = 15 * 60 * 1000
-
-function checkAuthRateLimit(ip: string): boolean {
-  const now = Date.now()
-  const entry = authRateLimitMap.get(ip)
-  if (!entry || now > entry.resetAt) {
-    authRateLimitMap.set(ip, { count: 1, resetAt: now + AUTH_RATE_WINDOW_MS })
-    return true
-  }
-  if (entry.count >= AUTH_RATE_LIMIT) return false
-  entry.count++
-  return true
-}
 
 interface MiddlewareRequest {
   url: string
@@ -206,56 +151,6 @@ function checkIsAdminIP(ip: string): boolean {
 }
 
 // ============================================
-// FAILED ATTEMPT TRACKING & TEMPORARY BLOCKING
-// ============================================
-interface FailedAttemptEntry {
-  count: number
-  firstAttempt: number
-  blocked: boolean
-  blockExpires?: number
-}
-
-const failedAttempts = new Map<string, FailedAttemptEntry>()
-const MAX_FAILED_ATTEMPTS = 5
-const BLOCK_DURATION_MS = 30 * 60 * 1000 // 30 minutes
-const ATTEMPT_WINDOW_MS = 5 * 60 * 1000   // 5 minutes
-
-function recordFailedAttempt(ip: string, reason: string): void {
-  const now = Date.now()
-  const entry = failedAttempts.get(ip)
-  
-  if (!entry || now - entry.firstAttempt > ATTEMPT_WINDOW_MS) {
-    failedAttempts.set(ip, {
-      count: 1,
-      firstAttempt: now,
-      blocked: false
-    })
-  } else {
-    entry.count++
-    
-    if (entry.count >= MAX_FAILED_ATTEMPTS && !entry.blocked) {
-      entry.blocked = true
-      entry.blockExpires = now + BLOCK_DURATION_MS
-      console.error(`[SECURITY] IP ${ip} BLOCKED for ${BLOCK_DURATION_MS/60000}m: ${reason}`)
-    }
-  }
-}
-
-function isBlocked(ip: string): boolean {
-  const entry = failedAttempts.get(ip)
-  if (!entry) return false
-  
-  const now = Date.now()
-  
-  if (entry.blocked && entry.blockExpires && now > entry.blockExpires) {
-    failedAttempts.delete(ip)
-    return false
-  }
-  
-  return entry.blocked
-}
-
-// ============================================
 // VPN / PROXY / TOR DETECTION
 // ============================================
 function detectAnonymizer(headers: { get: (name: string) => string | null }): string[] {
@@ -287,7 +182,8 @@ export async function middleware(request: MiddlewareRequest) {
   const anonymizerMarkers = detectAnonymizer(request.headers)
   
   // Check if IP is temporarily blocked
-  if (isBlocked(ip)) {
+  const blockStatus = await isBlocked(ip)
+  if (blockStatus.blocked) {
     return new Response(
       JSON.stringify({ error: "Access temporarily blocked due to suspicious activity" }),
       { status: 403, headers: { "Content-Type": "application/json" } }
@@ -322,7 +218,7 @@ export async function middleware(request: MiddlewareRequest) {
       
       // 1. BLOCK ALL API ROUTES with 503
       if (isApiRoute) {
-        recordFailedAttempt(ip, "API access during maintenance")
+        await recordFailedAttempt(ip, "API access during maintenance")
         
         logSecurityEvent({
           timestamp: new Date().toISOString(),
@@ -538,23 +434,34 @@ export async function middleware(request: MiddlewareRequest) {
   // ============================================
   // STANDARD MIDDLEWARE (Rate limiting, auth)
   // ============================================
-  maybeCleanup()
 
-  if (!checkIpRateLimit(ip)) {
+  // Check general rate limit (60 req/min)
+  const generalLimit = await checkGeneralRateLimit(ip)
+  if (!generalLimit.success) {
     return new Response(
       JSON.stringify({ error: "Too many requests" }),
-      { status: 429, headers: { "Content-Type": "application/json", "Retry-After": "60" } }
+      { status: 429, headers: { 
+        "Content-Type": "application/json", 
+        "Retry-After": String(Math.ceil((generalLimit.resetAt - Date.now()) / 1000))
+      } }
     )
   }
 
   const isAuthEndpoint = pathname === "/api/auth/login" || pathname === "/api/auth/register"
   const isSensitiveEndpoint = pathname === "/api/scan-receipt"
 
-  if ((isSensitiveEndpoint || isAuthEndpoint) && !checkAuthRateLimit(ip)) {
-    return new Response(
-      JSON.stringify({ error: "Too many requests. Please try again later." }),
-      { status: 429, headers: { "Content-Type": "application/json", "Retry-After": "900" } }
-    )
+  // Check stricter rate limits for auth/sensitive endpoints
+  if (isSensitiveEndpoint || isAuthEndpoint) {
+    const authLimit = await checkAuthRateLimit(ip)
+    if (!authLimit.success) {
+      return new Response(
+        JSON.stringify({ error: "Too many requests. Please try again later." }),
+        { status: 429, headers: { 
+          "Content-Type": "application/json", 
+          "Retry-After": String(Math.ceil((authLimit.resetAt - Date.now()) / 1000))
+        } }
+      )
+    }
   }
 
   let response = NextResponse.next()
