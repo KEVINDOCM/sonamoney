@@ -274,7 +274,7 @@ export async function createTransaction(payload: CreateTransactionPayload): Prom
 
 const transactionSchema = z.object({
   category_id: z.string().uuid(),
-  amount: z.number().positive(),
+  amount: z.number().positive().max(999999999999, "Amount too large"),
   type: z.enum(["income", "expense"]),
   date: z.string().min(1),
   notes: z.string().nullable().optional(),
@@ -498,7 +498,8 @@ export async function logRecurringTransaction(
   await supabase
     .from("transactions")
     .update({ recurring_next_date: nextDate })
-    .eq("id", parentId);
+    .eq("id", parentId)
+    .eq("user_id", user.id);
 
   revalidateTransactionPaths();
   return { success: true };

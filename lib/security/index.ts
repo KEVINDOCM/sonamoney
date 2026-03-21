@@ -135,13 +135,17 @@ export function containsSuspiciousChars(input: string): boolean {
 }
 
 // ============================================================================
-// VALIDATION SCHEMAS
+// VALIDATION SCHEMAS - With strict type checking to prevent injection
 // ============================================================================
 
 export const emailSchema = z
   .string()
   .email("Invalid email address")
   .max(254, "Email too long")
+  // Reject if it looks like an object or array was passed
+  .refine((val) => typeof val === "string" && !val.includes("[") && !val.includes("{"), {
+    message: "Email must be a string",
+  })
 
 export const passwordSchema = z
   .string()
@@ -151,10 +155,20 @@ export const passwordSchema = z
   .regex(/[a-z]/, "Must contain lowercase letter")
   .regex(/[0-9]/, "Must contain a number")
   .regex(/[^A-Za-z0-9]/, "Must contain a special character")
+  // Reject if it looks like an object or array was passed
+  .refine((val) => typeof val === "string" && !val.includes("[") && !val.includes("{"), {
+    message: "Password must be a string",
+  })
 
 export const loginSchema = z.object({
   email: emailSchema,
-  password: z.string().min(1, "Password is required").max(128),
+  password: z
+    .string()
+    .min(1, "Password is required")
+    .max(128, "Password too long")
+    .refine((val) => typeof val === "string" && !val.includes("[") && !val.includes("{"), {
+      message: "Password must be a string",
+    }),
 })
 
 export const signupSchema = z.object({
