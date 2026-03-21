@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server"
 import { createServerClient, type CookieOptions } from "@supabase/ssr"
-import { createHash } from "crypto"
 
 // ============================================
 // CRITICAL: ADMIN IP WHITELIST
@@ -179,11 +178,17 @@ function isPrivateIP(ip: string): boolean {
   return privateRanges.some(range => range.test(ip))
 }
 
-/**
- * Hash IP for secure comparison (prevents timing attacks)
- */
+// ============================================
+// Simple synchronous hash for Edge Runtime
+// ============================================
 function hashIP(ip: string): string {
-  return createHash("sha256").update(ip).digest("hex")
+  let hash = 0
+  for (let i = 0; i < ip.length; i++) {
+    const char = ip.charCodeAt(i)
+    hash = ((hash << 5) - hash + char) | 0
+  }
+  // Convert to hex string for readability
+  return (hash >>> 0).toString(16).padStart(8, "0")
 }
 
 /**
