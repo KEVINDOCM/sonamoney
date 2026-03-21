@@ -14,8 +14,8 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
-    "maintenance:on": "vercel env set NEXT_PUBLIC_MAINTENANCE_MODE true production && vercel --prod",
-    "maintenance:off": "vercel env set NEXT_PUBLIC_MAINTENANCE_MODE false production && vercel --prod"
+    "maintenance:on": "vercel env add NEXT_PUBLIC_MAINTENANCE_MODE true production --yes && vercel --prod",
+    "maintenance:off": "vercel env add NEXT_PUBLIC_MAINTENANCE_MODE false production --yes && vercel --prod"
   },
   "keywords": [],
   "author": "",
