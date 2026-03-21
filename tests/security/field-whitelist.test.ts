@@ -88,13 +88,14 @@ describe('SECURITY AUDIT: Field Whitelisting', () => {
         },
       }
 
-      // Nested objects should be handled by schema validation, not whitelist
-      // Whitelist only works at top level
+      // Nested objects with non-whitelist keys should be stripped at top level
+      // The whitelist only applies to top-level fields
       const result = whitelistFields(inputWithNested, AuthWhitelist.REGISTER)
 
       expect(result).toHaveProperty('email')
       expect(result).toHaveProperty('password')
-      expect(result).toHaveProperty('metadata')
+      // metadata is not in AuthWhitelist.REGISTER, so it should be stripped
+      expect(result).not.toHaveProperty('metadata')
     })
   })
 
