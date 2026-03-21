@@ -5,6 +5,17 @@
 // This secret is used for HMAC-SHA256 request signing and must never be exposed to the client
 export const REQUEST_SECRET = process.env.REQUEST_SECRET || ""
 
+// Admin IPs for maintenance/testing grace period (comma-separated)
+export const MAINTENANCE_ADMIN_IPS = (process.env.MAINTENANCE_ADMIN_IPS || "")
+  .split(",")
+  .map(ip => ip.trim())
+  .filter(Boolean)
+
+// Check if an IP is an admin IP for validation leniency
+export function isAdminIp(ip: string): boolean {
+  return MAINTENANCE_ADMIN_IPS.includes(ip)
+}
+
 // Anti-replay settings
 export const REQUEST_TIMEOUT_MS = 30000 // 30 seconds
 

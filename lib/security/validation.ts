@@ -13,8 +13,8 @@ export const passwordSchema = z
   .min(8, "Password must be at least 8 characters")
   .max(128, "Password too long")
 
-// Anti-replay timestamp check
-export const REQUEST_TIMEOUT_MS = 30000 // 30 seconds
+// Anti-replay timestamp check - more lenient for user experience
+export const REQUEST_TIMEOUT_MS = 60000 // 60 seconds (was 30 seconds)
 
 export function isRequestFresh(timestamp: number, windowMs: number = REQUEST_TIMEOUT_MS): boolean {
   const now = Date.now()

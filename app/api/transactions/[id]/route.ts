@@ -139,18 +139,24 @@ export async function DELETE(
     const ip = getClientIp(req)
     const { id } = await params
 
-    // For DELETE, we still need to validate signature/timestamp but body might be empty
-    const signature = req.headers.get("x-request-signature")
-    const timestamp = req.headers.get("x-request-timestamp")
+    // Validate request using dual-mode (Admin HMAC or User Session)
+    // For DELETE, body is empty so we use requireTimestamp: true but skip schema validation
+    const validation = await validateRequest(
+      req,
+      { id, action: "delete" },
+      undefined,
+      { requireTimestamp: true }
+    )
 
-    if (!signature || !timestamp) {
-      return Response.json({ error: "Invalid request" }, { status: 401 })
-    }
-
-    // Validate timestamp freshness (anti-replay)
-    const ts = parseInt(timestamp, 10)
-    if (isNaN(ts) || Date.now() - ts > 30000) {
-      return Response.json({ error: "Request expired" }, { status: 401 })
+    if (!validation.success) {
+      const errorReason = validation.error ?? "validation_failed"
+      await logAuditEvent({
+        eventType: "transaction.delete.blocked",
+        eventStatus: "blocked",
+        ipAddress: ip,
+        metadata: { reason: errorReason, transaction_id: id, mode: validation.mode ?? "unknown" },
+      })
+      return Response.json({ error: errorReason }, { status: validation.status })
     }
 
     const supabase = await createSupabaseServerClient()

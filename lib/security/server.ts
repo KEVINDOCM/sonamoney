@@ -1,7 +1,7 @@
 // Server-side HMAC Cryptography Utilities
 // ⚠️ SERVER-ONLY: This module uses server-side secrets and should never be imported in client components
 
-import { REQUEST_SECRET } from "./config"
+import { REQUEST_SECRET, REQUEST_TIMEOUT_MS, isAdminIp } from "./config"
 
 /**
  * Sort object keys recursively for consistent hashing
@@ -113,7 +113,6 @@ export async function generateRequestAuth(
 // ============================================================================
 
 import { z } from "zod"
-import { REQUEST_TIMEOUT_MS } from "./config"
 import { sanitizeXSS } from "./sanitization"
 import { isRequestFresh } from "./validation"
 
@@ -122,65 +121,117 @@ export interface ValidationResult {
   error?: string
   status?: number
   data?: Record<string, unknown>
+  mode?: "admin" | "user"
 }
 
 /**
  * Main request validation function - combines all security checks
  * Call this in every API route to validate:
- * 1. Request timestamp (anti-replay)
- * 2. Optional HMAC signature
+ * 1. Request timestamp (anti-replay) - Required for ALL requests
+ * 2. HMAC signature - Only for Admin IPs (regular users use Supabase session)
  * 3. Input sanitization (XSS/injection)
  * 4. Zod schema validation
+ * 
+ * @param req - The request object
+ * @param body - The request body
+ * @param schema - Optional Zod schema for validation
+ * @param options - Optional configuration
+ * @param options.validationMode - "auto" (default), "admin", or "user"
+ * @param options.requireTimestamp - Whether to require timestamp header (default: true)
  */
 export async function validateRequest(
   req: Request,
   body: Record<string, unknown>,
-  schema?: z.ZodSchema
+  schema?: z.ZodSchema,
+  options?: {
+    validationMode?: "auto" | "admin" | "user"
+    requireTimestamp?: boolean
+  }
 ): Promise<ValidationResult> {
-  // 1. Check timestamp header exists (required for anti-replay)
+  const mode = options?.validationMode ?? "auto"
+  const requireTimestamp = options?.requireTimestamp ?? true
+
+  // Debug: Log REQUEST_SECRET status (first 3 chars only for security)
+  const secretPrefix = REQUEST_SECRET ? REQUEST_SECRET.substring(0, 3) + "***" : "NOT_SET"
+  console.log(`[SECURITY] REQUEST_SECRET loaded: ${secretPrefix}`)
+
+  // Get client IP to determine validation mode
+  const clientIp = getClientIp(req)
+  const isAdminByIp = isAdminIp(clientIp)
+  
+  // Determine actual validation mode
+  const actualMode: "admin" | "user" = mode === "auto" 
+    ? (isAdminByIp ? "admin" : "user")
+    : mode
+
+  console.log(`[SECURITY] Validation mode: ${actualMode} (IP: ${clientIp}, Config: ${mode})`)
+
+  // 1. Check timestamp header (required for anti-replay on ALL requests)
   const signature = req.headers.get("x-request-signature")
   const timestamp = req.headers.get("x-request-timestamp")
 
-  if (!timestamp) {
+  if (requireTimestamp && !timestamp) {
     return {
       success: false,
-      error: "Invalid request",
+      error: "Missing timestamp header",
       status: 401,
+      mode: actualMode,
     }
   }
 
-  // 2. Check timestamp is valid number
-  const ts = parseInt(timestamp, 10)
-  if (isNaN(ts)) {
-    return {
-      success: false,
-      error: "Invalid request",
-      status: 400,
-    }
-  }
-
-  // 3. Anti-replay: Check freshness (always required)
-  if (!isRequestFresh(ts)) {
-    return {
-      success: false,
-      error: "Request expired",
-      status: 401,
-    }
-  }
-
-  // 4. Verify HMAC signature if provided (optional for backward compat)
-  if (signature) {
-    const isValid = await verifyRequestSignature(body, ts, signature)
-    if (!isValid) {
+  // 2. Check timestamp validity and freshness (anti-replay protection)
+  if (timestamp) {
+    const ts = parseInt(timestamp, 10)
+    if (isNaN(ts)) {
       return {
         success: false,
-        error: "Invalid signature",
-        status: 401,
+        error: "Invalid timestamp format",
+        status: 400,
+        mode: actualMode,
       }
+    }
+
+    // Anti-replay: Check freshness
+    const freshnessWindow = actualMode === "admin" ? REQUEST_TIMEOUT_MS * 10 : REQUEST_TIMEOUT_MS
+    if (!isRequestFresh(ts, freshnessWindow)) {
+      // Admin gets leniency
+      if (actualMode !== "admin") {
+        return {
+          success: false,
+          error: "Request expired",
+          status: 401,
+          mode: actualMode,
+        }
+      }
+      console.log(`[SECURITY] Admin mode - allowing stale timestamp`)
+    }
+
+    // 3. HMAC Signature Validation
+    // Admin: Validate signature if present (strict mode for API tools)
+    // User: Skip HMAC - they don't have REQUEST_SECRET, use Supabase session instead
+    if (signature && signature.trim() !== "") {
+      if (actualMode === "admin") {
+        const isValid = await verifyRequestSignature(body, ts, signature)
+        if (!isValid) {
+          return {
+            success: false,
+            error: "Invalid HMAC signature",
+            status: 401,
+            mode: actualMode,
+          }
+        }
+        console.log(`[SECURITY] Admin HMAC signature verified`)
+      } else {
+        // User mode: Log and ignore signature (users don't have REQUEST_SECRET)
+        console.log(`[SECURITY] User mode - skipping HMAC validation (signature present but ignored)`)
+      }
+    } else if (actualMode === "admin" && requireTimestamp) {
+      // Admin requires signature when timestamp is required
+      console.log(`[SECURITY] Admin mode - signature missing, proceeding with session validation`)
     }
   }
 
-  // 5. Check for XSS in string fields
+  // 4. Check for XSS in string fields (applies to both Admin and User)
   for (const [key, value] of Object.entries(body)) {
     if (typeof value === "string") {
       const sanitized = sanitizeXSS(value)
@@ -189,6 +240,7 @@ export async function validateRequest(
           success: false,
           error: "Invalid input",
           status: 400,
+          mode: actualMode,
         }
       }
       // Update body with sanitized value
@@ -196,7 +248,7 @@ export async function validateRequest(
     }
   }
 
-  // 6. Zod schema validation (if provided)
+  // 5. Zod schema validation (applies to both Admin and User)
   if (schema) {
     const parsed = schema.safeParse(body)
     if (!parsed.success) {
@@ -204,17 +256,20 @@ export async function validateRequest(
         success: false,
         error: parsed.error.issues[0]?.message || "Invalid input",
         status: 400,
+        mode: actualMode,
       }
     }
     return {
       success: true,
       data: parsed.data as Record<string, unknown>,
+      mode: actualMode,
     }
   }
 
   return {
     success: true,
     data: body,
+    mode: actualMode,
   }
 }
 

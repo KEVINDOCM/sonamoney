@@ -32,31 +32,31 @@ export interface RateLimitConfig {
 }
 
 export const DEFAULT_RATE_LIMITS = {
-  // General API rate limit: 60 requests per minute
+  // General API rate limit: 120 requests per minute (2 per second average)
   GENERAL: {
-    requests: 60,
+    requests: 120,
     windowMs: 60 * 1000,  // 1 minute
     keyPrefix: "ratelimit:general",
   } as RateLimitConfig,
 
-  // Auth endpoints: 10 requests per 15 minutes (stricter)
+  // Auth endpoints: 30 requests per 15 minutes (more lenient for login attempts)
   AUTH: {
-    requests: 10,
+    requests: 30,
     windowMs: 15 * 60 * 1000,  // 15 minutes
     keyPrefix: "ratelimit:auth",
   } as RateLimitConfig,
 
-  // Sensitive endpoints (scan-receipt): 5 requests per minute
+  // Sensitive endpoints (scan-receipt): 20 requests per minute
   SENSITIVE: {
-    requests: 5,
+    requests: 20,
     windowMs: 60 * 1000,  // 1 minute
     keyPrefix: "ratelimit:sensitive",
   } as RateLimitConfig,
 
-  // Failed attempt tracking: 5 failures per 5 minutes, block for 30 minutes
+  // Failed attempt tracking: 10 failures per 10 minutes, block for 15 minutes (more lenient)
   FAILED_ATTEMPTS: {
-    requests: 5,
-    windowMs: 5 * 60 * 1000,  // 5 minutes
+    requests: 10,
+    windowMs: 10 * 60 * 1000,  // 10 minutes
     keyPrefix: "ratelimit:failed",
   } as RateLimitConfig,
 } as const
