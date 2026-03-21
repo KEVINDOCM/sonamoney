@@ -19,8 +19,9 @@ export const REQUEST_TIMEOUT_MS = 60000 // 60 seconds (was 30 seconds)
 export function isRequestFresh(timestamp: number, windowMs: number = REQUEST_TIMEOUT_MS): boolean {
   const now = Date.now()
   const diff = now - timestamp
-  // Allow small negative diff for clock skew (max 5 seconds)
-  return diff >= -5000 && diff <= windowMs
+  // Allow 120 seconds of clock skew in BOTH directions (client ahead or behind)
+  // This handles users with fast/slow system clocks without compromising security
+  return diff >= -120000 && diff <= windowMs
 }
 
 export function getTimestamp(): number {
