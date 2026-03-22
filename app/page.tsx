@@ -1,11 +1,9 @@
 "use client"
 
-import type { Metadata } from "next"
 import Link from "next/link"
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useTranslation } from "@/lib/i18n/useTranslation"
-import { getSiteUrl } from "@/lib/utils/url"
 import {
   ChevronDown,
   ArrowRight,
@@ -21,51 +19,6 @@ import {
   Menu,
   X,
 } from "lucide-react"
-
-export const metadata: Metadata = {
-  title: "Free Personal Finance Tracker & Budget App 2026 | SonaMoney",
-  description:
-    "Track income, expenses, and budgets easily with SonaMoney. " +
-    "Free personal finance app with real-time analytics, multi-currency support, " +
-    "AI assistant, and bank-level security. No credit card required. " +
-    "Join 50,000+ users managing their money smarter.",
-  keywords: [
-    "free personal finance tracker",
-    "budget app 2026",
-    "expense tracker",
-    "money management",
-    "financial planning",
-    "spending tracker free",
-    "income tracker",
-    "budget planner",
-    "financial goals",
-    "best finance app",
-  ],
-  alternates: {
-    canonical: getSiteUrl(),
-  },
-  openGraph: {
-    title: "Free Personal Finance Tracker & Budget App 2026 | SonaMoney",
-    description:
-      "Track income, expenses, and budgets easily. " +
-      "Free personal finance app with AI assistant and multi-currency support.",
-    url: getSiteUrl(),
-    images: [{
-      url: `${getSiteUrl()}/og-image.png`,
-      width: 1200,
-      height: 630,
-      alt: "SonaMoney - Free Personal Finance Tracker",
-    }],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Free Personal Finance Tracker & Budget App 2026 | SonaMoney",
-    description:
-      "Track income, expenses, and budgets easily. " +
-      "Free personal finance app with AI assistant.",
-    images: [`${getSiteUrl()}/og-image.png`],
-  },
-}
 
 export default function HomePage() {
   const { t } = useTranslation()

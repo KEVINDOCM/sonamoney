@@ -1,25 +1,10 @@
 "use client";
 
-import type { Metadata } from "next";
 import { useState } from "react";
 import { CheckCircle, AlertCircle, ArrowLeft } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import Link from "next/link";
-import { getSiteUrl } from "@/lib/utils/url";
-
-export const metadata: Metadata = {
-  title: "Forgot Password | SonaMoney Account Recovery",
-  description:
-    "Reset your SonaMoney password securely. " +
-    "Enter your email to receive a password reset link. " +
-    "Free personal finance tracker.",
-  keywords: ["forgot password", "reset password", "account recovery", "sonamoney"],
-  robots: {
-    index: false,
-    follow: false,
-  },
-}
 
 const getSiteUrlLocal = () => {
   if (typeof window !== "undefined") {
@@ -53,7 +38,7 @@ export default function ForgotPasswordPage() {
 
     setLoading(true);
     const supabase = createSupabaseBrowserClient() as unknown as SupabaseAuthClient;
-    const siteUrl = getSiteUrl();
+    const siteUrl = getSiteUrlLocal();
 
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${siteUrl}/reset-password`,

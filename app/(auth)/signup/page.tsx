@@ -1,6 +1,5 @@
 "use client"
 
-import type { Metadata } from "next"
 import { useState, useTransition, FormEvent } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -8,29 +7,6 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client"
 import { signupSchema } from "@/lib/security"
 import { validatePasswordStrength } from "@/lib/utils/passwordSecurity"
 import { generateSecureHeaders } from "@/lib/security/client"
-import { getSiteUrl } from "@/lib/utils/url"
-
-export const metadata: Metadata = {
-  title: "Sign Up Free | Personal Finance Tracker & Budget App — SonaMoney",
-  description:
-    "Create your free SonaMoney account. Track income, expenses, and budgets easily. " +
-    "Free personal finance app with AI assistant and multi-currency. " +
-    "No credit card required. Join 50,000+ users.",
-  keywords: [
-    "sign up free",
-    "create account",
-    "free budget app",
-    "personal finance signup",
-    "expense tracker free",
-  ],
-  alternates: {
-    canonical: `${getSiteUrl()}/signup`,
-  },
-  robots: {
-    index: true,
-    follow: true,
-  },
-}
 
 interface AuthClient {
   auth: {
