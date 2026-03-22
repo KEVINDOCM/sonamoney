@@ -5,7 +5,9 @@ import { getSiteUrl } from "@/lib/utils/url"
 export const metadata: Metadata = {
   title: "The Best Mint Alternative in 2026 | Free Budget App — SonaMoney",
   description:
-    "Mint shut down? SonaMoney is the best free Mint alternative. Import your data in 2 minutes. No ads, no fees, bank-level security. Join 50,000+ users.",
+    "Mint shut down? SonaMoney is the best free Mint alternative. " +
+    "Import your data in 2 minutes. No ads, no fees, bank-level security. " +
+    "Join 50,000+ users who switched from Mint.",
   keywords: [
     "mint alternative",
     "mint replacement",
@@ -13,13 +15,32 @@ export const metadata: Metadata = {
     "expense tracker",
     "mint shut down",
     "best budget app 2026",
+    "mint successor",
+    "switch from mint",
   ],
+  alternates: {
+    canonical: `${getSiteUrl()}/mint-alternative`,
+  },
   openGraph: {
     title: "The Best Mint Alternative in 2026 | Free Budget App",
     description:
       "Mint shut down? Switch to SonaMoney. Free forever, no ads, import your Mint data in 2 minutes.",
     url: `${getSiteUrl()}/mint-alternative`,
-    images: ["/og-image.png"],
+    type: "website",
+    images: [
+      {
+        url: `${getSiteUrl()}/og-image.png`,
+        width: 1200,
+        height: 630,
+        alt: "Best Mint Alternative 2026 - SonaMoney",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "The Best Mint Alternative in 2026 | Free Budget App",
+    description: "Mint shut down? Switch to SonaMoney. Free forever, no ads, import your Mint data in 2 minutes.",
+    images: [`${getSiteUrl()}/og-image.png`],
   },
 }
 

@@ -75,7 +75,7 @@ export {
 } from "./sanitization"
 
 // Re-export server-side validation utilities that API routes need
-export { validateRequest, getClientIp, whitelistFields, TransactionWhitelist } from "./server"
+export { validateRequest, getClientIp, whitelistFields, TransactionWhitelist, AuthWhitelist } from "./server"
 
 // Rate Limiting Types
 export type { RateLimitResult, RateLimitConfig } from "./rateLimiter"

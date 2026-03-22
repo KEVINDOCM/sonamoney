@@ -3,9 +3,11 @@ import Link from "next/link"
 import { getSiteUrl } from "@/lib/utils/url"
 
 export const metadata: Metadata = {
-  title: "Free Budget Templates | Excel, PDF & In-App — SonaMoney",
+  title: "Free Budget Templates | Excel, PDF & Google Sheets — SonaMoney",
   description:
-    "12 free budget templates that actually work. Monthly, 50/30/20, biweekly, and zero-based budgets. Excel, Google Sheets, PDF downloads. Plus free expense tracker app.",
+    "12 free budget templates that actually work. Monthly, 50/30/20, biweekly, and zero-based budgets. " +
+    "Excel, Google Sheets, PDF downloads. Plus free expense tracker app. " +
+    "No signup required to download.",
   keywords: [
     "budget templates",
     "free budget spreadsheet",
@@ -13,13 +15,32 @@ export const metadata: Metadata = {
     "budget worksheet",
     "50/30/20 template",
     "biweekly budget",
+    "excel budget template",
+    "google sheets budget",
   ],
+  alternates: {
+    canonical: `${getSiteUrl()}/templates`,
+  },
   openGraph: {
     title: "Free Budget Templates | Excel, PDF & Google Sheets",
     description:
       "12 free budget templates that actually work. Download Excel, Google Sheets, or PDF. Plus free expense tracker app.",
     url: `${getSiteUrl()}/templates`,
-    images: ["/og-image.png"],
+    type: "website",
+    images: [
+      {
+        url: `${getSiteUrl()}/og-image.png`,
+        width: 1200,
+        height: 630,
+        alt: "Free Budget Templates - Excel, PDF & Google Sheets",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Free Budget Templates | Excel, PDF & Google Sheets",
+    description: "12 free budget templates that actually work. Download Excel, Google Sheets, or PDF.",
+    images: [`${getSiteUrl()}/og-image.png`],
   },
 }
 

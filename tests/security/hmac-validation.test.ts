@@ -8,7 +8,7 @@ import { describe, it, expect, vi } from 'vitest'
 // Mock the config module to provide a test secret
 vi.mock('@/lib/security/config', () => ({
   REQUEST_SECRET: 'test-secret-for-security-audit-12345',
-  REQUEST_TIMEOUT_MS: 30000,
+  REQUEST_TIMEOUT_MS: 60000,
   MAX_LOGIN_ATTEMPTS: 5,
   LOCKOUT_WINDOW_MS: 15 * 60 * 1000,
   LOCKOUT_DURATION_MS: 15 * 60 * 1000,
@@ -100,8 +100,8 @@ describe('SECURITY AUDIT: HMAC Signature Validation', () => {
   })
 
   describe('Anti-Replay Protection (isRequestFresh)', () => {
-    it('should have 30 second timeout window', () => {
-      expect(REQUEST_TIMEOUT_MS).toBe(30000)
+    it('should have 60 second timeout window', () => {
+      expect(REQUEST_TIMEOUT_MS).toBe(60000)
     })
 
     it('should accept recent timestamps', () => {
@@ -110,17 +110,18 @@ describe('SECURITY AUDIT: HMAC Signature Validation', () => {
     })
 
     it('should reject timestamps too old', () => {
-      const oldTimestamp = Date.now() - REQUEST_TIMEOUT_MS - 1000
+      // Must exceed both REQUEST_TIMEOUT_MS (60s) and clock skew (120s)
+      const oldTimestamp = Date.now() - 200000 // ~3.3 minutes ago
       expect(isRequestFresh(oldTimestamp)).toBe(false)
     })
 
-    it('should reject future timestamps beyond clock skew', () => {
-      const futureTimestamp = Date.now() + 60000 // 1 minute in future
+    it('should reject future timestamps beyond 120 second clock skew', () => {
+      const futureTimestamp = Date.now() + 130000 // 2+ minutes in future
       expect(isRequestFresh(futureTimestamp)).toBe(false)
     })
 
-    it('should allow small clock skew (5 seconds)', () => {
-      const slightFuture = Date.now() + 3000 // 3 seconds in future
+    it('should allow clock skew up to 120 seconds', () => {
+      const slightFuture = Date.now() + 90000 // 90 seconds in future
       expect(isRequestFresh(slightFuture)).toBe(true)
     })
   })

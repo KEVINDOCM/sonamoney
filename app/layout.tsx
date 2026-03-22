@@ -9,39 +9,55 @@ import { TranslationProvider } from "@/lib/contexts/TranslationContext";
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
   title: {
-    default: "SonaMoney — Personal Finance Tracker",
+    default: "SonaMoney — Free Personal Finance Tracker & Budget App 2026",
     template: "%s | SonaMoney",
   },
   description:
-    "Track income, expenses, and budgets easily. " +
-    "Aplikasi keuangan pribadi gratis dengan analytics, " +
-    "multi-currency, dan AI assistant. Free personal " +
-    "finance tracker for everyone.",
+    "Track income, expenses, and budgets easily with SonaMoney. " +
+    "Aplikasi keuangan pribadi gratis dengan analytics real-time, " +
+    "multi-currency, AI assistant & bank-level security. " +
+    "Free personal finance app for everyone. No credit card required.",
   keywords: [
-    "personal finance",
-    "budget tracker",
-    "expense tracker",
-    "money management",
-    "financial planning",
-    "free finance app",
-    "aplikasi keuangan",
-    "catat pengeluaran",
-    "manajemen keuangan",
-    "tracker keuangan pribadi",
+    "personal finance tracker",
+    "budget tracker app",
+    "expense tracker free",
+    "money management app",
+    "financial planning tools",
+    "free finance app 2026",
+    "best budget app",
+    "spending tracker",
+    "income expense tracker",
+    "aplikasi keuangan indonesia",
+    "catat pengeluaran harian",
     "aplikasi budgeting gratis",
+    "manajemen keuangan pribadi",
+    "tracker pengeluaran",
+    "aplikasi finansial terbaik",
     "SonaMoney",
+    "mint alternative",
+    "ynab alternative free",
   ],
-  authors: [{ name: "SonaMoney" }],
+  authors: [{ name: "SonaMoney", url: getSiteUrl() }],
   creator: "SonaMoney",
   publisher: "SonaMoney",
+  applicationName: "SonaMoney",
+  generator: "Next.js",
+  referrer: "origin-when-cross-origin",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
   robots: {
     index: true,
     follow: true,
+    nocache: false,
     googleBot: {
       index: true,
       follow: true,
       "max-image-preview": "large",
       "max-snippet": -1,
+      "max-video-preview": -1,
     },
   },
   openGraph: {
@@ -50,35 +66,43 @@ export const metadata: Metadata = {
     alternateLocale: ["en_US"],
     url: getSiteUrl(),
     siteName: "SonaMoney",
-    title: "SonaMoney — Personal Finance Tracker",
+    title: "SonaMoney — Free Personal Finance Tracker & Budget App 2026",
     description:
       "Track income, expenses, and budgets easily. " +
-      "Free personal finance app with analytics and AI.",
+      "Free personal finance app with real-time analytics, multi-currency, and AI assistant.",
     images: [
       {
         url: `${getSiteUrl()}/og-image.png`,
         width: 1200,
         height: 630,
-        alt: "SonaMoney — Personal Finance Tracker",
+        alt: "SonaMoney — Free Personal Finance Tracker & Budget App",
+        type: "image/png",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "SonaMoney — Personal Finance Tracker",
+    site: "@sonamoney",
+    creator: "@sonamoney",
+    title: "SonaMoney — Free Personal Finance Tracker & Budget App 2026",
     description:
-      "Free personal finance tracker. " +
-      "Track income, expenses, budgets, and insights.",
-    images: [`${getSiteUrl()}/og-image.png`],
+      "Free personal finance tracker. Track income, expenses, budgets, and insights with AI assistance.",
+    images: {
+      url: `${getSiteUrl()}/og-image.png`,
+      alt: "SonaMoney — Free Personal Finance Tracker & Budget App",
+      width: 1200,
+      height: 630,
+    },
   },
   alternates: {
     canonical: getSiteUrl(),
     languages: {
       "en-US": getSiteUrl(),
-      "id-ID": getSiteUrl(),
+      "id-ID": `${getSiteUrl()}/id`,
     },
   },
   category: "finance",
+  classification: "Business > Financial Services > Personal Finance",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -87,12 +111,23 @@ export const metadata: Metadata = {
     startupImage: "/icon-192.svg",
   },
   icons: {
-    icon: "/favicon.svg",
-    apple: "/icon-192.svg",
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/icon-192.svg", sizes: "192x192", type: "image/svg+xml" },
+      { url: "/icon-512.svg", sizes: "512x512", type: "image/svg+xml" },
+    ],
+    apple: [
+      { url: "/icon-192.svg", sizes: "192x192", type: "image/svg+xml" },
+      { url: "/icon-512.svg", sizes: "512x512", type: "image/svg+xml" },
+    ],
+    shortcut: "/favicon.svg",
   },
   other: {
     google: "notranslate",
     "google-site-verification": "-1WWLDq0PJVgp_CH-yJj5W87y_5zBlw4yw4DQUmjBpU",
+    "msvalidate.01": "",
+    "facebook-domain-verification": "",
+    "og:email": "support@sonamoney.my.id",
   },
 };
 

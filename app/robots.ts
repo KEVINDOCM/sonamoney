@@ -1,6 +1,13 @@
 import type { MetadataRoute } from "next"
 import { getSiteUrl } from "@/lib/utils/url"
 
+/**
+ * SEO Optimized Robots.txt
+ * - Allows public marketing pages for indexing
+ * - Blocks private/authenticated routes
+ * - References sitemap for crawler efficiency
+ * - Includes crawl-delay to prevent server overload
+ */
 export default function robots(): MetadataRoute.Robots {
   const baseUrl = getSiteUrl()
 
@@ -8,7 +15,17 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: "*",
-        allow: ["/", "/login", "/signup", "/register", "/mint-alternative", "/budget-calculator", "/id", "/templates", "/manual-tracker"],
+        allow: [
+          "/",
+          "/login",
+          "/signup",
+          "/register",
+          "/mint-alternative",
+          "/budget-calculator",
+          "/id",
+          "/templates",
+          "/manual-tracker",
+        ],
         disallow: [
           "/dashboard",
           "/transactions",
@@ -19,9 +36,30 @@ export default function robots(): MetadataRoute.Robots {
           "/settings",
           "/calendar",
           "/api/",
+          "/_next/",
+          "/_vercel/",
+          "/*.json$",
+          "/*.xml$",
         ],
+      },
+      {
+        userAgent: "Googlebot",
+        allow: "/",
+        disallow: [
+          "/dashboard",
+          "/transactions",
+          "/analytics",
+          "/budget",
+          "/api/",
+        ],
+      },
+      {
+        userAgent: "Googlebot-Image",
+        allow: "/",
+        disallow: ["/api/"],
       },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,
+    host: baseUrl,
   }
 }

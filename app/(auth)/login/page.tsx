@@ -1,11 +1,29 @@
 "use client";
 
+import type { Metadata } from "next";
 import Link from "next/link";
 import { useState, useTransition, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { loginSchema } from "@/lib/utils/validation";
+import { getSiteUrl } from "@/lib/utils/url";
+
+export const metadata: Metadata = {
+  title: "Sign In | Free Personal Finance Tracker — SonaMoney",
+  description:
+    "Sign in to SonaMoney to track your income, expenses, and budgets. " +
+    "Free personal finance app with real-time analytics and AI assistant. " +
+    "Secure, no credit card required.",
+  keywords: ["sign in", "login", "personal finance", "budget app", "expense tracker"],
+  alternates: {
+    canonical: `${getSiteUrl()}/login`,
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+}
 
 interface AuthErrorState {
   message: string;

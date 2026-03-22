@@ -5,7 +5,9 @@ import { getSiteUrl } from "@/lib/utils/url"
 export const metadata: Metadata = {
   title: "Aplikasi Pengeluaran Terbaik Indonesia 2025 | SonaMoney",
   description:
-    "Catat pengeluaran harian dalam Rupiah. Gratis selamanya. Kurs real-time USD→IDR. Bisa offline. Tidak perlu kartu kredit. 10,000+ pengguna Indonesia.",
+    "Catat pengeluaran harian dalam Rupiah. Gratis selamanya. " +
+    "Kurs real-time USD→IDR. Bisa offline. Tidak perlu kartu kredit. " +
+    "10,000+ pengguna Indonesia.",
   keywords: [
     "aplikasi pengeluaran",
     "catat pengeluaran",
@@ -13,21 +15,32 @@ export const metadata: Metadata = {
     "budget app indonesia",
     "pengeluaran harian",
     "manajemen keuangan pribadi",
+    "aplikasi finansial terbaik",
+    "tracker keuangan indonesia",
   ],
+  alternates: {
+    canonical: `${getSiteUrl()}/id`,
+  },
   openGraph: {
     title: "Aplikasi Pengeluaran Terbaik Indonesia 2025 | SonaMoney",
     description:
       "Catat pengeluaran harian dalam Rupiah. Gratis selamanya, kurs real-time, bisa offline.",
     url: `${getSiteUrl()}/id`,
     locale: "id_ID",
-    images: ["/og-image.png"],
+    images: [
+      {
+        url: `${getSiteUrl()}/og-image.png`,
+        width: 1200,
+        height: 630,
+        alt: "Aplikasi Pengeluaran Terbaik Indonesia 2025 - SonaMoney",
+      },
+    ],
   },
-  alternates: {
-    canonical: `${getSiteUrl()}/id`,
-    languages: {
-      "en-US": getSiteUrl(),
-      "id-ID": `${getSiteUrl()}/id`,
-    },
+  twitter: {
+    card: "summary_large_image",
+    title: "Aplikasi Pengeluaran Terbaik Indonesia 2025 | SonaMoney",
+    description: "Catat pengeluaran harian dalam Rupiah. Gratis selamanya, kurs real-time, bisa offline.",
+    images: [`${getSiteUrl()}/og-image.png`],
   },
 }
 

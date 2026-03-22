@@ -5,7 +5,9 @@ import { getSiteUrl } from "@/lib/utils/url"
 export const metadata: Metadata = {
   title: "Manual Expense Tracker App | No Bank Connection Required — SonaMoney",
   description:
-    "Track spending without linking your bank account. Manual expense entry, privacy-focused, data export anytime. No bank fees, no overdraft risk, no privacy concerns. Free forever.",
+    "Track spending without linking your bank account. Manual expense entry, privacy-focused, " +
+    "data export anytime. No bank fees, no overdraft risk, no privacy concerns. " +
+    "Free forever. Works offline.",
   keywords: [
     "manual expense tracker",
     "expense tracker without bank",
@@ -13,13 +15,32 @@ export const metadata: Metadata = {
     "no bank connection budget",
     "offline expense tracker",
     "manual budget app",
+    "secure finance app",
+    "bank-free tracker",
   ],
+  alternates: {
+    canonical: `${getSiteUrl()}/manual-tracker`,
+  },
   openGraph: {
     title: "Manual Expense Tracker | No Bank Connection Required",
     description:
       "Track spending without linking your bank. Full privacy, manual entry, data export. Free forever.",
     url: `${getSiteUrl()}/manual-tracker`,
-    images: ["/og-image.png"],
+    type: "website",
+    images: [
+      {
+        url: `${getSiteUrl()}/og-image.png`,
+        width: 1200,
+        height: 630,
+        alt: "Manual Expense Tracker - No Bank Required",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Manual Expense Tracker | No Bank Connection Required",
+    description: "Track spending without linking your bank. Full privacy, manual entry, data export. Free forever.",
+    images: [`${getSiteUrl()}/og-image.png`],
   },
 }
 
