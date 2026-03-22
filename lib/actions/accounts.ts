@@ -7,6 +7,13 @@ import { ActionResult, CreateAccountPayload, UpdateAccountPayload } from "@/lib/
 import { validateUUID, sanitizeText, validateOrThrow } from "@/lib/utils/validation";
 import { z } from "zod";
 import type { Account } from "@/types";
+import { 
+  ValidationError, 
+  DatabaseError, 
+  createAppError,
+  isRetryableError,
+} from "@/lib/errors";
+import { withRetry, RetryPresets } from "@/lib/utils/retry";
 
 interface SupabaseAuthClient {
   auth: {
@@ -69,29 +76,92 @@ const updateAccountSchema = createAccountSchema.partial().extend({
   id: z.string().uuid("Invalid account ID"),
 });
 
+// Helper to handle database errors with retry
+async function withDbRetry<T>(fn: () => Promise<T>, action: string): Promise<T> {
+  return withRetry(fn, {
+    ...RetryPresets.database,
+    onRetry: (error, attempt, nextDelay) => {
+      if (process.env.NODE_ENV === "development") {
+        console.warn(`[DB RETRY] ${action} attempt ${attempt}, retrying in ${nextDelay}ms`);
+      }
+    },
+  });
+}
+
+// Helper to convert errors to ActionResult
+function handleActionError(error: unknown, action: string): ActionResult<never> {
+  const appError = createAppError(error, {
+    action,
+    timestamp: new Date().toISOString(),
+  });
+
+  // Log in development
+  if (process.env.NODE_ENV === "development") {
+    console.error(`[${action}] ${appError.code}: ${appError.message}`);
+  }
+
+  // Return user-friendly message with error ID
+  return {
+    success: false,
+    error: `${appError.userMessage} (Error ID: ${appError.errorId})`,
+  };
+}
+
 export async function getOrSeedAccounts(): Promise<Account[]> {
-  const { supabase: rawSupabase, user } = await getAuthenticatedClient();
-  const supabase: SupabaseAuthClient = rawSupabase;
+  try {
+    const { supabase: rawSupabase, user } = await getAuthenticatedClient();
+    const supabase: SupabaseAuthClient = rawSupabase;
 
-  if (!supabase.from) return [];
+    if (!supabase.from) return [];
 
-  const { data: existing, error: fetchError } = await supabase
-    .from("accounts")
-    .select("*")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: true });
+    const from = supabase.from!;
 
-  if (fetchError) return [];
-  if (existing && existing.length > 0) return existing as Account[];
+    // Fetch with retry logic
+    const { data: existing, error: fetchError } = await withDbRetry(
+      async () => {
+        return (from as Exclude<typeof supabase.from, undefined>)("accounts")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: true });
+      },
+      "getOrSeedAccounts.fetch"
+    );
 
-  // Seed default accounts
-  const { data: seeded, error: seedError } = await supabase
-    .from("accounts")
-    .insert(DEFAULT_ACCOUNTS.map(a => ({ ...a, user_id: user.id })))
-    .select();
+    if (fetchError) {
+      throw new DatabaseError("Failed to fetch accounts", {
+        cause: fetchError,
+        code: "DB_FETCH_ACCOUNTS",
+      });
+    }
+    
+    if (existing && existing.length > 0) return existing as Account[];
 
-  if (seedError) return [];
-  return (seeded ?? []) as Account[];
+    // Seed default accounts with retry
+    const { data: seeded, error: seedError } = await withDbRetry(
+      async () => {
+        return (from as Exclude<typeof supabase.from, undefined>)("accounts")
+          .insert(DEFAULT_ACCOUNTS.map(a => ({ ...a, user_id: user.id })))
+          .select();
+      },
+      "getOrSeedAccounts.seed"
+    );
+
+    if (seedError) {
+      throw new DatabaseError("Failed to seed default accounts", {
+        cause: seedError,
+        code: "DB_SEED_ACCOUNTS",
+      });
+    }
+    
+    return (seeded ?? []) as Account[];
+  } catch (error) {
+    // Log error but return empty array to prevent UI crash
+    if (process.env.NODE_ENV === "development") {
+      const appError = createAppError(error, { action: "getOrSeedAccounts" });
+      console.error(`[getOrSeedAccounts] ${appError.code}: ${appError.message}`);
+    }
+    return [];
+  }
 }
 
 export async function getAccounts(): Promise<Account[]> {
@@ -100,16 +170,30 @@ export async function getAccounts(): Promise<Account[]> {
     const supabase: SupabaseAuthClient = rawSupabase;
 
     if (!supabase.from) return [];
+    
+    const from = supabase.from!;
 
-    const { data, error } = await supabase
-      .from("accounts")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: true });
+    const { data, error } = await withDbRetry(
+      async () => (from as Exclude<typeof supabase.from, undefined>)("accounts")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: true }),
+      "getAccounts"
+    );
 
-    if (error || !data) return [];
-    return data as Account[];
-  } catch {
+    if (error) {
+      throw new DatabaseError("Failed to fetch accounts", {
+        cause: error,
+        code: "DB_FETCH_ACCOUNTS",
+      });
+    }
+    
+    return (data ?? []) as Account[];
+  } catch (error) {
+    if (process.env.NODE_ENV === "development") {
+      const appError = createAppError(error, { action: "getAccounts" });
+      console.error(`[getAccounts] ${appError.code}: ${appError.message}`);
+    }
     return [];
   }
 }
