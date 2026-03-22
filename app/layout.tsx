@@ -5,6 +5,7 @@ import "./globals.css";
 import { ToastProvider } from "@/components/ui/ToastProvider";
 import { CurrencyProvider } from "@/lib/contexts/CurrencyContext";
 import { TranslationProvider } from "@/lib/contexts/TranslationContext";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
@@ -201,6 +202,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
             </CurrencyProvider>
           </TranslationProvider>
         </ToastProvider>
+        <SpeedInsights />
       </body>
     </html>
   );
