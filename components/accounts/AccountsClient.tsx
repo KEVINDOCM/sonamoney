@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/lib/hooks/useToast";
 import { ToastContainer } from "@/components/ui/Toast";
-import { createAccount, updateAccount, deleteAccount } from "@/lib/actions/accounts";
+import { createAccount, updateAccount, deleteAccount, setDefaultAccount } from "@/lib/actions/accounts";
 import { createTransfer, deleteTransfer } from "@/lib/actions/transfers";
 import { formatCurrency, CURRENCY_CONFIG, SUPPORTED_CURRENCIES } from "@/lib/utils/currency";
 import { useCurrency } from "@/lib/hooks/useCurrency";
@@ -198,6 +198,22 @@ export function AccountsClient({ accounts, transfers }: AccountsClientProps) {
     setIsDeleteOpen(true);
   };
 
+  const handleSetDefault = async (id: string) => {
+    const result = await setDefaultAccount(id);
+    if (result.error) {
+      toast.error(result.error);
+    } else {
+      toast.success(t("accounts.setDefaultSuccess") || "Default account updated");
+      // Update local state to reflect the change
+      setLocalAccounts((current) =>
+        current.map((acc) => ({
+          ...acc,
+          is_default: acc.id === id,
+        }))
+      );
+    }
+  };
+
   // Transfer handlers
   async function handleTransfer() {
     if (!transferFrom || !transferTo || !transferAmount) return;
@@ -281,6 +297,7 @@ export function AccountsClient({ accounts, transfers }: AccountsClientProps) {
           accounts={localAccounts}
           onEdit={handleOpenEditModal}
           onDelete={handleOpenDeleteModal}
+          onSetDefault={handleSetDefault}
           mounted={mounted}
           t={t}
           baseCurrency={baseCurrency}
