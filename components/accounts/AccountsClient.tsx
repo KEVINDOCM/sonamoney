@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Account, AccountType, TransferWithAccounts } from "@/types";
 import { Modal } from "@/components/ui/Modal";
 import { Input } from "@/components/ui/Input";
@@ -65,6 +65,16 @@ export function AccountsClient({ accounts, transfers }: AccountsClientProps) {
   const { baseCurrency, convert, rates } = useCurrency();
   const { refetchAccounts } = useUserData();
 
+  // Sync localAccounts when accounts prop changes (e.g., after server refresh)
+  useEffect(() => {
+    setLocalAccounts(accounts);
+  }, [accounts]);
+
+  // Sync localTransfers when transfers prop changes
+  useEffect(() => {
+    setLocalTransfers(transfers);
+  }, [transfers]);
+
   const handleAdd = async () => {
     if (!name.trim()) {
       setActionError(t("accounts.nameRequired"));
@@ -89,13 +99,14 @@ export function AccountsClient({ accounts, transfers }: AccountsClientProps) {
       return;
     }
 
+    // The account was created - refetch to get the new account with server-generated ID
     toast.success(t("accounts.accountAdded"));
     setIsAddOpen(false);
     setName("");
     setType("reguler");
     setIcon("💵");
 
-    // Refetch accounts to update context
+    // Refetch accounts to update context and local state
     await refetchAccounts();
   };
 

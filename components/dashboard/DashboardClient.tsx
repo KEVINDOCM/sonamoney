@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useCallback, useState, useEffect } from "react";
+import { useMemo, useCallback, useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { RecentTransactions } from "./RecentTransactions";
@@ -13,23 +13,27 @@ import { useCurrency } from "@/lib/hooks/useCurrency";
 import type { Transaction, Category, Account } from "@/types";
 import type { Goal } from "@/lib/actions/goals";
 import type { SavedHealthScore } from "@/lib/actions/healthScore";
-import StatCard from "@/components/ui/StatCard";
 import { GoalsWidget } from "./GoalsWidget";
 import { BudgetNotification } from "./BudgetNotification";
 import { HealthScoreWidget } from "./HealthScoreWidget";
 import { HealthScoreFAB } from "./HealthScoreFAB";
-import { ArrowUpRight, ArrowDownRight, Wallet } from "lucide-react";
+import { ArrowUpRight, ArrowDownRight, Wallet, TrendingUp, PiggyBank } from "lucide-react";
+import { useReducedMotion } from "@/lib/hooks/useReducedMotion";
 
-// Animated number counter component
+// Performance-optimized animated number - only animates once
 function AnimatedNumber({ value, prefix = "" }: { value: number; prefix?: string }) {
-  const [count, setCount] = useState(0);
-  const [hasAnimated, setHasAnimated] = useState(false);
+  const [count, setCount] = useState(value);
+  const hasAnimated = useRef(false);
 
   useEffect(() => {
-    if (hasAnimated) return;
-
-    const duration = 1500;
-    const steps = 45;
+    if (hasAnimated.current || typeof window === "undefined") {
+      setCount(value);
+      return;
+    }
+    
+    hasAnimated.current = true;
+    const duration = 1000;
+    const steps = 30;
     const stepValue = value / steps;
     let step = 0;
 
@@ -40,13 +44,12 @@ function AnimatedNumber({ value, prefix = "" }: { value: number; prefix?: string
 
       if (step >= steps) {
         setCount(value);
-        setHasAnimated(true);
         clearInterval(timer);
       }
     }, duration / steps);
 
     return () => clearInterval(timer);
-  }, [value, hasAnimated]);
+  }, [value]);
 
   return <span>{prefix}{count.toLocaleString()}</span>;
 }
@@ -92,6 +95,7 @@ export function DashboardClient({
 }: DashboardClientProps) {
   const { t, mounted } = useTranslation();
   const { baseCurrency, convert, rates, mounted: currencyMounted } = useCurrency();
+  const prefersReducedMotion = useReducedMotion();
 
   const safeConvert = useCallback(
     (amount: number, fromCurrency: string): number => {
@@ -184,68 +188,68 @@ export function DashboardClient({
             </div>
           </motion.div>
 
-          {/* Stats Grid - Modern Enterprise Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
-            {/* Balance Card */}
+          {/* Stats Grid - Simplified Quick Stats */}
+          <div className="grid grid-cols-3 gap-3 md:gap-4 mt-6">
+            {/* Net Flow Card */}
             <motion.div
-              className="col-span-2 md:col-span-1"
-              initial={{ opacity: 0, y: 20 }}
+              className="col-span-3 md:col-span-1"
+              initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
+              transition={{ duration: 0.4, delay: 0.1 }}
             >
-              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="p-1.5 bg-white/20 rounded-lg">
-                    <Wallet className="h-4 w-4 text-white" />
+              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 md:p-4 border border-white/20">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className={`p-1.5 rounded-lg ${totalBalance >= 0 ? 'bg-emerald-500/30' : 'bg-red-500/30'}`}>
+                    <TrendingUp className={`h-4 w-4 ${totalBalance >= 0 ? 'text-emerald-300' : 'text-red-300'}`} aria-hidden="true" />
                   </div>
                   <span className="text-teal-100 text-xs font-medium">
-                    {mounted ? t("dashboard.totalBalance") : "Balance"}
+                    {mounted ? "Net Flow" : "Net Flow"}
                   </span>
                 </div>
-                <p className="text-white font-bold text-xl md:text-2xl tabular-nums">
+                <p className="text-white font-bold text-lg md:text-xl tabular-nums" aria-label={`Net flow: ${formatCurrencyValue(totalBalance)}`}>
                   {formatCurrencyValue(totalBalance)}
                 </p>
               </div>
             </motion.div>
 
-            {/* Income Card */}
+            {/* Savings Rate Card */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
+              transition={{ duration: 0.4, delay: 0.2 }}
             >
-              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="p-1.5 bg-emerald-500/30 rounded-lg">
-                    <ArrowUpRight className="h-4 w-4 text-emerald-300" />
+              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 md:p-4 border border-white/20">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="p-1.5 bg-teal-500/30 rounded-lg">
+                    <PiggyBank className="h-4 w-4 text-teal-300" aria-hidden="true" />
                   </div>
                   <span className="text-teal-100 text-xs font-medium">
-                    {mounted ? t("dashboard.totalIncome") : "Income"}
+                    {mounted ? "Saved" : "Saved"}
                   </span>
                 </div>
-                <p className="text-white font-bold text-lg md:text-xl tabular-nums">
-                  {formatCurrencyValue(totalIncome)}
+                <p className="text-white font-bold text-base md:text-lg tabular-nums">
+                  {totalIncome > 0 ? `${Math.round(((totalIncome - totalExpenses) / totalIncome) * 100)}%` : "0%"}
                 </p>
               </div>
             </motion.div>
 
-            {/* Expense Card */}
+            {/* Transaction Count */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
+              transition={{ duration: 0.4, delay: 0.3 }}
             >
-              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="p-1.5 bg-red-500/30 rounded-lg">
-                    <ArrowDownRight className="h-4 w-4 text-red-300" />
+              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 md:p-4 border border-white/20">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="p-1.5 bg-white/20 rounded-lg">
+                    <Wallet className="h-4 w-4 text-white" aria-hidden="true" />
                   </div>
                   <span className="text-teal-100 text-xs font-medium">
-                    {mounted ? t("dashboard.totalExpenses") : "Expenses"}
+                    {mounted ? "Transactions" : "Txns"}
                   </span>
                 </div>
-                <p className="text-white font-bold text-lg md:text-xl tabular-nums">
-                  {formatCurrencyValue(totalExpenses)}
+                <p className="text-white font-bold text-base md:text-lg tabular-nums">
+                  <AnimatedNumber value={allTransactions.length} />
                 </p>
               </div>
             </motion.div>
@@ -284,46 +288,6 @@ export function DashboardClient({
           />
         </div>
       )}
-
-      {/* Desktop Stat Cards */}
-      <div className="hidden md:grid md:grid-cols-3 gap-4 mt-6 mx-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-        >
-          <StatCard
-            title={mounted ? t("dashboard.totalBalance") : "Balance"}
-            value={formatCurrencyValue(totalBalance)}
-            borderColorClass="border-teal-500"
-          />
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-        >
-          <StatCard
-            title={mounted ? t("dashboard.totalIncome") : "Income"}
-            value={formatCurrencyValue(totalIncome)}
-            borderColorClass="border-emerald-500"
-          />
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          <StatCard
-            title={mounted ? t("dashboard.totalExpenses") : "Expenses"}
-            value={formatCurrencyValue(totalExpenses)}
-            borderColorClass="border-red-500"
-          />
-        </motion.div>
-      </div>
 
       {/* Budget Warning */}
       {budgetWarningCount > 0 && (

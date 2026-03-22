@@ -29,6 +29,10 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
   size?: "sm" | "md" | "lg";
+  ariaLabel?: string;
+  ariaPressed?: boolean;
+  ariaExpanded?: boolean;
+  ariaControls?: string;
 }
 
 export function Button({
@@ -39,6 +43,10 @@ export function Button({
   rightIcon,
   className = "",
   disabled,
+  ariaLabel,
+  ariaPressed,
+  ariaExpanded,
+  ariaControls,
   ...props
 }: ButtonProps) {
   const variantClass =
@@ -61,16 +69,21 @@ export function Button({
       type={props.type ?? "button"}
       className={`${BASE_BUTTON_CLASS} ${variantClass} ${className}`}
       disabled={isDisabled}
+      aria-label={ariaLabel}
+      aria-pressed={ariaPressed}
+      aria-expanded={ariaExpanded}
+      aria-controls={ariaControls}
+      aria-busy={isLoading}
       {...props}
     >
       {isLoading && (
-        <span className="mr-2 inline-flex h-4 w-4 items-center justify-center">
+        <span className="mr-2 inline-flex h-4 w-4 items-center justify-center" aria-hidden="true">
           <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
         </span>
       )}
-      {leftIcon && <span className="mr-2 inline-flex items-center">{leftIcon}</span>}
+      {leftIcon && <span className="mr-2 inline-flex items-center" aria-hidden="true">{leftIcon}</span>}
       <span>{children as React.ReactNode}</span>
-      {rightIcon && <span className="ml-2 inline-flex items-center">{rightIcon}</span>}
+      {rightIcon && <span className="ml-2 inline-flex items-center" aria-hidden="true">{rightIcon}</span>}
     </button>
   );
 }

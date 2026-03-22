@@ -94,7 +94,8 @@ export function Sidebar({ budgetWarningCount, children }: SidebarProps) {
               <Link
                 key={item.href}
                 href={item.href}
-                aria-current={!!active ? "page" : undefined}
+                aria-current={active ? "page" : undefined}
+                aria-label={mounted && navKey ? t(`nav.${navKey}`) : item.label}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 ${
                   active
                     ? "bg-teal-50 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 font-semibold"
@@ -102,13 +103,16 @@ export function Sidebar({ budgetWarningCount, children }: SidebarProps) {
                 }`}
               >
                 <div className={`p-1.5 rounded-lg ${active ? "bg-teal-100 dark:bg-teal-800/50" : ""}`}>
-                  <Icon className="h-5 w-5 shrink-0" />
+                  <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
                 </div>
                 <span className="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-sm">
                   {mounted && navKey ? t(`nav.${navKey}`) : item.label}
                 </span>
                 {isBudget && budgetWarningCount > 0 && (
-                  <span className="ml-auto h-5 w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  <span 
+                    className="ml-auto h-5 w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                    aria-label={`${budgetWarningCount} budget warnings`}
+                  >
                     {budgetWarningCount}
                   </span>
                 )}
@@ -123,9 +127,10 @@ export function Sidebar({ budgetWarningCount, children }: SidebarProps) {
             <Button
               type="submit"
               variant="ghost"
+              ariaLabel={mounted ? t("nav.logout") : "Log out"}
               className="w-full justify-start gap-3 px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-red-500 dark:hover:text-red-400 transition-all duration-200"
             >
-              <LogOut className="h-5 w-5 shrink-0" />
+              <LogOut className="h-5 w-5 shrink-0" aria-hidden="true" />
               <span className="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-sm">
                 {mounted ? t("nav.logout") : "Log out"}
               </span>
