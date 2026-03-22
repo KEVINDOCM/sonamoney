@@ -424,23 +424,21 @@ export function AnalyticsClient({ transactions }: AnalyticsClientProps) {
 
     if (!transactions || transactions.length === 0) {
         return (
-            <div className="
-                bg-[#F5F7FA] dark:bg-[#0F172A]
-                min-h-screen pb-6
-                overflow-x-hidden
-            ">
-                <div className="
-                    flex flex-col items-center
-                    justify-center py-12 text-center
-                ">
+            <div className="page-container">
+                <div className="px-4 pt-4 pb-0 md:px-0 md:pt-0 mb-4">
+                    <h1 className="page-title">
+                        {mounted ? t("nav.analytics") : "Analytics"}
+                    </h1>
+                    <p className="section-subtitle mt-0.5">
+                        {mounted ? t("analytics.description") : "Detailed insights into your finances"}
+                    </p>
+                </div>
+                <div className="flex flex-col items-center justify-center py-12 text-center">
                     <span className="text-4xl mb-3">📊</span>
-                    <p className="
-                        text-sm font-semibold
-                        text-[#1A1A2E] dark:text-white
-                    ">
+                    <p className="text-sm font-semibold text-slate-900 dark:text-white">
                         No data yet
                     </p>
-                    <p className="text-xs text-[#6B7280] mt-1">
+                    <p className="text-xs text-slate-500 mt-1">
                         Add transactions to see analytics
                     </p>
                 </div>
@@ -455,26 +453,13 @@ export function AnalyticsClient({ transactions }: AnalyticsClientProps) {
     );
 
     return (
-        <div className="
-            bg-[#F5F7FA] dark:bg-[#0F172A]
-            min-h-screen pb-6
-            overflow-x-hidden
-        ">
-            <div className="
-                px-4 pt-4 pb-0 md:px-0 md:pt-0
-                mb-4
-            ">
-                <h1 className="
-                    text-xl font-extrabold
-                    text-[#1A1A2E] dark:text-white
-                ">
+        <div className="page-container">
+            <div className="px-4 pt-4 pb-0 md:px-0 md:pt-0 mb-4">
+                <h1 className="page-title">
                     {mounted ? t("nav.analytics") : "Analytics"}
                 </h1>
-                <p className="
-                    text-xs text-[#6B7280]
-                    dark:text-gray-400 mt-0.5
-                ">
-                    {mounted ? t("analytics.description") : ""}
+                <p className="section-subtitle mt-0.5">
+                    {mounted ? t("analytics.description") : "Detailed insights into your finances"}
                 </p>
             </div>
 

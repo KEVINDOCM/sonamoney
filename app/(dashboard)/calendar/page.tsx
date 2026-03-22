@@ -33,10 +33,7 @@ export default async function CalendarPage() {
     if (!user) {
       console.error("CalendarPage: No authenticated user found");
       return (
-        <div className="
-          bg-[#F5F7FA] dark:bg-[#0F172A]
-          min-h-screen pb-6
-        ">
+        <div className="page-container">
           <div className="p-8 text-center">
             <p className="text-red-500">Please log in to view the calendar.</p>
           </div>
@@ -55,20 +52,14 @@ export default async function CalendarPage() {
     }
 
     return (
-      <div className="
-        bg-[#F5F7FA] dark:bg-[#0F172A]
-        min-h-screen pb-6
-      ">
+      <div className="page-container">
         <CalendarClient transactions={transactions ?? []} />
       </div>
     );
   } catch (error) {
     console.error("CalendarPage: Unexpected error:", error);
     return (
-      <div className="
-        bg-[#F5F7FA] dark:bg-[#0F172A]
-        min-h-screen pb-6
-      ">
+      <div className="page-container">
         <div className="p-8 text-center">
           <p className="text-red-500">Failed to load calendar. Please try refreshing.</p>
         </div>

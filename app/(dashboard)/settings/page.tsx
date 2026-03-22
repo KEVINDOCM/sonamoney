@@ -22,10 +22,10 @@ export default async function SettingsPage() {
   const displayName = typedUser.user_metadata?.display_name ?? "";
 
   return (
-    <div className="bg-[#F5F7FA] dark:bg-[#0F172A] min-h-screen p-4 lg:p-6 pb-24">
+    <div className="page-container p-4 lg:p-6 pb-24">
       <div className="mb-6">
-        <h1 className="text-xl font-extrabold text-[#1A1A2E] dark:text-white">Settings</h1>
-        <p className="text-xs text-[#6B7280] dark:text-gray-400">Manage your account preferences.</p>
+        <h1 className="page-title">Settings</h1>
+        <p className="section-subtitle">Manage your account preferences</p>
       </div>
       <SettingsClient email={email} displayName={displayName} />
     </div>

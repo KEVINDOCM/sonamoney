@@ -1,21 +1,34 @@
 import type { ButtonHTMLAttributes } from "react";
 
 const BASE_BUTTON_CLASS =
-  "inline-flex items-center justify-center min-h-11 lg:min-h-9 rounded-lg text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-50 disabled:opacity-50 disabled:cursor-not-allowed";
+  "inline-flex items-center justify-center min-h-11 lg:min-h-10 rounded-xl text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 active:scale-[0.98]";
 
-const PRIMARY_CLASS = "bg-blue-600 text-white px-4 py-2 hover:bg-blue-700 active:bg-blue-800";
+const PRIMARY_CLASS = 
+  "bg-teal-600 text-white px-5 hover:bg-teal-700 shadow-[0_0_8px_rgba(13,148,136,0.15)] hover:shadow-[0_0_16px_rgba(13,148,136,0.2)]";
+
 const SECONDARY_CLASS =
-  "bg-white text-gray-700 px-4 py-2 border border-gray-300 hover:bg-gray-50 active:bg-gray-100";
-const DANGER_CLASS = "bg-rose-500 text-white px-4 py-2 hover:bg-rose-600 active:bg-rose-700";
-const GHOST_CLASS = "text-gray-600 px-3 py-2 hover:bg-gray-100 active:bg-gray-200";
+  "bg-teal-50 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300 px-5 hover:bg-teal-100 dark:hover:bg-teal-900/50";
 
-export type ButtonVariant = "primary" | "secondary" | "danger" | "ghost";
+const TERTIARY_CLASS =
+  "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 px-5 hover:bg-slate-200 dark:hover:bg-slate-700";
+
+const DANGER_CLASS = 
+  "bg-red-500 text-white px-5 hover:bg-red-600";
+
+const GHOST_CLASS = 
+  "text-slate-600 dark:text-slate-400 px-4 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200";
+
+const OUTLINE_CLASS =
+  "border-2 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 px-5 hover:border-teal-600 hover:text-teal-600 dark:hover:border-teal-500 dark:hover:text-teal-400 bg-transparent";
+
+export type ButtonVariant = "primary" | "secondary" | "tertiary" | "danger" | "ghost" | "outline";
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   isLoading?: boolean;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
+  size?: "sm" | "md" | "lg";
 }
 
 export function Button({
@@ -31,11 +44,15 @@ export function Button({
   const variantClass =
     variant === "secondary"
       ? SECONDARY_CLASS
-      : variant === "danger"
-        ? DANGER_CLASS
-        : variant === "ghost"
-          ? GHOST_CLASS
-          : PRIMARY_CLASS;
+      : variant === "tertiary"
+        ? TERTIARY_CLASS
+        : variant === "danger"
+          ? DANGER_CLASS
+          : variant === "ghost"
+            ? GHOST_CLASS
+            : variant === "outline"
+              ? OUTLINE_CLASS
+              : PRIMARY_CLASS;
 
   const isDisabled = disabled ?? isLoading;
 
@@ -48,7 +65,7 @@ export function Button({
     >
       {isLoading && (
         <span className="mr-2 inline-flex h-4 w-4 items-center justify-center">
-          <span className="h-4 w-4 animate-spin rounded-full border-2 border-blue-200 border-t-blue-600" />
+          <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
         </span>
       )}
       {leftIcon && <span className="mr-2 inline-flex items-center">{leftIcon}</span>}

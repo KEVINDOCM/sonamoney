@@ -403,109 +403,58 @@ export function TransactionsClient({
 
   return (
     <div className="bg-[#F5F7FA] dark:bg-[#0F172A] min-h-screen pb-6 overflow-x-hidden">
-      {/* Sticky Header */}
-      <div className="
-        sticky top-0 z-20
-        bg-[#F5F7FA] dark:bg-[#0F172A]
-        px-4 pt-4 pb-3
-        md:static md:px-0 md:pt-0
-      ">
+      {/* Sticky Header - Enterprise Style */}
+      <div className="sticky top-0 z-20 bg-slate-50 dark:bg-slate-950 px-4 pt-4 pb-3 md:static md:px-0 md:pt-0">
         {/* Title row */}
-        <div className="
-          flex items-center
-          justify-between mb-3
-        ">
+        <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="
-              text-xl font-extrabold
-              text-[#1A1A2E] dark:text-white
-            ">
+            <h1 className="page-title">
               {mounted ? t("nav.transactions") : "Transactions"}
             </h1>
-            <p className="
-              text-xs text-[#6B7280]
-              dark:text-gray-400 mt-0.5
-            ">
-              {mounted ? t("transactions.description") : ""}
+            <p className="section-subtitle mt-0.5">
+              {mounted ? t("transactions.description") : "Manage your income and expenses"}
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <ExportTransactionsButtons
-              items={filteredTransactions}
-            />
+            <ExportTransactionsButtons items={filteredTransactions} />
             {/* Desktop add button */}
             <div className="hidden md:block">
-              <button
+              <Button
                 onClick={() => setIsAddOpen(true)}
-                className="
-                  flex items-center gap-1.5
-                  px-4 py-2
-                  bg-[#00B9A7] text-white
-                  rounded-full text-sm font-semibold
-                  hover:bg-[#0099A0]
-                  active:scale-95
-                  transition-all duration-200
-                "
+                leftIcon={<Plus className="h-4 w-4" />}
               >
-                <Plus className="h-4 w-4" />
                 {mounted ? t("common.add") : "Add"}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
 
-        {/* Search bar */}
+        {/* Search bar - Enterprise Style */}
         <div className="relative mb-3">
-          <Search className="
-            absolute left-3.5 top-1/2
-            -translate-y-1/2 h-4 w-4
-            text-[#6B7280] dark:text-gray-400
-          "/>
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder={mounted ? t("common.search") : "Search..."}
-            className="
-              w-full pl-10 pr-4 h-11
-              bg-white dark:bg-gray-800
-              rounded-full shadow-sm
-              border-0 outline-none
-              text-sm text-[#1A1A2E] dark:text-white
-              placeholder-[#6B7280]
-              focus:ring-2 focus:ring-[#00B9A7]/30
-              transition-all duration-200
-            "
+            placeholder={mounted ? t("common.search") : "Search transactions..."}
+            className="input-enterprise pl-11 pr-10"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery("")}
-              className="
-                absolute right-3.5 top-1/2
-                -translate-y-1/2
-                text-[#6B7280] hover:text-[#1A1A2E]
-                transition-colors
-              "
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
             >
               <X className="h-4 w-4" />
             </button>
           )}
         </div>
 
-        {/* Filter chips — horizontal scroll */}
-        <div className="
-          flex gap-2
-          overflow-x-auto scrollbar-hide
-          pb-1 -mx-4 px-4
-        ">
+        {/* Filter chips - Enterprise Style */}
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 -mx-4 px-4 md:mx-0 md:px-0">
           {/* All chip */}
           <button
             onClick={() => setFilterType("all")}
-            className={
-              filterType === "all"
-                ? "filter-chip-active"
-                : "filter-chip-inactive"
-            }
+            className={filterType === "all" ? "chip-active" : "chip-inactive"}
           >
             {mounted ? t("common.filter") : "All"}
           </button>
@@ -513,11 +462,7 @@ export function TransactionsClient({
           {/* Income chip */}
           <button
             onClick={() => setFilterType("income")}
-            className={
-              filterType === "income"
-                ? "filter-chip-active"
-                : "filter-chip-inactive"
-            }
+            className={filterType === "income" ? "chip-active" : "chip-inactive"}
           >
             {mounted ? t("transactions.income") : "Income"}
           </button>
@@ -525,11 +470,7 @@ export function TransactionsClient({
           {/* Expense chip */}
           <button
             onClick={() => setFilterType("expense")}
-            className={
-              filterType === "expense"
-                ? "filter-chip-active"
-                : "filter-chip-inactive"
-            }
+            className={filterType === "expense" ? "chip-active" : "chip-inactive"}
           >
             {mounted ? t("transactions.expense") : "Expense"}
           </button>
@@ -541,11 +482,7 @@ export function TransactionsClient({
               onClick={() => setFilterCategory(
                 filterCategory === cat.id ? "all" : cat.id
               )}
-              className={
-                filterCategory === cat.id
-                  ? "filter-chip-active"
-                  : "filter-chip-inactive"
-              }
+              className={filterCategory === cat.id ? "chip-active" : "chip-inactive"}
             >
               {cat.name}
             </button>
@@ -554,15 +491,10 @@ export function TransactionsClient({
           {/* Advanced filter toggle */}
           <button
             onClick={() => setIsFilterOpen(!isFilterOpen)}
-            className={`
-              filter-chip-inactive shrink-0
-              ${isFilterOpen
-                ? "border-[#00B9A7] text-[#00B9A7]"
-                : ""
-              }
-            `}
+            className={`chip-inactive shrink-0 ${isFilterOpen ? "border-teal-500 text-teal-600" : ""}`}
           >
-            ⚙️ {mounted ? t("common.filter") : "Filter"}
+            <SlidersHorizontal className="h-3.5 w-3.5 mr-1" />
+            {mounted ? t("common.filter") : "Filter"}
           </button>
         </div>
       </div>
