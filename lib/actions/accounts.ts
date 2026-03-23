@@ -110,9 +110,16 @@ function handleActionError(error: unknown, action: string): ActionResult<never> 
 export async function getOrSeedAccounts(): Promise<Account[]> {
   try {
     const { supabase: rawSupabase, user } = await getAuthenticatedClient();
+    
+    // Production diagnostics - log user info (safe to log user ID)
+    console.log(`[getOrSeedAccounts] User: ${user.id}`);
+    
     const supabase: SupabaseAuthClient = rawSupabase;
 
-    if (!supabase.from) return [];
+    if (!supabase.from) {
+      console.error("[getOrSeedAccounts] supabase.from is undefined");
+      return [];
+    }
 
     const from = supabase.from!;
 
@@ -128,38 +135,45 @@ export async function getOrSeedAccounts(): Promise<Account[]> {
     );
 
     if (fetchError) {
+      console.error(`[getOrSeedAccounts] Fetch error: ${fetchError.message}`);
       throw new DatabaseError("Failed to fetch accounts", {
         cause: fetchError,
         code: "DB_FETCH_ACCOUNTS",
       });
     }
     
+    console.log(`[getOrSeedAccounts] Found ${existing?.length ?? 0} accounts`);
+    
     if (existing && existing.length > 0) return existing as Account[];
 
     // Seed default accounts with retry
+    console.log(`[getOrSeedAccounts] No accounts found, seeding defaults...`);
+    
+    const accountsToSeed = DEFAULT_ACCOUNTS.map(a => ({ ...a, user_id: user.id }));
+    
     const { data: seeded, error: seedError } = await withDbRetry(
       async () => {
         return (from as Exclude<typeof supabase.from, undefined>)("accounts")
-          .insert(DEFAULT_ACCOUNTS.map(a => ({ ...a, user_id: user.id })))
+          .insert(accountsToSeed)
           .select();
       },
       "getOrSeedAccounts.seed"
     );
 
     if (seedError) {
+      console.error(`[getOrSeedAccounts] Seed error: ${seedError.message}`);
       throw new DatabaseError("Failed to seed default accounts", {
         cause: seedError,
         code: "DB_SEED_ACCOUNTS",
       });
     }
     
+    console.log(`[getOrSeedAccounts] Seeded ${seeded?.length ?? 0} accounts`);
     return (seeded ?? []) as Account[];
   } catch (error) {
     // Log error but return empty array to prevent UI crash
-    if (process.env.NODE_ENV === "development") {
-      const appError = createAppError(error, { action: "getOrSeedAccounts" });
-      console.error(`[getOrSeedAccounts] ${appError.code}: ${appError.message}`);
-    }
+    const appError = createAppError(error, { action: "getOrSeedAccounts" });
+    console.error(`[getOrSeedAccounts] ${appError.code}: ${appError.message}`);
     return [];
   }
 }
