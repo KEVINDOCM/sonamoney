@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Account, AccountType, TransferWithAccounts } from "@/types";
 import { Modal } from "@/components/ui/Modal";
 import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
 import { useToast } from "@/lib/hooks/useToast";
 import { ToastContainer } from "@/components/ui/Toast";
-import { createAccount, updateAccount, deleteAccount } from "@/lib/actions/accounts";
+import { createAccount, updateAccount, deleteAccount, setDefaultAccount } from "@/lib/actions/accounts";
 import { createTransfer, deleteTransfer } from "@/lib/actions/transfers";
 import { formatCurrency, CURRENCY_CONFIG, SUPPORTED_CURRENCIES } from "@/lib/utils/currency";
 import { useCurrency } from "@/lib/hooks/useCurrency";
@@ -64,6 +65,16 @@ export function AccountsClient({ accounts, transfers }: AccountsClientProps) {
   const { baseCurrency, convert, rates } = useCurrency();
   const { refetchAccounts } = useUserData();
 
+  // Sync localAccounts when accounts prop changes (e.g., after server refresh)
+  useEffect(() => {
+    setLocalAccounts(accounts);
+  }, [accounts]);
+
+  // Sync localTransfers when transfers prop changes
+  useEffect(() => {
+    setLocalTransfers(transfers);
+  }, [transfers]);
+
   const handleAdd = async () => {
     if (!name.trim()) {
       setActionError(t("accounts.nameRequired"));
@@ -88,13 +99,14 @@ export function AccountsClient({ accounts, transfers }: AccountsClientProps) {
       return;
     }
 
+    // The account was created - refetch to get the new account with server-generated ID
     toast.success(t("accounts.accountAdded"));
     setIsAddOpen(false);
     setName("");
     setType("reguler");
     setIcon("💵");
 
-    // Refetch accounts to update context
+    // Refetch accounts to update context and local state
     await refetchAccounts();
   };
 
@@ -186,6 +198,22 @@ export function AccountsClient({ accounts, transfers }: AccountsClientProps) {
     setIsDeleteOpen(true);
   };
 
+  const handleSetDefault = async (id: string) => {
+    const result = await setDefaultAccount(id);
+    if (result.error) {
+      toast.error(result.error);
+    } else {
+      toast.success(t("accounts.setDefaultSuccess") || "Default account updated");
+      // Update local state to reflect the change
+      setLocalAccounts((current) =>
+        current.map((acc) => ({
+          ...acc,
+          is_default: acc.id === id,
+        }))
+      );
+    }
+  };
+
   // Transfer handlers
   async function handleTransfer() {
     if (!transferFrom || !transferTo || !transferAmount) return;
@@ -254,25 +282,13 @@ export function AccountsClient({ accounts, transfers }: AccountsClientProps) {
   }
 
   return (
-    <div className="
-      bg-[#F5F7FA] dark:bg-[#0F172A]
-      min-h-screen pb-6
-      overflow-x-hidden
-    ">
-      <div className="
-        px-4 pt-4 pb-0 md:px-0 md:pt-0 mb-4
-      ">
-        <h1 className="
-          text-xl font-extrabold
-          text-[#1A1A2E] dark:text-white
-        ">
+    <div className="page-container">
+      <div className="px-4 pt-4 pb-0 md:px-0 md:pt-0 mb-4">
+        <h1 className="page-title">
           {mounted ? t("nav.accounts") : "Accounts"}
         </h1>
-        <p className="
-          text-xs text-[#6B7280]
-          dark:text-gray-400 mt-0.5
-        ">
-          {mounted ? t("accounts.description") : ""}
+        <p className="section-subtitle mt-0.5">
+          {mounted ? t("accounts.description") : "Manage your financial accounts"}
         </p>
       </div>
 
@@ -281,6 +297,7 @@ export function AccountsClient({ accounts, transfers }: AccountsClientProps) {
           accounts={localAccounts}
           onEdit={handleOpenEditModal}
           onDelete={handleOpenDeleteModal}
+          onSetDefault={handleSetDefault}
           mounted={mounted}
           t={t}
           baseCurrency={baseCurrency}
@@ -292,32 +309,25 @@ export function AccountsClient({ accounts, transfers }: AccountsClientProps) {
         flex flex-col sm:flex-row
         gap-3 mt-4 px-4 md:px-0
       ">
-        <button
+        <Button
           onClick={() => setIsTransferOpen(true)}
-          className="
-            flex-1 sm:flex-none flex items-center
-            justify-center gap-2 h-11 px-5
-            bg-[#00B9A7] hover:bg-[#0099A0]
-            text-white text-sm font-semibold
-            rounded-full active:scale-95
-            transition-all duration-200
-          "
+          variant="secondary"
+          leftIcon={<ArrowLeftRight className="h-4 w-4" />}
         >
-          <ArrowLeftRight className="h-4 w-4" />
           {mounted ? t("accounts.transfer") : "Transfer"}
-        </button>
+        </Button>
         <button
           onClick={handleOpenAddModal}
           className="
             flex-1 border-2 border-dashed
-            border-gray-200 dark:border-gray-700
-            rounded-2xl p-4
+            border-slate-200 dark:border-slate-700
+            rounded-xl p-4
             flex items-center justify-center gap-2
-            text-sm text-[#6B7280] dark:text-gray-500
-            hover:border-[#00B9A7] dark:hover:border-[#00B9A7]
-            hover:text-[#00B9A7] dark:hover:text-[#00B9A7]
+            text-sm text-slate-500 dark:text-slate-400
+            hover:border-teal-500 dark:hover:border-teal-500
+            hover:text-teal-600 dark:hover:text-teal-400
             transition-all duration-200
-            active:scale-95
+            active:scale-[0.98]
           "
         >
           <Plus className="h-4 w-4" /> {mounted ? t("accounts.addAccount") : "Add account"}

@@ -270,27 +270,17 @@ export function BudgetClient({ transactions, initialCategories }: BudgetClientPr
   }
 
   return (
-    <div className="
-      bg-[#F5F7FA] dark:bg-[#0F172A]
-      min-h-screen pb-6
-      overflow-x-hidden
-    ">
+    <div className="page-container">
 
       {/* ================================
           PAGE HEADER
           ================================ */}
       <div className="px-4 pt-4 pb-0 md:px-0 md:pt-0 mb-4">
-        <h1 className="
-          text-xl font-extrabold
-          text-[#1A1A2E] dark:text-white
-        ">
+        <h1 className="page-title">
           {mounted ? t("budget.title") : "Budget"}
         </h1>
-        <p className="
-          text-xs text-[#6B7280]
-          dark:text-gray-400 mt-0.5
-        ">
-          {mounted ? t("budget.description") : ""}
+        <p className="section-subtitle mt-0.5">
+          {mounted ? t("budget.description") : "Track and manage your spending limits"}
         </p>
       </div>
 
@@ -300,9 +290,9 @@ export function BudgetClient({ transactions, initialCategories }: BudgetClientPr
       <div className="px-4 md:px-0 mb-4">
         <div className="
           bg-gradient-to-br
-          from-[#00B9A7] to-[#0099A0]
+          from-teal-600 to-slate-800
           rounded-2xl p-5
-          shadow-sm
+          shadow-lg
           animate-fadeIn
         ">
           <p className="

@@ -29,12 +29,12 @@ interface SupabaseAuthClient {
       select: () => Promise<{ data: unknown[] | null; error: Error | null }>;
     };
     update: (data: unknown) => {
-      eq: (column: string, value: string) => {
+      eq: (column: string, value: string) => Promise<{ error: Error | null }> & {
         eq: (column: string, value: string) => Promise<{ error: Error | null }>;
       };
     };
     delete: () => {
-      eq: (column: string, value: string) => {
+      eq: (column: string, value: string) => Promise<{ error: Error | null }> & {
         eq: (column: string, value: string) => Promise<{ error: Error | null }>;
       };
       or: (filter: string) => Promise<{ error: Error | null }>;
@@ -208,7 +208,7 @@ export async function createAccount(data: CreateAccountPayload): Promise<ActionR
 
   const validated = validateOrThrow(createAccountSchema, data);
 
-  const { error } = await supabase
+  const { data: inserted, error } = await supabase
     .from("accounts")
     .insert({
       user_id: user.id,
@@ -221,8 +221,10 @@ export async function createAccount(data: CreateAccountPayload): Promise<ActionR
     })
     .select()
 
-  if (error) return { success: false, error: "Failed to create account. Please try again." }
-  revalidateAccountPaths();
+  if (error || !inserted || inserted.length === 0) {
+    return { success: false, error: "Failed to create account. Please try again." }
+  }
+  revalidateAccountPaths()
   return { success: true };
 }
 
@@ -302,5 +304,45 @@ export async function deleteAccount(id: string): Promise<ActionResult> {
 
   if (error) return { success: false, error: "Failed to delete account. Please try again." };
   revalidateFinancePaths();
+  return { success: true };
+}
+
+export async function setDefaultAccount(id: string): Promise<ActionResult> {
+  // Validate UUID at start
+  try {
+    validateUUID(id)
+  } catch {
+    return { success: false, error: "Invalid account ID" }
+  }
+
+  const { supabase: rawSupabase, user } = await getAuthenticatedClient();
+  const supabase: SupabaseAuthClient = rawSupabase;
+
+  if (!supabase.from) {
+    return { success: false, error: "Database client not available" };
+  }
+
+  // First, unset all accounts as default for this user
+  const { error: unsetError } = await (supabase as any)
+    .from("accounts")
+    .update({ is_default: false })
+    .eq("user_id", user.id);
+
+  if (unsetError) {
+    return { success: false, error: "Failed to update default status. Please try again." };
+  }
+
+  // Then, set the selected account as default
+  const { error: setError } = await (supabase as any)
+    .from("accounts")
+    .update({ is_default: true })
+    .eq("id", id)
+    .eq("user_id", user.id);
+
+  if (setError) {
+    return { success: false, error: "Failed to set default account. Please try again." };
+  }
+
+  revalidateAccountPaths();
   return { success: true };
 }

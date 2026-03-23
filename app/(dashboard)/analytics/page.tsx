@@ -11,10 +11,7 @@ export const metadata = {
 
 function AnalyticsSkeleton() {
     return (
-        <div className="
-            bg-[#F5F7FA] dark:bg-[#0F172A]
-            min-h-screen pb-6
-        ">
+        <div className="page-container">
             {/* Header */}
             <div className="px-4 md:px-0 mb-4">
                 <div className="skeleton h-7 w-32 rounded-xl mb-2"/>
@@ -23,37 +20,20 @@ function AnalyticsSkeleton() {
 
             {/* Period selector skeleton */}
             <div className="px-4 md:px-0 mb-4">
-                <div className="skeleton h-11 rounded-2xl"/>
+                <div className="skeleton h-11 rounded-xl"/>
             </div>
 
             {/* Summary cards skeleton */}
-            <div className="
-                flex gap-3 overflow-x-auto
-                scrollbar-hide pb-1 px-4 mb-4
-                md:hidden
-            ">
+            <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-1 px-4 mb-4 md:hidden">
                 {[1, 2, 3, 4].map((i) => (
-                    <div
-                        key={i}
-                        className="
-                            min-w-[140px] shrink-0
-                            rounded-2xl h-[100px]
-                            skeleton
-                        "
-                    />
+                    <div key={i} className="min-w-[140px] shrink-0 rounded-2xl h-[100px] skeleton"/>
                 ))}
             </div>
 
             {/* Charts skeleton */}
-            <div className="
-                grid grid-cols-1 lg:grid-cols-2
-                gap-4 px-4 md:px-0
-            ">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 px-4 md:px-0">
                 {[1, 2, 3, 4].map((i) => (
-                    <div
-                        key={i}
-                        className="rounded-2xl h-[280px] skeleton"
-                    />
+                    <div key={i} className="rounded-2xl h-[280px] skeleton"/>
                 ))}
             </div>
         </div>
