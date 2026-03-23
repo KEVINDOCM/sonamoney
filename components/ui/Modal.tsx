@@ -36,13 +36,13 @@ export function Modal({ isOpen, title, description, children, onClose }: ModalPr
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200 motion-reduce:animate-none"
       onClick={handleBackdropClick}
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
     >
-      <div className="w-full lg:max-w-md rounded-2xl bg-white shadow-xl border border-gray-200 transform transition-all duration-200 animate-in zoom-in-95 overflow-y-auto max-h-[85vh] p-0 relative">
+      <div className="w-full lg:max-w-md rounded-2xl bg-white shadow-xl border border-gray-200 transform motion-safe:transition-[transform,opacity] motion-safe:duration-200 motion-reduce:transition-none animate-in zoom-in-95 motion-reduce:animate-none overflow-y-auto overscroll-contain max-h-[85vh] p-0 relative">
         <div className="p-4">
           <h2 id="modal-title" className="text-lg lg:text-xl font-medium text-gray-900">{title}</h2>
           {description && <p className="mt-1 text-xs text-gray-500">{description}</p>}

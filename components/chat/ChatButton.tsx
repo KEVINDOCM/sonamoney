@@ -22,7 +22,7 @@ export function ChatButton({ onClick, isOpen, t }: ChatButtonProps): React.React
                  hover:from-[#00B9A7] hover:to-[#007A80]
                  hover:shadow-[0_8px_25px_rgba(0,185,167,0.4)]
                  text-white rounded-full shadow-lg hover:shadow-xl 
-                 transition-all duration-300 ease-out
+                 motion-safe:transition-[transform,box-shadow,background] motion-safe:duration-300 motion-safe:ease-out motion-reduce:transition-none
                  flex items-center justify-center z-[60]"
       aria-label={isOpen ? t("common.close") : t("ai.title")}
       type="button"

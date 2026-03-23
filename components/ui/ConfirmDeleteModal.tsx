@@ -38,7 +38,8 @@ export default function ConfirmDeleteModal({
               dark:border-gray-700
               text-sm font-semibold text-[#6B7280]
               hover:bg-gray-50 dark:hover:bg-gray-800
-              active:scale-95 transition-all duration-200
+              active:scale-95 motion-reduce:transform-none
+              motion-safe:transition-[transform,background-color,border-color] motion-safe:duration-200
             "
             onClick={onClose}
             disabled={isLoading}
@@ -51,7 +52,8 @@ export default function ConfirmDeleteModal({
               rounded-full bg-[#FF5B5B] text-white
               text-sm font-semibold
               hover:bg-[#E04444]
-              active:scale-95 transition-all duration-200
+              active:scale-95 motion-reduce:transform-none
+              motion-safe:transition-[transform,background-color] motion-safe:duration-200
               disabled:opacity-50
             "
             onClick={onConfirm}

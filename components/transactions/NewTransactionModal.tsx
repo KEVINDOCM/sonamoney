@@ -232,7 +232,8 @@ export const NewTransactionModal = ({ isOpen, onClose, categories, accounts, onS
           <button
             type="button"
             onClick={() => setShowScanner(true)}
-            className="w-full flex items-center justify-center gap-2 h-10 rounded-2xl border-2 border-dashed border-gray-200 hover:border-[#00B9A7] hover:bg-[#E6F7F6] transition-all duration-200 text-sm font-medium text-gray-500 hover:text-[#00B9A7]"
+            aria-label="Scan receipt to auto-fill transaction details"
+            className="w-full flex items-center justify-center gap-2 h-10 rounded-2xl border-2 border-dashed border-gray-200 hover:border-[#00B9A7] hover:bg-[#E6F7F6] transition-[border-color,background-color] duration-200 text-sm font-medium text-gray-500 hover:text-[#00B9A7]"
           >
             <Camera className="w-4 h-4" />
             Scan Receipt
@@ -259,7 +260,10 @@ export const NewTransactionModal = ({ isOpen, onClose, categories, accounts, onS
             <button
               type="button"
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="w-full h-10 text-left text-base lg:text-sm text-gray-900 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 flex justify-between items-center bg-white"
+              aria-haspopup="listbox"
+              aria-expanded={isDropdownOpen}
+              aria-controls="category-dropdown"
+              className="w-full h-10 text-left text-base lg:text-sm text-gray-900 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-[border-color,box-shadow] duration-200 flex justify-between items-center bg-white"
             >
               <span>
                 {watch("categoryId")
@@ -274,7 +278,7 @@ export const NewTransactionModal = ({ isOpen, onClose, categories, accounts, onS
             {isDropdownOpen && (
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setIsDropdownOpen(false)} />
-                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-20 max-h-40 overflow-y-auto">
+                <div id="category-dropdown" className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-20 max-h-40 overflow-y-auto">
                   <button
                     type="button"
                     className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 text-gray-500"
@@ -317,7 +321,7 @@ export const NewTransactionModal = ({ isOpen, onClose, categories, accounts, onS
         <Input
           label="Amount"
           type="text"
-          placeholder="contoh: 50.000 atau 50000"
+          placeholder={mounted ? t("transactions.amountPlaceholder") : "e.g., 50.000 or 50000"}
           error={errors.amount?.message}
           {...register("amount")}
         />
@@ -328,10 +332,15 @@ export const NewTransactionModal = ({ isOpen, onClose, categories, accounts, onS
         />
 
         <div className="flex flex-col gap-1">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Notes (optional)</p>
+          <label
+            htmlFor="transaction-notes"
+            className="text-xs font-semibold text-gray-500 uppercase tracking-wider"
+          >
+            Notes (optional)
+          </label>
           <textarea
             id="transaction-notes"
-            className="w-full text-base lg:text-sm text-gray-900 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none h-20 transition-all duration-200"
+            className="w-full text-base lg:text-sm text-gray-900 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none h-20 transition-[border-color,box-shadow] duration-200"
             rows={3}
             {...register("notes")}
           />
@@ -376,10 +385,11 @@ export const NewTransactionModal = ({ isOpen, onClose, categories, accounts, onS
         {/* Tax and Commission Fields */}
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div>
-            <label className="text-xs font-medium text-gray-500 mb-1.5 block">
+            <label htmlFor="tax-rate" className="text-xs font-medium text-gray-500 mb-1.5 block">
               Tax % <span className="text-gray-300">(optional)</span>
             </label>
             <input
+              id="tax-rate"
               type="number"
               min={0}
               max={100}
@@ -387,14 +397,15 @@ export const NewTransactionModal = ({ isOpen, onClose, categories, accounts, onS
               value={taxRate}
               onChange={(e) => setTaxRate(e.target.value)}
               placeholder="e.g. 11"
-              className="w-full h-10 border border-gray-200 rounded-lg px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full h-10 border border-gray-200 rounded-lg px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
             />
           </div>
           <div>
-            <label className="text-xs font-medium text-gray-500 mb-1.5 block">
+            <label htmlFor="commission-rate" className="text-xs font-medium text-gray-500 mb-1.5 block">
               Commission % <span className="text-gray-300">(optional)</span>
             </label>
             <input
+              id="commission-rate"
               type="number"
               min={0}
               max={100}
@@ -402,14 +413,14 @@ export const NewTransactionModal = ({ isOpen, onClose, categories, accounts, onS
               value={commissionRate}
               onChange={(e) => setCommissionRate(e.target.value)}
               placeholder="e.g. 5"
-              className="w-full h-10 border border-gray-200 rounded-lg px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full h-10 border border-gray-200 rounded-lg px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
             />
           </div>
         </div>
 
         {/* Amount Preview */}
         {(taxRate || commissionRate) && (
-          <div className="bg-gray-50 rounded-lg p-3 mb-4 text-xs space-y-1">
+          <div className="bg-gray-50 rounded-lg p-3 mb-4 text-xs space-y-1" aria-live="polite" aria-atomic="true">
             <div className="flex justify-between text-gray-500">
               <span>Original amount</span>
               <span>{formatCurrency(Number(watch("amount").replace(/\./g, "").replace(/,/g, "")) || 0, transactionCurrency)}</span>
@@ -447,12 +458,14 @@ export const NewTransactionModal = ({ isOpen, onClose, categories, accounts, onS
           <button
             type="button"
             onClick={() => setIsRecurring(!isRecurring)}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 ${
+            aria-checked={isRecurring}
+            role="switch"
+            className={`relative inline-flex h-6 w-11 items-center rounded-full motion-safe:transition-[background-color] motion-safe:duration-300 motion-reduce:transition-none ${
               isRecurring ? "bg-blue-600" : "bg-gray-200"
             }`}
             title={isRecurring ? "Disable recurring" : "Enable recurring"}
           >
-            <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform duration-300 ${
+            <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm motion-safe:transition-transform motion-safe:duration-300 motion-reduce:transition-none ${
               isRecurring ? "translate-x-6" : "translate-x-1"
             }`} />
           </button>
@@ -468,14 +481,14 @@ export const NewTransactionModal = ({ isOpen, onClose, categories, accounts, onS
               max={365}
               value={recurringInterval}
               onChange={(e) => setRecurringInterval(Number(e.target.value))}
-              className="w-16 h-9 border border-gray-200 rounded-lg px-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-16 h-9 border border-gray-200 rounded-lg px-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
               title="Recurring interval"
               aria-label={mounted ? t("transactions.recurringInterval") : "Recurring interval"}
             />
             <select
               value={recurringUnit}
               onChange={(e) => setRecurringUnit(e.target.value)}
-              className="h-9 border border-gray-200 rounded-lg px-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="h-9 border border-gray-200 rounded-lg px-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
               title="Recurring unit"
               aria-label={mounted ? t("transactions.recurringUnit") : "Recurring unit"}
             >

@@ -29,7 +29,7 @@ export function DeleteAccountModal({
       onClose={onClose}
     >
       <div className="flex flex-col-reverse lg:flex-row lg:justify-end gap-2 lg:gap-3 pt-2">
-        <button
+          <button
           type="button"
           onClick={onClose}
           className="
@@ -39,8 +39,8 @@ export function DeleteAccountModal({
             text-sm font-semibold
             text-[#6B7280] dark:text-gray-300
             hover:bg-gray-50 dark:hover:bg-gray-800
-            active:scale-95
-            transition-all duration-200
+            active:scale-95 motion-reduce:transform-none
+            motion-safe:transition-[transform,background-color,border-color] motion-safe:duration-200
           "
         >
           {mounted ? t("common.cancel") : "Cancel"}
@@ -54,8 +54,8 @@ export function DeleteAccountModal({
             rounded-full bg-[#FF5B5B] text-white
             text-sm font-semibold
             hover:bg-[#E04444]
-            active:scale-95
-            transition-all duration-200
+            active:scale-95 motion-reduce:transform-none
+            motion-safe:transition-[transform,background-color] motion-safe:duration-200
             disabled:opacity-50
           "
         >

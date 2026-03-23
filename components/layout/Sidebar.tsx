@@ -108,12 +108,12 @@ export function Sidebar({ budgetWarningCount, children }: SidebarProps) {
   return (
     <div className="min-h-screen bg-[#F5F7FA] dark:bg-[#0F172A] flex flex-col lg:flex-row">
       {/* Sidebar - Desktop only, collapsible with hover */}
-      <aside className="group fixed inset-y-0 left-0 z-40 w-16 hover:w-64 bg-white dark:bg-gray-900 hidden lg:flex flex-col py-6 transition-all duration-300 ease-in-out overflow-hidden border-r border-gray-100 dark:border-gray-800 shadow-[2px_0_8px_rgba(0,0,0,0.04)]">
+      <aside className="group fixed inset-y-0 left-0 z-40 w-16 hover:w-64 bg-white dark:bg-gray-900 hidden lg:flex flex-col py-6 overflow-hidden border-r border-gray-100 dark:border-gray-800 shadow-[2px_0_8px_rgba(0,0,0,0.04)] motion-safe:transition-[width] motion-safe:duration-300 motion-safe:ease-in-out motion-reduce:transition-none">
         {/* Logo section */}
         <div className="mb-8 px-3 flex items-center gap-3 overflow-hidden">
           <Link href="/dashboard" aria-label="SonaMoney Home" className="flex items-center gap-3">
-            <img src="/logo-navbar.svg" alt="SonaMoney" className="h-8 w-8 shrink-0" />
-            <span className="font-bold text-gray-900 dark:text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <img src="/logo-navbar.svg" alt="SonaMoney" width="32" height="32" className="h-8 w-8 shrink-0" />
+            <span className="font-bold text-gray-900 dark:text-white whitespace-nowrap opacity-0 group-hover:opacity-100 motion-safe:transition-opacity motion-safe:duration-200 motion-reduce:transition-none">
               SonaMoney
             </span>
           </Link>
@@ -138,11 +138,11 @@ export function Sidebar({ budgetWarningCount, children }: SidebarProps) {
                 }`}
               >
                 <Icon className="h-5 w-5 shrink-0" />
-                <span className="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-sm font-medium">
+                <span className="whitespace-nowrap opacity-0 group-hover:opacity-100 motion-safe:transition-opacity motion-safe:duration-200 motion-reduce:transition-none text-sm font-medium">
                   {mounted && navKey ? t(`nav.${navKey}`) : item.label}
                 </span>
                 {isBudget && budgetWarningCount > 0 && (
-                  <span className="ml-auto h-5 w-5 rounded-full bg-[#FF5B5B] text-white text-xs flex items-center justify-center font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  <span className="ml-auto h-5 w-5 rounded-full bg-[#FF5B5B] text-white text-xs flex items-center justify-center font-medium opacity-0 group-hover:opacity-100 motion-safe:transition-opacity motion-safe:duration-200 motion-reduce:transition-none">
                     {budgetWarningCount}
                   </span>
                 )}
@@ -160,7 +160,7 @@ export function Sidebar({ budgetWarningCount, children }: SidebarProps) {
               className="w-full justify-start gap-3 px-2 py-2.5 rounded-xl text-[#6B7280] dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-[#FF5B5B] dark:hover:text-[#FF5B5B] transition-all duration-200"
             >
               <LogOut className="h-5 w-5 shrink-0" />
-              <span className="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-sm font-medium">
+              <span className="whitespace-nowrap opacity-0 group-hover:opacity-100 motion-safe:transition-opacity motion-safe:duration-200 motion-reduce:transition-none text-sm font-medium">
                 {mounted ? t("nav.logout") : "Log out"}
               </span>
             </Button>
@@ -192,22 +192,22 @@ export function Sidebar({ budgetWarningCount, children }: SidebarProps) {
                 const Icon = item.icon;
                 const navKey = getNavKey(item.href);
                 return (
-                  <a
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setIsMoreOpen(false)}
-                    aria-current={active ? "page" : undefined}
-                    className={`flex flex-col items-center gap-1.5 p-4 rounded-xl transition-colors duration-200 ${
-                      active
-                        ? "bg-[#E6F7F6] dark:bg-[#00B9A7]/10 text-[#00B9A7]"
-                        : "text-[#6B7280] dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800"
-                    }`}
-                  >
-                    <Icon className="h-6 w-6" />
-                    <span className="text-xs font-medium">
-                      {mounted && navKey ? t(`nav.${navKey}`) : item.label}
-                    </span>
-                  </a>
+                  <div key={item.href} onClick={() => setIsMoreOpen(false)}>
+                    <Link
+                      href={item.href}
+                      aria-current={active ? "page" : undefined}
+                      className={`flex flex-col items-center gap-1.5 p-4 rounded-xl transition-[background-color,color] duration-200 ${
+                        active
+                          ? "bg-[#E6F7F6] dark:bg-[#00B9A7]/10 text-[#00B9A7]"
+                          : "text-[#6B7280] dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800"
+                      }`}
+                    >
+                      <Icon className="h-6 w-6" />
+                      <span className="text-xs font-medium">
+                        {mounted && navKey ? t(`nav.${navKey}`) : item.label}
+                      </span>
+                    </Link>
+                  </div>
                 );
               })}
             </div>
@@ -261,10 +261,11 @@ export function Sidebar({ budgetWarningCount, children }: SidebarProps) {
 
         {/* More button */}
         <button
+          type="button"
           onClick={() => setIsMoreOpen(!isMoreOpen)}
           aria-label={mounted ? t("nav.more") : "More"}
           aria-expanded={isMoreOpen}
-          className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2 transition-all duration-200 relative min-h-[44px] ${
+          className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2 motion-safe:transition-all motion-safe:duration-200 motion-reduce:transition-none relative min-h-[44px] ${
             isMoreActive || isMoreOpen ? "" : ""
           }`}
         >
