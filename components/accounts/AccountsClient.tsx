@@ -35,7 +35,8 @@ export interface AccountsClientProps {
 }
 
 export function AccountsClient({ accounts, transfers }: AccountsClientProps) {
-  const [localAccounts, setLocalAccounts] = useState<Account[]>(accounts);
+  const { accounts: contextAccounts, refetchAccounts } = useUserData();
+  const [localAccounts, setLocalAccounts] = useState<Account[]>(contextAccounts);
   const [localTransfers, setLocalTransfers] = useState<TransferWithAccounts[]>(transfers);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -63,12 +64,11 @@ export function AccountsClient({ accounts, transfers }: AccountsClientProps) {
   const { toast, toasts, removeToast } = useToast();
   const { t, mounted } = useTranslation();
   const { baseCurrency, convert, rates } = useCurrency();
-  const { refetchAccounts } = useUserData();
 
-  // Sync localAccounts when accounts prop changes (e.g., after server refresh)
+  // Sync localAccounts when context accounts change (e.g., after refetch)
   useEffect(() => {
-    setLocalAccounts(accounts);
-  }, [accounts]);
+    setLocalAccounts(contextAccounts);
+  }, [contextAccounts]);
 
   // Sync localTransfers when transfers prop changes
   useEffect(() => {
