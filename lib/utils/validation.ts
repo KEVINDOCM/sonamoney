@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { SUPPORTED_CURRENCIES } from "@/lib/utils/currency"
 
 // UUID validation
 export const uuidSchema = z.string().uuid("Invalid ID format")
@@ -14,9 +15,9 @@ export const dateSchema = z
   .string()
   .regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format")
 
-// Currency validation
+// Currency validation — derives from SUPPORTED_CURRENCIES so schema stays in sync
 export const currencySchema = z
-  .enum(["USD", "IDR"])
+  .enum(SUPPORTED_CURRENCIES as unknown as [string, ...string[]])
   .default("IDR")
 
 // Display name validation

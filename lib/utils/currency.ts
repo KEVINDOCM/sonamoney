@@ -73,3 +73,14 @@ export function convertToBase(
 export function getCurrencySymbol(currency: string): string {
   return CURRENCY_CONFIG[currency as SupportedCurrency]?.symbol ?? currency
 }
+
+/**
+ * Parse a formatted currency string into a number.
+ * Handles both dot-separated (IDR) and comma-separated (USD) inputs.
+ * e.g. "50.000" → 50000, "1,500.00" → 1500
+ */
+export function parseFormattedAmount(value: string): number {
+  const cleaned = value.replace(/\./g, "").replace(/,/g, "")
+  const parsed = Number(cleaned)
+  return isNaN(parsed) ? 0 : parsed
+}

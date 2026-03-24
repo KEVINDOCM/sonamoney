@@ -1,4 +1,5 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server"
+import type { SupabaseClient } from "@supabase/supabase-js"
 
 export interface AuthenticatedUser {
   id: string
@@ -40,6 +41,8 @@ export async function getAuthenticatedClient() {
   const typedUser = user as { id: string; email?: string }
 
   return {
+    // Return the raw supabase client — it has all methods (.from, .auth, etc.)
+    // Typed as ReturnType to preserve the real query builder chains
     supabase,
     userId: typedUser.id,
     user: {

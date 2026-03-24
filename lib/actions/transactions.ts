@@ -1,12 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getAuthenticatedClient } from "@/lib/utils/auth";
 import { revalidateTransactionPaths } from "@/lib/utils/revalidate";
 import { adjustAccountBalance } from "@/lib/utils/balance";
 import { withActionResult } from "@/lib/utils/actions";
-import { validateUUID, sanitizeText, sanitizeNotes } from "@/lib/utils/validation";
+import { validateUUID, sanitizeNotes } from "@/lib/utils/validation";
+import { computeNextDate } from "@/lib/utils/dateUtils";
 import { ActionResult } from "@/lib/types/actions";
 import type {
   CreateTransactionPayload,
@@ -17,33 +17,23 @@ import {
   DEFAULT_RECURRING_INTERVAL,
   DEFAULT_RECURRING_UNIT,
 } from "@/lib/constants";
-import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Transaction, TransactionType } from "@/types";
 import { z } from "zod";
 
-interface SupabaseAuthClient {
-  auth: {
-    getUser: () => Promise<{ data: { user: unknown } }>;
+// ─────────────────────────────────────────────────────────────────
+// Internal Supabase query helper
+// The @supabase/ssr client without a database type schema requires
+// this single cast at the boundary — removes the need for 4 fake
+// interface declarations that existed previously.
+// ─────────────────────────────────────────────────────────────────
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyQueryable = any;
+
+function db(supabase: AnyQueryable) {
+  return supabase as {
+    from: (table: string) => AnyQueryable;
+    auth: AnyQueryable;
   };
-  from?: (table: string) => QueryBuilder;
-}
-
-interface QueryBuilder {
-  select: (columns: string, options?: { count?: string; head?: boolean }) => FilterBuilder;
-  insert: (data: unknown | unknown[]) => Promise<{ error: Error | null }>;
-  update: (data: unknown) => FilterBuilder;
-  delete: () => FilterBuilder;
-}
-
-interface FilterBuilder {
-  eq: (column: string, value: string | number | boolean) => FilterBuilder & PromiseExecutor;
-  single: () => Promise<{ data: unknown | null; error: Error | null }>;
-  order: (column: string, options: { ascending: boolean }) => FilterBuilder & PromiseExecutor;
-  range: (from: number, to: number) => Promise<{ data: unknown[] | null; error: Error | null; count: number | null }>;
-}
-
-interface PromiseExecutor {
-  then: (onfulfilled: (value: { data: unknown | null; error: Error | null; count?: number | null }) => void) => Promise<void>;
 }
 
 export interface FetchTransactionsParams {
@@ -80,19 +70,9 @@ export async function fetchTransactions(
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
 
-  const { supabase: rawSupabase, user } = await getAuthenticatedClient();
-  const supabase: SupabaseAuthClient = rawSupabase;
+  const { supabase, user } = await getAuthenticatedClient();
 
-  if (!supabase.from) {
-    return {
-      items: [],
-      total: 0,
-      page,
-      pageSize,
-    };
-  }
-
-  const { data, error, count } = await supabase
+  const { data, error, count } = await db(supabase)
     .from("transactions")
     .select("*, categories(name, color, type, icon)", { count: "exact" })
     .eq("user_id", user.id)
@@ -100,12 +80,7 @@ export async function fetchTransactions(
     .range(from, to);
 
   if (error || !data || count === null) {
-    return {
-      items: [],
-      total: 0,
-      page,
-      pageSize,
-    };
+    return { items: [], total: 0, page, pageSize };
   }
 
   return {
@@ -117,20 +92,9 @@ export async function fetchTransactions(
 }
 
 export async function fetchDashboardSummary(): Promise<DashboardSummary> {
-  const { supabase: rawSupabase, user } = await getAuthenticatedClient();
-  const supabase: SupabaseAuthClient = rawSupabase;
+  const { supabase, user } = await getAuthenticatedClient();
 
-  if (!supabase.from) {
-    return {
-      totalIncome: 0,
-      totalExpense: 0,
-      totalBalance: 0,
-      hasAnyTransactions: false,
-      series: [],
-    };
-  }
-
-  const { data, error } = await supabase
+  const { data, error } = await db(supabase)
     .from("transactions")
     .select("date, amount, type")
     .eq("user_id", user.id)
@@ -177,12 +141,10 @@ export async function fetchDashboardSummary(): Promise<DashboardSummary> {
     })
   );
 
-  const totalBalance = totalIncome - totalExpense;
-
   return {
     totalIncome,
     totalExpense,
-    totalBalance,
+    totalBalance: totalIncome - totalExpense,
     hasAnyTransactions: series.length > 0,
     series,
   };
@@ -190,7 +152,7 @@ export async function fetchDashboardSummary(): Promise<DashboardSummary> {
 
 // Helper function to update account balance
 async function updateAccountBalance(
-  supabase: SupabaseClient,
+  supabase: AnyQueryable,
   accountId: string,
   amount: number,
   type: "income" | "expense",
@@ -221,13 +183,7 @@ const createTransactionSchema = z.object({
 })
 
 export async function createTransaction(payload: CreateTransactionPayload): Promise<ActionResult> {
-  const { supabase: rawSupabase, user } = await getAuthenticatedClient();
-  const supabase: SupabaseAuthClient = rawSupabase;
-  const typedSupabase = rawSupabase as SupabaseClient;
-
-  if (!supabase.from) {
-    return { success: false, error: "Database client not available" };
-  }
+  const { supabase, user } = await getAuthenticatedClient();
 
   const validationResult = createTransactionSchema.safeParse(payload)
   if (!validationResult.success) {
@@ -235,7 +191,7 @@ export async function createTransaction(payload: CreateTransactionPayload): Prom
   }
   const safePayload = validationResult.data
 
-  const { error } = await supabase.from("transactions").insert({
+  const { error } = await db(supabase).from("transactions").insert({
     user_id: user.id,
     category_id: safePayload.category_id,
     amount: Number(safePayload.amount),
@@ -257,10 +213,9 @@ export async function createTransaction(payload: CreateTransactionPayload): Prom
     return { success: false, error: "Failed to create transaction. Please try again." };
   }
 
-  // Update account balance if account_id exists
   if (payload.account_id) {
     await updateAccountBalance(
-      typedSupabase,
+      supabase,
       payload.account_id,
       Number(payload.amount),
       payload.type,
@@ -281,28 +236,20 @@ const transactionSchema = z.object({
 });
 
 export async function updateTransaction(id: string, payload: UpdateTransactionPayload): Promise<ActionResult> {
-  // Validate UUID at start
   try {
     validateUUID(id)
   } catch {
     return { success: false, error: "Invalid transaction ID" }
   }
 
-  const { supabase: rawSupabase, user } = await getAuthenticatedClient();
-  const supabase: SupabaseAuthClient = rawSupabase;
-  const typedSupabase = rawSupabase as SupabaseClient;
-
-  if (!supabase.from) {
-    return { success: false, error: "Database client not available" };
-  }
+  const { supabase, user } = await getAuthenticatedClient();
 
   const validated = transactionSchema.safeParse(payload);
   if (!validated.success) {
     return { success: false, error: "Invalid data" };
   }
 
-  // Fetch existing transaction to get old values
-  const { data: existing, error: fetchError } = await supabase
+  const { data: existing, error: fetchError } = await db(supabase)
     .from("transactions")
     .select("*")
     .eq("id", id)
@@ -315,7 +262,7 @@ export async function updateTransaction(id: string, payload: UpdateTransactionPa
 
   const typedExisting = existing as { account_id?: string | null; amount: number; type: "income" | "expense" };
 
-  const { error } = await supabase
+  const { error } = await db(supabase)
     .from("transactions")
     .update({
       category_id: payload.category_id,
@@ -344,10 +291,9 @@ export async function updateTransaction(id: string, payload: UpdateTransactionPa
     return { success: false, error: "Failed to update transaction. Please try again." }
   }
 
-  // Step 1 — revert old account balance if had account
   if (typedExisting.account_id) {
     await updateAccountBalance(
-      typedSupabase,
+      supabase,
       typedExisting.account_id,
       typedExisting.amount,
       typedExisting.type,
@@ -355,10 +301,9 @@ export async function updateTransaction(id: string, payload: UpdateTransactionPa
     );
   }
 
-  // Step 2 — apply new account balance if has account
   if (payload.account_id && payload.amount && payload.type) {
     await updateAccountBalance(
-      typedSupabase,
+      supabase,
       payload.account_id,
       payload.amount,
       payload.type,
@@ -371,23 +316,15 @@ export async function updateTransaction(id: string, payload: UpdateTransactionPa
 }
 
 export async function deleteTransaction(id: string): Promise<ActionResult> {
-  // Validate UUID at start
   try {
     validateUUID(id)
   } catch {
     return { success: false, error: "Invalid transaction ID" }
   }
 
-  const { supabase: rawSupabase, user } = await getAuthenticatedClient();
-  const supabase: SupabaseAuthClient = rawSupabase;
-  const typedSupabase = rawSupabase as SupabaseClient;
+  const { supabase, user } = await getAuthenticatedClient();
 
-  if (!supabase.from) {
-    return { success: false, error: "Database client not available" };
-  }
-
-  // Fetch existing transaction before delete
-  const { data: existing, error: fetchError } = await supabase
+  const { data: existing, error: fetchError } = await db(supabase)
     .from("transactions")
     .select("*")
     .eq("id", id)
@@ -400,7 +337,7 @@ export async function deleteTransaction(id: string): Promise<ActionResult> {
 
   const typedExisting = existing as { account_id?: string | null; amount: number; type: "income" | "expense" };
 
-  const { error } = await supabase
+  const { error } = await db(supabase)
     .from("transactions")
     .delete()
     .eq("id", id)
@@ -410,10 +347,9 @@ export async function deleteTransaction(id: string): Promise<ActionResult> {
     return { success: false, error: "Failed to delete transaction. Please try again." }
   }
 
-  // Revert account balance if had account
   if (typedExisting.account_id) {
     await updateAccountBalance(
-      typedSupabase,
+      supabase,
       typedExisting.account_id,
       typedExisting.amount,
       typedExisting.type,
@@ -425,42 +361,18 @@ export async function deleteTransaction(id: string): Promise<ActionResult> {
   return { success: true };
 }
 
-// Helper function to compute next date for recurring transactions
-function computeNextDate(
-  fromDate: string,
-  interval: number,
-  unit: string
-): string {
-  const date = new Date(fromDate);
-  if (unit === "month") {
-    date.setMonth(date.getMonth() + interval);
-  } else if (unit === "day") {
-    date.setDate(date.getDate() + interval);
-  } else if (unit === "week") {
-    date.setDate(date.getDate() + interval * 7);
-  }
-  return date.toISOString().slice(0, 10);
-}
-
 export async function logRecurringTransaction(
   parentId: string
 ): Promise<ActionResult> {
-  // Validate UUID at start
   try {
     validateUUID(parentId)
   } catch {
     return { success: false, error: "Invalid transaction ID" }
   }
 
-  const { supabase: rawSupabase, user } = await getAuthenticatedClient();
-  const supabase: SupabaseAuthClient = rawSupabase;
+  const { supabase, user } = await getAuthenticatedClient();
 
-  if (!supabase.from) {
-    return { success: false, error: "Database client not available" };
-  }
-
-  // Fetch parent transaction
-  const { data: parent, error: fetchError } = await supabase
+  const { data: parent, error: fetchError } = await db(supabase)
     .from("transactions")
     .select("*")
     .eq("id", parentId)
@@ -469,11 +381,17 @@ export async function logRecurringTransaction(
 
   if (fetchError || !parent) return { success: false, error: "Transaction not found" };
 
-  const typedParent = parent as { category_id: string; type: "income" | "expense"; amount: number; notes: string | null; recurring_interval?: number | null; recurring_unit?: string | null };
+  const typedParent = parent as {
+    category_id: string;
+    type: "income" | "expense";
+    amount: number;
+    notes: string | null;
+    recurring_interval?: number | null;
+    recurring_unit?: string | null;
+  };
 
-  // Create new transaction for today
   const today = new Date().toISOString().slice(0, 10);
-  const { error: insertError } = await supabase
+  const { error: insertError } = await db(supabase)
     .from("transactions")
     .insert({
       user_id: user.id,
@@ -488,14 +406,14 @@ export async function logRecurringTransaction(
 
   if (insertError) return { success: false, error: "Failed to log recurring transaction" }
 
-  // Update next date on parent
+  // Update next date on parent using shared utility
   const nextDate = computeNextDate(
     today,
     typedParent.recurring_interval ?? DEFAULT_RECURRING_INTERVAL,
     typedParent.recurring_unit ?? DEFAULT_RECURRING_UNIT
   );
 
-  await supabase
+  await db(supabase)
     .from("transactions")
     .update({ recurring_next_date: nextDate })
     .eq("id", parentId)
@@ -509,25 +427,14 @@ export async function skipRecurringOccurrence(
   parentId: string
 ): Promise<ActionResult<null>> {
   return withActionResult(async () => {
-    const { supabase: rawSupabase, user } =
-      await getAuthenticatedClient()
-    const supabase: SupabaseAuthClient = rawSupabase;
-    const typedSupabase = rawSupabase as SupabaseClient;
+    const { supabase, user } = await getAuthenticatedClient()
 
-    if (!supabase.from) {
-      throw new Error("Database client not available")
-    }
-
-    // Fetch parent transaction
-    const { data: parent, error: fetchError } =
-      await supabase
-        .from("transactions")
-        .select(
-          "id, recurring_interval, recurring_unit, recurring_next_date"
-        )
-        .eq("id", parentId)
-        .eq("user_id", user.id)
-        .single()
+    const { data: parent, error: fetchError } = await db(supabase)
+      .from("transactions")
+      .select("id, recurring_interval, recurring_unit, recurring_next_date")
+      .eq("id", parentId)
+      .eq("user_id", user.id)
+      .single()
 
     if (fetchError || !parent) {
       throw new Error("Recurring transaction not found")
@@ -540,16 +447,13 @@ export async function skipRecurringOccurrence(
       recurring_next_date: string | null
     }
 
-    // Compute next date skipping this occurrence
     const nextDate = computeNextDate(
-      typedParent.recurring_next_date ??
-        new Date().toISOString().slice(0, 10),
+      typedParent.recurring_next_date ?? new Date().toISOString().slice(0, 10),
       typedParent.recurring_interval ?? 1,
       typedParent.recurring_unit ?? "month"
     )
 
-    // Update next date without creating transaction
-    const { error: updateError } = await supabase
+    const { error: updateError } = await db(supabase)
       .from("transactions")
       .update({ recurring_next_date: nextDate })
       .eq("id", parentId)
@@ -566,16 +470,9 @@ export async function stopRecurring(
   parentId: string
 ): Promise<ActionResult<null>> {
   return withActionResult(async () => {
-    const { supabase: rawSupabase, user } =
-      await getAuthenticatedClient()
-    const supabase: SupabaseAuthClient = rawSupabase;
-    const typedSupabase = rawSupabase as SupabaseClient;
+    const { supabase, user } = await getAuthenticatedClient()
 
-    if (!supabase.from) {
-      throw new Error("Database client not available")
-    }
-
-    const { error } = await supabase
+    const { error } = await db(supabase)
       .from("transactions")
       .update({
         is_recurring: false,
