@@ -1,6 +1,5 @@
 import { fetchDashboardSummary, fetchTransactions } from "@/lib/actions/transactions";
 import { fetchCategories } from "@/lib/actions/categories";
-import { getOrSeedAccounts } from "@/lib/actions/accounts";
 import { fetchGoals } from "@/lib/actions/goals";
 import { getOrComputeHealthScore } from "@/lib/actions/healthScore";
 import { DashboardClient } from "@/components/dashboard/DashboardClient";
@@ -44,14 +43,12 @@ export default async function DashboardPage() {
       summary,
       { items: allTransactions },
       categories,
-      accounts,
       goals,
       { data: monthTransactions }
     ] = await Promise.all([
       fetchDashboardSummary(),
       fetchTransactions({ page: 1, pageSize: 5 }),
       fetchCategories(),
-      getOrSeedAccounts(),
       fetchGoals(),
       supabase
         .from("transactions")
@@ -110,7 +107,6 @@ export default async function DashboardPage() {
         transactions={allTransactions.slice(0, 5)}
         allTransactions={allTransactions}
         categories={categories}
-        accounts={accounts}
         budgetSummary={budgetSummary}
         budgetWarningCount={budgetWarningCount}
         goals={goals}

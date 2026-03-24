@@ -7,7 +7,7 @@ import { Modal } from "@/components/ui/Modal";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { CURRENCY_CONFIG, SUPPORTED_CURRENCIES, formatCurrency } from "@/lib/utils/currency";
-import type { Category, Account } from "@/types";
+import type { Category } from "@/types";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import TypeToggle from "@/components/ui/TypeToggle";
 import CurrencySelector from "@/components/ui/CurrencySelector";
@@ -47,7 +47,6 @@ interface NewTransactionModalProps {
   isOpen: boolean;
   onClose: () => void;
   categories: Category[];
-  accounts: Account[];
   onSubmit: (data: {
     date: string;
     type: "income" | "expense";
@@ -58,7 +57,6 @@ interface NewTransactionModalProps {
     recurring_interval: number | null;
     recurring_unit: string | null;
     recurring_next_date: string | null;
-    account_id?: string | null;
     tax_rate?: number | null;
     commission_rate?: number | null;
     currency?: string;
@@ -66,22 +64,17 @@ interface NewTransactionModalProps {
   isLoading: boolean;
 }
 
-export const NewTransactionModal = ({ isOpen, onClose, categories, accounts, onSubmit, isLoading }: NewTransactionModalProps) => {
+export const NewTransactionModal = ({ isOpen, onClose, categories, onSubmit, isLoading }: NewTransactionModalProps) => {
   const [isMounted, setIsMounted] = useState(false);
   const { t, mounted } = useTranslation();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isRecurring, setIsRecurring] = useState(false);
   const [recurringInterval, setRecurringInterval] = useState<number>(1);
   const [recurringUnit, setRecurringUnit] = useState<string>("month");
-  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
   const [selectedCurrency, setSelectedCurrency] = useState<string>("IDR");
   const [taxRate, setTaxRate] = useState("");
   const [commissionRate, setCommissionRate] = useState("");
   const [showScanner, setShowScanner] = useState(false);
-
-  // Get currency from selected account (for display purposes)
-  const selectedAccount = accounts.find(a => a.id === selectedAccountId);
-  const transactionCurrency = selectedCurrency;
 
   const {
     watch,
@@ -119,7 +112,6 @@ export const NewTransactionModal = ({ isOpen, onClose, categories, accounts, onS
       setIsRecurring(false);
       setRecurringInterval(1);
       setRecurringUnit("month");
-      setSelectedAccountId(null);
       setSelectedCurrency("IDR");
       setTaxRate("");
       setCommissionRate("");
@@ -173,7 +165,6 @@ export const NewTransactionModal = ({ isOpen, onClose, categories, accounts, onS
       recurring_interval: isRecurring ? recurringInterval : null,
       recurring_unit: isRecurring ? recurringUnit : null,
       recurring_next_date: nextDate,
-      account_id: selectedAccountId,
       tax_rate: taxRate ? Number(taxRate) : null,
       commission_rate: commissionRate ? Number(commissionRate) : null,
       currency: selectedCurrency,
@@ -349,39 +340,6 @@ export const NewTransactionModal = ({ isOpen, onClose, categories, accounts, onS
           )}
         </div>
 
-        {/* Account Selector */}
-        {accounts.length > 0 && (
-          <div className="mb-4">
-            <label className="text-xs font-medium text-gray-500 mb-1.5 block">
-              Account <span className="text-gray-300">(optional)</span>
-            </label>
-            <div className="grid grid-cols-2 gap-2">
-              {accounts.map((acc) => (
-                <button
-                  key={acc.id}
-                  type="button"
-                  onClick={() => {
-                    setSelectedAccountId(
-                      selectedAccountId === acc.id ? null : acc.id
-                    );
-                    // Auto-set currency based on account, but allow user to override
-                    const accountCurrency = acc.currency ?? "IDR";
-                    setSelectedCurrency(accountCurrency);
-                  }}
-                  className={`flex items-center gap-2 p-2.5 rounded-lg border text-left transition-colors duration-200 ${
-                    selectedAccountId === acc.id
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
-                >
-                  <span className="text-lg">{acc.icon ?? "💰"}</span>
-                  <span className="text-xs font-medium text-gray-700">{acc.name}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Tax and Commission Fields */}
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div>
@@ -423,18 +381,18 @@ export const NewTransactionModal = ({ isOpen, onClose, categories, accounts, onS
           <div className="bg-gray-50 rounded-lg p-3 mb-4 text-xs space-y-1" aria-live="polite" aria-atomic="true">
             <div className="flex justify-between text-gray-500">
               <span>Original amount</span>
-              <span>{formatCurrency(Number(watch("amount").replace(/\./g, "").replace(/,/g, "")) || 0, transactionCurrency)}</span>
+              <span>{formatCurrency(Number(watch("amount").replace(/\./g, "").replace(/,/g, "")) || 0, selectedCurrency)}</span>
             </div>
             {taxRate && (
               <div className="flex justify-between text-gray-500">
                 <span>Tax ({taxRate}%)</span>
-                <span>+{formatCurrency((Number(watch("amount").replace(/\./g, "").replace(/,/g, "")) || 0) * Number(taxRate) / 100, transactionCurrency)}</span>
+                <span>+{formatCurrency((Number(watch("amount").replace(/\./g, "").replace(/,/g, "")) || 0) * Number(taxRate) / 100, selectedCurrency)}</span>
               </div>
             )}
             {commissionRate && (
               <div className="flex justify-between text-gray-500">
                 <span>Commission ({commissionRate}%)</span>
-                <span>-{formatCurrency((Number(watch("amount").replace(/\./g, "").replace(/,/g, "")) || 0) * Number(commissionRate) / 100, transactionCurrency)}</span>
+                <span>-{formatCurrency((Number(watch("amount").replace(/\./g, "").replace(/,/g, "")) || 0) * Number(commissionRate) / 100, selectedCurrency)}</span>
               </div>
             )}
             <div className="flex justify-between font-semibold text-gray-900 border-t border-gray-200 pt-1 mt-1">
@@ -443,11 +401,12 @@ export const NewTransactionModal = ({ isOpen, onClose, categories, accounts, onS
                 (Number(watch("amount").replace(/\./g, "").replace(/,/g, "")) || 0) +
                 (taxRate ? (Number(watch("amount").replace(/\./g, "").replace(/,/g, "")) || 0) * Number(taxRate) / 100 : 0) -
                 (commissionRate ? (Number(watch("amount").replace(/\./g, "").replace(/,/g, "")) || 0) * Number(commissionRate) / 100 : 0),
-                transactionCurrency
+                selectedCurrency
               )}</span>
             </div>
           </div>
         )}
+
 
         {/* Recurring Transaction Toggle */}
         <div className="flex items-center justify-between py-2">

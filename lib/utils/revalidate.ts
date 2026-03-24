@@ -6,7 +6,6 @@ export function revalidateFinancePaths(): void {
   revalidatePath("/transactions")
   revalidatePath("/analytics")
   revalidatePath("/budget")
-  revalidatePath("/accounts")
   revalidatePath("/calendar")
 }
 
@@ -17,13 +16,6 @@ export function revalidateTransactionPaths(): void {
   revalidatePath("/analytics")
   revalidatePath("/budget")
   revalidatePath("/calendar")
-}
-
-// Revalidate account-related paths only
-export function revalidateAccountPaths(): void {
-  revalidatePath("/dashboard")
-  revalidatePath("/accounts")
-  revalidatePath("/transactions")
 }
 
 // Revalidate category-related paths only

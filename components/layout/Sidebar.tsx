@@ -15,7 +15,6 @@ import {
   MoreHorizontal,
   LogOut,
   Settings2,
-  Wallet,
   CalendarDays,
 } from "lucide-react";
 import { OnboardingModal } from "@/components/onboarding/OnboardingModal";
@@ -35,7 +34,6 @@ const PRIMARY_NAV_ITEMS = [
 
 // Secondary nav items (shown only in sidebar, hidden on mobile)
 const SECONDARY_NAV_ITEMS = [
-  { label: "Accounts", href: "/accounts", icon: Wallet },
   { label: "Goals", href: "/goals", icon: Target },
   { label: "Analytics", href: "/analytics", icon: BarChart2 },
   { label: "Categories", href: "/categories", icon: Tag },
@@ -58,7 +56,6 @@ export function Sidebar({ budgetWarningCount, children }: SidebarProps) {
       "/transactions": "transactions",
       "/calendar": "calendar",
       "/budget": "budget",
-      "/accounts": "accounts",
       "/goals": "goals",
       "/analytics": "analytics",
       "/categories": "categories",

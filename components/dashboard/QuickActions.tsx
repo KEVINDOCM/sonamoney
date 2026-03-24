@@ -3,9 +3,9 @@
 import { useRouter } from "next/navigation";
 import {
   PlusCircle,
-  ArrowLeftRight,
   Target,
   BarChart2,
+  PiggyBank,
 } from "lucide-react";
 
 interface QuickActionsProps {
@@ -29,12 +29,6 @@ export function QuickActions({
       onClick: onAddTransaction,
     },
     {
-      icon: ArrowLeftRight,
-      label: mounted ? t("nav.accounts") : "Transfer",
-      color: "bg-[#6366F1]",
-      onClick: () => router.push("/accounts"),
-    },
-    {
       icon: Target,
       label: mounted ? t("nav.budget") : "Budget",
       color: "bg-[#FFB800]",
@@ -45,6 +39,12 @@ export function QuickActions({
       label: mounted ? t("nav.analytics") : "Analytics",
       color: "bg-[#00C48C]",
       onClick: () => router.push("/analytics"),
+    },
+    {
+      icon: PiggyBank,
+      label: mounted ? t("nav.goals") : "Goals",
+      color: "bg-[#6366F1]",
+      onClick: () => router.push("/goals"),
     },
   ];
 

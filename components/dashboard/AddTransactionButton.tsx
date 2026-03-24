@@ -9,7 +9,7 @@ import { useToast } from "@/lib/hooks/useToast";
 import { useUserData } from "@/lib/contexts/UserDataContext";
 
 export function AddTransactionButton() {
-  const { categories, accounts } = useUserData();
+  const { categories } = useUserData();
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -25,9 +25,9 @@ export function AddTransactionButton() {
     recurring_interval: number | null;
     recurring_unit: string | null;
     recurring_next_date: string | null;
-    account_id?: string | null;
     tax_rate?: number | null;
     commission_rate?: number | null;
+    currency?: string;
   }) => {
     setIsLoading(true);
     const result = await createTransactionApi({
@@ -40,7 +40,6 @@ export function AddTransactionButton() {
       recurring_interval: data.recurring_interval ?? undefined,
       recurring_unit: data.recurring_unit ?? undefined,
       recurring_next_date: data.recurring_next_date ?? undefined,
-      account_id: data.account_id ?? undefined,
     });
     setIsLoading(false);
 
@@ -65,11 +64,9 @@ export function AddTransactionButton() {
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         categories={categories}
-        accounts={accounts}
         onSubmit={handleSubmit}
         isLoading={isLoading}
       />
     </>
   );
 }
-

@@ -7,10 +7,9 @@ import { RecentTransactions } from "./RecentTransactions";
 import { BudgetOverview } from "./BudgetOverview";
 import { AddTransactionButton } from "./AddTransactionButton";
 import { QuickActions } from "./QuickActions";
-import { AccountCarousel } from "./AccountCarousel";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { useCurrency } from "@/lib/hooks/useCurrency";
-import type { Transaction, Category, Account } from "@/types";
+import type { Transaction, Category } from "@/types";
 import type { Goal } from "@/lib/actions/goals";
 import type { SavedHealthScore } from "@/lib/actions/healthScore";
 import { GoalsWidget } from "./GoalsWidget";
@@ -75,7 +74,6 @@ interface DashboardClientProps {
   transactions: Transaction[];
   allTransactions: Transaction[];
   categories: Category[];
-  accounts: Account[];
   budgetSummary: BudgetSummary;
   budgetWarningCount: number;
   goals: Goal[];
@@ -87,7 +85,6 @@ export function DashboardClient({
   transactions,
   allTransactions,
   categories,
-  accounts,
   budgetSummary,
   budgetWarningCount,
   goals,
@@ -263,31 +260,6 @@ export function DashboardClient({
         t={t}
         onAddTransaction={() => {}}
       />
-
-      {/* Account Carousel */}
-      {accounts && accounts.length > 0 && (
-        <div className="mt-6 mx-4 md:mx-0">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="section-title">
-              {mounted ? t("nav.accounts") : "Accounts"}
-            </h2>
-          </div>
-          <AccountCarousel
-            accounts={accounts}
-            mounted={mounted}
-            t={t}
-            baseCurrency={baseCurrency}
-            convert={safeConvert}
-            formatCurrency={(amount, currency) =>
-              new Intl.NumberFormat("id-ID", {
-                style: "currency",
-                currency,
-                maximumFractionDigits: 0,
-              }).format(amount)
-            }
-          />
-        </div>
-      )}
 
       {/* Budget Warning */}
       {budgetWarningCount > 0 && (

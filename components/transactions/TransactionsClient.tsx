@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import type { Transaction, Category, Account, TransactionWithCategory } from "@/types";
+import type { Transaction, Category, TransactionWithCategory } from "@/types";
 import { Button } from "@/components/ui/Button";
 import { CURRENCY_CONFIG, SUPPORTED_CURRENCIES, formatCurrency } from "@/lib/utils/currency";
 import { formatShortDate } from "@/lib/utils/formatDate";
@@ -24,7 +24,6 @@ import { ExportTransactionsButtons } from "./ExportTransactionsButtons";
 export interface TransactionsClientProps {
   transactions: Transaction[];
   categories: Category[];
-  accounts: Account[];
   total: number;
   page: number;
   pageSize: number;
@@ -86,7 +85,6 @@ function parsePayeeAndNotes(notes: string | null): { payee: string; notes: strin
 export function TransactionsClient({
   transactions: initialTransactions,
   categories,
-  accounts,
   total,
   page,
   pageSize
@@ -136,10 +134,6 @@ export function TransactionsClient({
   const categoryMap = useMemo(
     () => new Map(categories.map((c) => [c.id, c.name])),
     [categories]
-  );
-  const accountMap = useMemo(
-    () => new Map(accounts.map((a) => [a.id, a.name])),
-    [accounts]
   );
 
   const filteredTransactions = useMemo(
@@ -242,9 +236,8 @@ export function TransactionsClient({
     const tempId = "temp-" + Math.random().toString(36).slice(2);
     const category = categories.find(c => c.id === data.categoryId);
     
-    // Get currency from form data or selected account (default to IDR)
-    const selectedAccount = accounts.find(a => a.id === data.account_id);
-    const txCurrency = data.currency ?? selectedAccount?.currency ?? "IDR";
+    // Get currency from form data (default to IDR)
+    const txCurrency = data.currency ?? "IDR";
     const rateAtTime = txCurrency === "USD" ? 1 : (rates[txCurrency] ?? 16000);
     
     const optimisticTx: TransactionWithCategory = {
@@ -578,11 +571,11 @@ export function TransactionsClient({
           <TransactionTable
             transactions={paginatedTransactions}
             categories={categories}
-            accounts={accounts}
+            accounts={[]}
             hasTransactions={hasTransactions}
             activeDropdownId={activeTransactionMenuId}
             categoryMap={categoryMap}
-            accountMap={accountMap}
+            accountMap={new Map()}
             baseCurrency={baseCurrency}
             convert={convert}
             onManageClick={(id) => setActiveTransactionMenuId(current => current === id ? null : id)}
@@ -623,11 +616,11 @@ export function TransactionsClient({
           <TransactionCardList
             transactions={paginatedTransactions}
             categories={categories}
-            accounts={accounts}
+            accounts={[]}
             hasTransactions={hasTransactions}
             activeDropdownId={activeTransactionMenuId}
             categoryMap={categoryMap}
-            accountMap={accountMap}
+            accountMap={new Map()}
             baseCurrency={baseCurrency}
             convert={convert}
             onManageClick={(id) => setActiveTransactionMenuId(current => current === id ? null : id)}
@@ -726,7 +719,6 @@ export function TransactionsClient({
         isOpen={isAddOpen}
         onClose={() => setIsAddOpen(false)}
         categories={categories}
-        accounts={accounts}
         onSubmit={handleAddTransaction}
         isLoading={isSubmitting}
       />
