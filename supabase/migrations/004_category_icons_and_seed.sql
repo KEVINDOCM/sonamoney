@@ -92,9 +92,9 @@ begin
 end;
 $$ language plpgsql;
 
--- Create trigger on auth.users (optional - uncomment if you want auto-seed)
--- drop trigger if exists on_auth_user_created_categories on auth.users;
--- create trigger on_auth_user_created_categories
---   after insert on auth.users
---   for each row
---   execute function public.handle_new_user_categories();
+-- Trigger to auto-seed default categories when a new user signs up
+drop trigger if exists on_auth_user_created_categories on auth.users;
+create trigger on_auth_user_created_categories
+  after insert on auth.users
+  for each row
+  execute function public.handle_new_user_categories();

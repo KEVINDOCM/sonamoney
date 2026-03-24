@@ -90,9 +90,12 @@ export function DashboardClient({
   goals,
   healthScore,
 }: DashboardClientProps) {
-  const { t, mounted } = useTranslation();
+  const { t, mounted, lang } = useTranslation();
   const { baseCurrency, convert, rates, mounted: currencyMounted } = useCurrency();
   const prefersReducedMotion = useReducedMotion();
+
+  // Derive locale from selected language for correct number formatting
+  const locale = lang === "id" ? "id-ID" : "en-US";
 
   const safeConvert = useCallback(
     (amount: number, fromCurrency: string): number => {
@@ -137,7 +140,7 @@ export function DashboardClient({
 
   const formatCurrencyValue = (amount: number) => {
     return mounted
-      ? new Intl.NumberFormat("id-ID", {
+      ? new Intl.NumberFormat(locale, {
           style: "currency",
           currency: baseCurrency,
           maximumFractionDigits: 0,

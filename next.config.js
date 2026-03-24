@@ -117,7 +117,8 @@ const securityHeaders = [
 ]
 
 module.exports = withPWA({
-  turbopack: {},
+  // Turbopack is experimental — only enable during development
+  ...(process.env.NODE_ENV === "development" ? { turbopack: {} } : {}),
 
   // Compress responses
   compress: true,
@@ -129,6 +130,13 @@ module.exports = withPWA({
   images: {
     formats: ["image/avif", "image/webp"],
     minimumCacheTTL: 60,
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "*.supabase.co",
+        pathname: "/storage/v1/object/public/**",
+      },
+    ],
   },
 
   // Experimental optimizations

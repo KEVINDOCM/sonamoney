@@ -6,7 +6,8 @@ import { z } from "zod";
 import { Modal } from "@/components/ui/Modal";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
-import { CURRENCY_CONFIG, SUPPORTED_CURRENCIES, formatCurrency } from "@/lib/utils/currency";
+import { CURRENCY_CONFIG, SUPPORTED_CURRENCIES, formatCurrency, parseFormattedAmount } from "@/lib/utils/currency";
+import { computeNextDate } from "@/lib/utils/dateUtils";
 import type { Category } from "@/types";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import TypeToggle from "@/components/ui/TypeToggle";
@@ -14,18 +15,6 @@ import CurrencySelector from "@/components/ui/CurrencySelector";
 import { ReceiptScanner } from "@/components/transactions/ReceiptScanner";
 import { Camera } from "lucide-react";
 
-// Client-side helper to compute next recurring date
-function computeNextDateClient(
-  fromDate: string,
-  interval: number,
-  unit: string
-): string {
-  const d = new Date(fromDate);
-  if (unit === "month") d.setMonth(d.getMonth() + interval);
-  else if (unit === "week") d.setDate(d.getDate() + interval * 7);
-  else if (unit === "day") d.setDate(d.getDate() + interval);
-  return d.toISOString().slice(0, 10);
-}
 
 const CREATE_NEW_CATEGORY_VALUE = "__create_new_category__";
 
@@ -150,9 +139,9 @@ export const NewTransactionModal = ({ isOpen, onClose, categories, onSubmit, isL
 
     const combinedNotes = notesParts.length > 0 ? notesParts.join("\n") : null;
 
-    // Compute next date if recurring
+    // Compute next date if recurring using shared utility
     const nextDate = isRecurring
-      ? computeNextDateClient(validatedData.date, recurringInterval, recurringUnit)
+      ? computeNextDate(validatedData.date, recurringInterval, recurringUnit)
       : null;
 
     await onSubmit({
@@ -381,26 +370,26 @@ export const NewTransactionModal = ({ isOpen, onClose, categories, onSubmit, isL
           <div className="bg-gray-50 rounded-lg p-3 mb-4 text-xs space-y-1" aria-live="polite" aria-atomic="true">
             <div className="flex justify-between text-gray-500">
               <span>Original amount</span>
-              <span>{formatCurrency(Number(watch("amount").replace(/\./g, "").replace(/,/g, "")) || 0, selectedCurrency)}</span>
+              <span>{formatCurrency(parseFormattedAmount(watch("amount")) || 0, selectedCurrency)}</span>
             </div>
             {taxRate && (
               <div className="flex justify-between text-gray-500">
                 <span>Tax ({taxRate}%)</span>
-                <span>+{formatCurrency((Number(watch("amount").replace(/\./g, "").replace(/,/g, "")) || 0) * Number(taxRate) / 100, selectedCurrency)}</span>
+                <span>+{formatCurrency((parseFormattedAmount(watch("amount")) || 0) * Number(taxRate) / 100, selectedCurrency)}</span>
               </div>
             )}
             {commissionRate && (
               <div className="flex justify-between text-gray-500">
                 <span>Commission ({commissionRate}%)</span>
-                <span>-{formatCurrency((Number(watch("amount").replace(/\./g, "").replace(/,/g, "")) || 0) * Number(commissionRate) / 100, selectedCurrency)}</span>
+                <span>-{formatCurrency((parseFormattedAmount(watch("amount")) || 0) * Number(commissionRate) / 100, selectedCurrency)}</span>
               </div>
             )}
             <div className="flex justify-between font-semibold text-gray-900 border-t border-gray-200 pt-1 mt-1">
               <span>Net amount</span>
               <span>{formatCurrency(
-                (Number(watch("amount").replace(/\./g, "").replace(/,/g, "")) || 0) +
-                (taxRate ? (Number(watch("amount").replace(/\./g, "").replace(/,/g, "")) || 0) * Number(taxRate) / 100 : 0) -
-                (commissionRate ? (Number(watch("amount").replace(/\./g, "").replace(/,/g, "")) || 0) * Number(commissionRate) / 100 : 0),
+                (parseFormattedAmount(watch("amount")) || 0) +
+                (taxRate ? (parseFormattedAmount(watch("amount")) || 0) * Number(taxRate) / 100 : 0) -
+                (commissionRate ? (parseFormattedAmount(watch("amount")) || 0) * Number(commissionRate) / 100 : 0),
                 selectedCurrency
               )}</span>
             </div>

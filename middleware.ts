@@ -13,11 +13,6 @@ import {
 // Set MAINTENANCE_ADMIN_IPS in env (comma-separated)
 // Example: MAINTENANCE_ADMIN_IPS=192.168.1.1,10.0.0.5
 // ============================================
-const getAdminIPs = (): string[] => {
-  const envIPs = process.env.MAINTENANCE_ADMIN_IPS
-  if (!envIPs) return []
-  return envIPs.split(",").map(ip => ip.trim()).filter(Boolean)
-}
 
 // ============================================
 // SECURITY LOGGING
@@ -506,12 +501,15 @@ export async function middleware(request: MiddlewareRequest) {
     return NextResponse.redirect(new URL("/dashboard", requestUrl))
   }
 
+  // Set security and cache-control headers.
+  // NextResponse from createServerClient is typed narrowly; cast once to access the
+  // standard Web Response.headers API which exists at runtime.
+  const res = response as unknown as Response
+  res.headers.set("X-Content-Type-Options", "nosniff")
   if (user) {
-    (response as unknown as { headers: { set: (k: string, v: string) => void } }).headers.set("Cache-Control", "no-store")
-    ;(response as unknown as { headers: { set: (k: string, v: string) => void } }).headers.set("Pragma", "no-cache")
+    res.headers.set("Cache-Control", "no-store")
+    res.headers.set("Pragma", "no-cache")
   }
-
-  ;(response as unknown as { headers: { set: (k: string, v: string) => void } }).headers.set("X-Content-Type-Options", "nosniff")
 
   return response
 }
