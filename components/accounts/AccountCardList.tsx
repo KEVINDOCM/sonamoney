@@ -29,6 +29,11 @@ export function AccountCardList({
 }: AccountCardListProps) {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
+  // DEBUG: Log accounts data
+  console.log('[AccountCardList] accounts prop:', accounts);
+  console.log('[AccountCardList] accounts.length:', accounts?.length);
+  console.log('[AccountCardList] isLoading:', isLoading);
+
   return (
     <div>
       {/* Mobile: horizontal scroll */}

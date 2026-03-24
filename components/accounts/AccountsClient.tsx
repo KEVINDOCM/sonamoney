@@ -67,6 +67,8 @@ export function AccountsClient({ accounts, transfers }: AccountsClientProps) {
 
   // Sync localAccounts when context accounts change (e.g., after refetch)
   useEffect(() => {
+    console.log('[AccountsClient] contextAccounts changed:', contextAccounts);
+    console.log('[AccountsClient] contextAccounts.length:', contextAccounts?.length);
     setLocalAccounts(contextAccounts);
   }, [contextAccounts]);
 
@@ -107,7 +109,9 @@ export function AccountsClient({ accounts, transfers }: AccountsClientProps) {
     setIcon("💵");
 
     // Refetch accounts to update context and local state
+    console.log('[AccountsClient] Starting refetchAccounts...');
     await refetchAccounts();
+    console.log('[AccountsClient] refetchAccounts completed');
   };
 
   const handleEdit = async () => {
@@ -293,6 +297,8 @@ export function AccountsClient({ accounts, transfers }: AccountsClientProps) {
       </div>
 
       <div className="px-4 md:px-0">
+        {/* DEBUG: Log what's being passed to AccountCardList */}
+        {(() => { console.log('[AccountsClient] Rendering AccountCardList with localAccounts:', localAccounts); return null; })()}
         <AccountCardList
           accounts={localAccounts}
           onEdit={handleOpenEditModal}

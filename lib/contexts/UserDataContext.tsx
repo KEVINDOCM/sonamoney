@@ -29,7 +29,10 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   const refetchAccounts = useCallback(async () => {
+    console.log('[UserDataContext] Starting refetchAccounts...');
     const data = await getOrSeedAccounts()
+    console.log('[UserDataContext] refetchAccounts received data:', data);
+    console.log('[UserDataContext] refetchAccounts data.length:', data?.length);
     setAccounts(data)
   }, [])
 
