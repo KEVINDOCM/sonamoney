@@ -36,7 +36,8 @@ export interface AccountsClientProps {
 
 export function AccountsClient({ accounts, transfers }: AccountsClientProps) {
   const { accounts: contextAccounts, refetchAccounts } = useUserData();
-  const [localAccounts, setLocalAccounts] = useState<Account[]>(contextAccounts);
+  // Initialize from server-provided prop (has data immediately); sync from context when it loads
+  const [localAccounts, setLocalAccounts] = useState<Account[]>(accounts);
   const [localTransfers, setLocalTransfers] = useState<TransferWithAccounts[]>(transfers);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -67,9 +68,11 @@ export function AccountsClient({ accounts, transfers }: AccountsClientProps) {
 
   // Sync localAccounts when context accounts change (e.g., after refetch)
   useEffect(() => {
-    console.log('[AccountsClient] contextAccounts changed:', contextAccounts);
-    console.log('[AccountsClient] contextAccounts.length:', contextAccounts?.length);
-    setLocalAccounts(contextAccounts);
+    // Only sync when context has loaded accounts (non-empty), to avoid overwriting
+    // the server-provided initial data with the transient empty state of the context.
+    if (contextAccounts && contextAccounts.length > 0) {
+      setLocalAccounts(contextAccounts);
+    }
   }, [contextAccounts]);
 
   // Sync localTransfers when transfers prop changes
@@ -297,8 +300,6 @@ export function AccountsClient({ accounts, transfers }: AccountsClientProps) {
       </div>
 
       <div className="px-4 md:px-0">
-        {/* DEBUG: Log what's being passed to AccountCardList */}
-        {(() => { console.log('[AccountsClient] Rendering AccountCardList with localAccounts:', localAccounts); return null; })()}
         <AccountCardList
           accounts={localAccounts}
           onEdit={handleOpenEditModal}

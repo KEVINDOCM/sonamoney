@@ -490,6 +490,7 @@ export function AnalyticsClient({ transactions }: AnalyticsClientProps) {
                     <h3 className="text-sm font-bold text-[#1A1A2E] dark:text-white">{mounted ? t("analytics.incomeVsExpense") : "Income vs Expense"}</h3>
                     <p className="text-xs text-[#6B7280] mt-0.5 mb-4">{mounted ? t("analytics.monthlyComparison") : "Monthly comparison"}</p>
                     <div className="h-48 lg:h-72 w-full">
+                        {!mounted ? <div className="h-full w-full animate-pulse bg-gray-100 dark:bg-gray-800 rounded-xl" /> : (
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={chart1And3Data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="#F5F7FA" vertical={false} />
@@ -504,6 +505,7 @@ export function AnalyticsClient({ transactions }: AnalyticsClientProps) {
                                 <Bar dataKey="expense" name={expenseLabel} fill="#FF5B5B" radius={[4, 4, 0, 0]} />
                             </BarChart>
                         </ResponsiveContainer>
+                        )}
                     </div>
                     <p className="text-xs text-gray-400 dark:text-gray-500 mt-2 text-right">
                         {mounted ? `${t("common.convertedTo")} ${baseCurrency}` : `Converted to ${baseCurrency}`}
@@ -515,7 +517,8 @@ export function AnalyticsClient({ transactions }: AnalyticsClientProps) {
                     <h3 className="text-sm font-bold text-[#1A1A2E] dark:text-white">{mounted ? t("analytics.expenseByCategory") : "Expense by Category"}</h3>
                     <p className="text-xs text-[#6B7280] mt-0.5 mb-4">{mounted ? t("analytics.distributionSpending") : "Distribution of your spending"}</p>
                     <div className="h-56 lg:h-72 w-full">
-                        {expensesByCategory.length === 0 ? renderEmptyChart() : (
+                        {!mounted ? <div className="h-full w-full animate-pulse bg-gray-100 dark:bg-gray-800 rounded-xl" /> :
+                        expensesByCategory.length === 0 ? renderEmptyChart() : (
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
                                     <Tooltip
@@ -549,7 +552,8 @@ export function AnalyticsClient({ transactions }: AnalyticsClientProps) {
                     <h3 className="text-sm font-bold text-[#1A1A2E] dark:text-white">{mounted ? t("analytics.topSpending") : "Top Spending"}</h3>
                     <p className="text-xs text-[#6B7280] mt-0.5 mb-4">{mounted ? t("analytics.top5Categories") : "Your 5 highest expense categories"}</p>
                     <div className="h-48 lg:h-64 w-full">
-                        {top5Expenses.length === 0 ? renderEmptyChart() : (
+                        {!mounted ? <div className="h-full w-full animate-pulse bg-gray-100 dark:bg-gray-800 rounded-xl" /> :
+                        top5Expenses.length === 0 ? renderEmptyChart() : (
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={top5Expenses} layout="vertical" margin={{ top: 10, right: 60, left: 10, bottom: 0 }}>
                                     <CartesianGrid strokeDasharray="3 3" stroke="#F5F7FA" horizontal={false} vertical={false} />
@@ -581,6 +585,7 @@ export function AnalyticsClient({ transactions }: AnalyticsClientProps) {
                         <p className="text-xs text-[#6B7280] mt-0.5 mb-4">{mounted ? t("analytics.budgetVsActualDesc") : "How your spending compares to set limits"}</p>
 
                         <div className="h-48 lg:h-64">
+                            {!mounted ? <div className="h-full w-full animate-pulse bg-gray-100 dark:bg-gray-800 rounded-xl" /> : (
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart
                                     data={budgetVsActualData}
@@ -618,6 +623,7 @@ export function AnalyticsClient({ transactions }: AnalyticsClientProps) {
                                     </Bar>
                                 </BarChart>
                             </ResponsiveContainer>
+                            )}
                         </div>
 
                         {/* OVER BUDGET WARNING */}
@@ -637,6 +643,7 @@ export function AnalyticsClient({ transactions }: AnalyticsClientProps) {
                     <h3 className="text-sm font-bold text-[#1A1A2E] dark:text-white">{mounted ? t("analytics.trend") : "6 Month Trend"}</h3>
                     <p className="text-xs text-[#6B7280] mt-0.5 mb-4">{mounted ? t("analytics.incomeExpenseOverTime") : "Income and expense over time"}</p>
                     <div className="h-48 lg:h-64 w-full">
+                        {!mounted ? <div className="h-full w-full animate-pulse bg-gray-100 dark:bg-gray-800 rounded-xl" /> : (
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={chart1And3Data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="#F5F7FA" vertical={false} />
@@ -651,6 +658,7 @@ export function AnalyticsClient({ transactions }: AnalyticsClientProps) {
                                 <Line type="monotone" dataKey="expense" name={expenseLabel} stroke="#FF5B5B" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
                             </LineChart>
                         </ResponsiveContainer>
+                        )}
                     </div>
                     <p className="text-xs text-gray-400 dark:text-gray-500 mt-2 text-right">
                         {mounted ? `${t("common.convertedTo")} ${baseCurrency}` : `Converted to ${baseCurrency}`}
