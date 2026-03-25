@@ -11,60 +11,22 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = getSiteUrl()
   const currentDate = new Date()
 
-  return [
-    {
-      url: baseUrl,
-      lastModified: currentDate,
-      changeFrequency: "weekly",
-      priority: 1.0,
-    },
-    {
-      url: `${baseUrl}/id`,
-      lastModified: currentDate,
-      changeFrequency: "weekly",
-      priority: 0.95,
-    },
-    {
-      url: `${baseUrl}/mint-alternative`,
-      lastModified: currentDate,
-      changeFrequency: "weekly",
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/budget-calculator`,
-      lastModified: currentDate,
-      changeFrequency: "monthly",
-      priority: 0.85,
-    },
-    {
-      url: `${baseUrl}/templates`,
-      lastModified: currentDate,
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/manual-tracker`,
-      lastModified: currentDate,
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/signup`,
-      lastModified: currentDate,
-      changeFrequency: "yearly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/register`,
-      lastModified: currentDate,
-      changeFrequency: "yearly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/login`,
-      lastModified: currentDate,
-      changeFrequency: "yearly",
-      priority: 0.6,
-    },
+  const routes = [
+    { path: "", priority: 1.0, freq: "weekly" as const },
+    { path: "/id", priority: 0.95, freq: "weekly" as const },
+    { path: "/mint-alternative", priority: 0.9, freq: "weekly" as const },
+    { path: "/budget-calculator", priority: 0.85, freq: "monthly" as const },
+    { path: "/templates", priority: 0.8, freq: "monthly" as const },
+    { path: "/manual-tracker", priority: 0.8, freq: "monthly" as const },
+    { path: "/signup", priority: 0.7, freq: "yearly" as const },
+    { path: "/register", priority: 0.7, freq: "yearly" as const },
+    { path: "/login", priority: 0.6, freq: "yearly" as const },
   ]
+
+  return routes.map(({ path, priority, freq }) => ({
+    url: `${baseUrl}${path}`,
+    lastModified: currentDate,
+    changeFrequency: freq,
+    priority,
+  }))
 }

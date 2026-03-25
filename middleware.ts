@@ -175,6 +175,24 @@ function detectAnonymizer(headers: { get: (name: string) => string | null }): st
 export async function middleware(request: MiddlewareRequest) {
   const { pathname } = request.nextUrl
   const requestUrl = request.url
+  const hostname = request.headers.get("host") || ""
+  
+  // Vercel canonical redirect (301 Permanent)
+  if (
+    hostname.endsWith(".vercel.app") &&
+    process.env.NEXT_PUBLIC_APP_URL &&
+    !process.env.NEXT_PUBLIC_APP_URL.includes("vercel.app")
+  ) {
+    const canonicalUrl = new URL(pathname, process.env.NEXT_PUBLIC_APP_URL)
+    const currentUrl = new URL(requestUrl)
+    canonicalUrl.search = currentUrl.search
+    return new Response(null, {
+      status: 301,
+      headers: {
+        Location: canonicalUrl.toString(),
+      },
+    })
+  }
   
   // Extract IP using industry-standard method
   const ip = extractClientIP(request.headers)

@@ -13,16 +13,19 @@ const inter = Inter({ subsets: ["latin"], display: "swap" });
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
   title: {
-    default: "SonaMoney — Free Personal Finance Tracker & Budget App 2026",
+    default: "SonaMoney — Best Free Financial Tracker & Budget App 2026",
     template: "%s | SonaMoney",
   },
   description:
-    "Track income, expenses, and budgets easily with SonaMoney. " +
+    "Track income, expenses, and budgets easily with SonaMoney, the ultimate free financial tracker. " +
     "Aplikasi keuangan pribadi gratis dengan analytics real-time, " +
     "multi-currency, AI assistant & bank-level security. " +
-    "Free personal finance app for everyone. No credit card required.",
+    "Free personal financial tracker app for everyone. No credit card required.",
   keywords: [
-    "personal finance tracker",
+    "financial tracker",
+    "free financial tracker",
+    "personal financial tracker",
+    "best financial tracker",
     "budget tracker app",
     "expense tracker free",
     "money management app",
@@ -70,16 +73,16 @@ export const metadata: Metadata = {
     alternateLocale: ["en_US"],
     url: getSiteUrl(),
     siteName: "SonaMoney",
-    title: "SonaMoney — Free Personal Finance Tracker & Budget App 2026",
+    title: "SonaMoney — Best Free Financial Tracker & Budget App 2026",
     description:
       "Track income, expenses, and budgets easily. " +
-      "Free personal finance app with real-time analytics, multi-currency, and AI assistant.",
+      "Free financial tracker with real-time analytics, multi-currency, and AI assistant.",
     images: [
       {
         url: `${getSiteUrl()}/og-image.png`,
         width: 1200,
         height: 630,
-        alt: "SonaMoney — Free Personal Finance Tracker & Budget App",
+        alt: "SonaMoney — Best Free Financial Tracker & Budget App",
         type: "image/png",
       },
     ],
@@ -88,12 +91,12 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     site: "@sonamoney",
     creator: "@sonamoney",
-    title: "SonaMoney — Free Personal Finance Tracker & Budget App 2026",
+    title: "SonaMoney — Best Free Financial Tracker & Budget App 2026",
     description:
-      "Free personal finance tracker. Track income, expenses, budgets, and insights with AI assistance.",
+      "Free financial tracker. Track income, expenses, budgets, and insights with AI assistance.",
     images: {
       url: `${getSiteUrl()}/og-image.png`,
-      alt: "SonaMoney — Free Personal Finance Tracker & Budget App",
+      alt: "SonaMoney — Best Free Financial Tracker & Budget App",
       width: 1200,
       height: 630,
     },
