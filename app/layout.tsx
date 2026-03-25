@@ -1,11 +1,14 @@
 import type { ReactNode } from "react";
 import type { Metadata, Viewport } from "next";
 import { getSiteUrl } from "@/lib/utils/url";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { ToastProvider } from "@/components/ui/ToastProvider";
 import { CurrencyProvider } from "@/lib/contexts/CurrencyContext";
 import { TranslationProvider } from "@/lib/contexts/TranslationContext";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+
+const inter = Inter({ subsets: ["latin"], display: "swap" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
@@ -181,9 +184,6 @@ export default function RootLayout({ children }: RootLayoutProps) {
           href={process.env.NEXT_PUBLIC_SUPABASE_URL ?? ""}
         />
 
-        {/* Preconnect to Google Fonts if used */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-
         {/* DNS prefetch for external APIs */}
         <link
           rel="dns-prefetch"
@@ -194,7 +194,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
           href="https://open.er-api.com"
         />
       </head>
-      <body className="bg-[#F5F7FA] text-[#1A1A2E]">
+      <body className={`${inter.className} bg-brand-background text-brand-textPrimary dark:bg-darkSurface dark:text-slate-200`}>
         <ToastProvider>
           <TranslationProvider>
             <CurrencyProvider>

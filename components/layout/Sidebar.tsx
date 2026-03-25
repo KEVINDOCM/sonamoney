@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import * as navigation from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { logout } from "@/lib/actions/auth";
 import { useTranslation } from "@/lib/i18n/useTranslation";
@@ -16,6 +16,8 @@ import {
   LogOut,
   Settings2,
   CalendarDays,
+  PanelLeft,
+  PanelLeftClose
 } from "lucide-react";
 import { OnboardingModal } from "@/components/onboarding/OnboardingModal";
 
@@ -45,7 +47,20 @@ const ALL_NAV_ITEMS = [...PRIMARY_NAV_ITEMS, ...SECONDARY_NAV_ITEMS];
 export function Sidebar({ budgetWarningCount, children }: SidebarProps) {
   const pathname = navigation.usePathname();
   const [isMoreOpen, setIsMoreOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const { t, mounted } = useTranslation();
+
+  // Keyboard shortcut for Cmd+B / Ctrl+B
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'b') {
+        e.preventDefault();
+        setIsExpanded(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const isActive = (href: string) => pathname === href;
   const isMoreActive = SECONDARY_NAV_ITEMS.some((item) => isActive(item.href));
@@ -65,14 +80,27 @@ export function Sidebar({ budgetWarningCount, children }: SidebarProps) {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col lg:flex-row">
+    <div className="min-h-screen bg-brand-background dark:bg-darkSurface flex flex-col lg:flex-row">
       {/* Sidebar - Desktop only, collapsible with hover */}
-      <aside className="group fixed inset-y-0 left-0 z-40 w-16 hover:w-64 bg-white dark:bg-gray-900 hidden lg:flex flex-col py-6 transition-all duration-300 ease-in-out overflow-hidden border-r border-gray-100 dark:border-gray-800 shadow-[2px_0_8px_rgba(0,0,0,0.04)]">
+      <aside 
+        className={`group fixed inset-y-0 left-0 z-40 ${isExpanded ? 'w-64' : 'w-16 hover:w-64'} bg-white dark:bg-darkSurface-elevated hidden lg:flex flex-col py-6 transition-all duration-300 ease-in-out overflow-hidden border-r border-slate-200 dark:border-slate-800 shadow-soft`}
+        aria-expanded={isExpanded}
+      >
+        {/* Toggle Button */}
+        <button 
+          onClick={() => setIsExpanded(!isExpanded)}
+          className={`absolute right-3 top-6 p-1.5 rounded-lg text-brand-textSecondary hover:bg-slate-100 dark:hover:bg-slate-800 focus:opacity-100 transition-opacity z-50 ${isExpanded ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+          aria-label={isExpanded ? "Collapse Sidebar (Cmd+B)" : "Expand Sidebar (Cmd+B)"}
+          title={isExpanded ? "Collapse Sidebar (Cmd+B)" : "Expand Sidebar (Cmd+B)"}
+        >
+          {isExpanded ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeft className="h-4 w-4" />}
+        </button>
+
         {/* Logo section */}
         <div className="mb-8 px-3 flex items-center gap-3 overflow-hidden">
           <Link href="/dashboard" aria-label="SonaMoney Home" className="flex items-center gap-3">
             <img src="/logo-navbar.svg" alt="SonaMoney" className="h-8 w-8 shrink-0" />
-            <span className="font-bold text-gray-900 dark:text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <span className={`font-bold text-brand-textPrimary dark:text-white whitespace-nowrap transition-opacity duration-200 ${isExpanded ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
               SonaMoney
             </span>
           </Link>
@@ -93,12 +121,12 @@ export function Sidebar({ budgetWarningCount, children }: SidebarProps) {
                 aria-label={mounted && navKey ? t(`nav.${navKey}`) : item.label}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 ${
                   active
-                    ? "bg-teal-50 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 font-semibold"
-                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200"
+                    ? "bg-brand-primaryLight dark:bg-brand-primary/20 text-brand-primary dark:text-brand-primary font-semibold"
+                    : "text-brand-textSecondary dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-brand-textPrimary dark:hover:text-slate-200"
                 }`}
               >
                 <Icon className="h-5 w-5 shrink-0" />
-                <span className="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-sm font-medium">
+                <span className={`whitespace-nowrap transition-opacity duration-200 text-sm font-medium ${isExpanded ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
                   {mounted && navKey ? t(`nav.${navKey}`) : item.label}
                 </span>
                 {isBudget && budgetWarningCount > 0 && (
@@ -118,10 +146,10 @@ export function Sidebar({ budgetWarningCount, children }: SidebarProps) {
               type="submit"
               variant="ghost"
               ariaLabel={mounted ? t("nav.logout") : "Log out"}
-              className="w-full justify-start gap-3 px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-red-500 dark:hover:text-red-400 transition-all duration-200"
+              className={`w-full justify-start gap-3 px-3 py-2.5 rounded-xl text-brand-textSecondary dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-brand-danger dark:hover:text-brand-danger transition-all duration-200`}
             >
               <LogOut className="h-5 w-5 shrink-0" />
-              <span className="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-sm font-medium">
+              <span className={`whitespace-nowrap transition-opacity duration-200 text-sm font-medium ${isExpanded ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
                 {mounted ? t("nav.logout") : "Log out"}
               </span>
             </Button>
@@ -130,8 +158,8 @@ export function Sidebar({ budgetWarningCount, children }: SidebarProps) {
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 w-full ml-0 lg:ml-16 pb-16 lg:pb-0 bg-slate-50 dark:bg-slate-950">
-        <div className="px-4 py-4 lg:px-6 lg:py-6 min-h-screen bg-slate-50 dark:bg-slate-950 overflow-x-hidden">
+      <main className={`flex-1 w-full pb-16 lg:pb-0 bg-brand-background dark:bg-darkSurface transition-all duration-300 ease-in-out ${isExpanded ? 'lg:ml-64' : 'lg:ml-16'}`}>
+        <div className="px-4 py-4 lg:px-6 lg:py-6 min-h-screen bg-brand-background dark:bg-darkSurface overflow-x-hidden">
           {children}
         </div>
       </main>

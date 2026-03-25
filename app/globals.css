@@ -15,8 +15,8 @@ html {
 }
 
 body {
-  background-color: #F8FAFC;
-  color: #0F172A;
+  background-color: theme('colors.brand.background');
+  color: theme('colors.brand.textPrimary');
   font-size: 0.875rem;
   line-height: 1.5rem;
   -webkit-font-smoothing: antialiased;
@@ -30,8 +30,8 @@ body {
 }
 
 .dark body {
-  background-color: #0F172A;
-  color: #F1F5F9;
+  background-color: theme('colors.darkSurface.DEFAULT');
+  color: theme('colors.slate.200');
 }
 
 *,
@@ -136,7 +136,7 @@ body {
          rounded-xl font-semibold
          h-11 px-5
          hover:border-brand-primary hover:text-brand-primary
-         dark:hover:border-teal-500 dark:hover:text-teal-400
+         dark:hover:border-brand-primary dark:hover:text-brand-primary
          active:scale-[0.98]
          transition-all duration-200
          bg-transparent;
@@ -146,7 +146,7 @@ body {
   @apply bg-brand-danger text-white
          rounded-xl font-semibold
          h-11 px-5
-         hover:bg-red-600
+         hover:bg-brand-danger
          active:scale-[0.98]
          transition-all duration-200
          disabled:opacity-50
@@ -262,11 +262,11 @@ body {
 }
 
 .text-amount-income {
-  @apply text-amount text-brand-success dark:text-emerald-400;
+  @apply text-amount text-brand-success dark:text-brand-success;
 }
 
 .text-amount-expense {
-  @apply text-amount text-brand-danger dark:text-red-400;
+  @apply text-amount text-brand-danger dark:text-brand-danger;
 }
 
 /* =========================================

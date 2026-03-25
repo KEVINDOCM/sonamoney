@@ -9,9 +9,9 @@ export function Input({ id, label, error, className = "", ...props }: InputProps
   const inputId = id ?? props.name ?? label.toLowerCase().replace(/\s+/g, "-");
 
   const baseClass =
-    "w-full h-10 lg:h-10 text-base lg:text-sm text-gray-900 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent";
+    "w-full h-10 lg:h-10 text-base lg:text-sm text-brand-textPrimary border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent bg-white dark:bg-darkSurface-elevated dark:text-slate-200 dark:border-slate-700";
 
-  const borderClass = error ? "border-rose-500 focus:ring-rose-500" : "border-gray-300";
+  const borderClass = error ? "border-brand-danger focus:ring-brand-danger" : "border-slate-300";
 
   return (
     <div className="flex flex-col gap-1">

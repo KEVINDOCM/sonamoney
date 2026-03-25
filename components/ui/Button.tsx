@@ -1,25 +1,25 @@
 import type { ButtonHTMLAttributes } from "react";
 
 const BASE_BUTTON_CLASS =
-  "inline-flex items-center justify-center min-h-11 lg:min-h-10 rounded-xl text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 active:scale-[0.98]";
+  "inline-flex items-center justify-center min-h-11 lg:min-h-10 rounded-xl text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 active:scale-[0.98]";
 
 const PRIMARY_CLASS = 
-  "bg-teal-600 text-white px-5 hover:bg-teal-700 shadow-[0_0_8px_rgba(13,148,136,0.15)] hover:shadow-[0_0_16px_rgba(13,148,136,0.2)]";
+  "bg-brand-primary text-white px-5 hover:bg-brand-primaryHover shadow-teal-sm hover:shadow-teal-md";
 
 const SECONDARY_CLASS =
-  "bg-teal-50 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300 px-5 hover:bg-teal-100 dark:hover:bg-teal-900/50";
+  "bg-brand-primaryLight text-brand-primary dark:bg-teal-900/30 dark:text-teal-300 px-5 hover:bg-teal-200 dark:hover:bg-teal-900/50";
 
 const TERTIARY_CLASS =
   "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 px-5 hover:bg-slate-200 dark:hover:bg-slate-700";
 
 const DANGER_CLASS = 
-  "bg-red-500 text-white px-5 hover:bg-red-600";
+  "bg-brand-danger text-white px-5 hover:bg-red-600";
 
 const GHOST_CLASS = 
-  "text-slate-600 dark:text-slate-400 px-4 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200";
+  "text-brand-textSecondary dark:text-slate-400 px-4 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-brand-textPrimary dark:hover:text-slate-200";
 
 const OUTLINE_CLASS =
-  "border-2 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 px-5 hover:border-teal-600 hover:text-teal-600 dark:hover:border-teal-500 dark:hover:text-teal-400 bg-transparent";
+  "border-2 border-slate-200 dark:border-slate-700 text-brand-textPrimary dark:text-slate-300 px-5 hover:border-brand-primary hover:text-brand-primary dark:hover:border-teal-500 dark:hover:text-teal-400 bg-transparent";
 
 export type ButtonVariant = "primary" | "secondary" | "tertiary" | "danger" | "ghost" | "outline";
 

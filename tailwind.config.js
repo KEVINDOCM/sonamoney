@@ -50,9 +50,9 @@ module.exports = {
           surfaceElevated: "#FAFAFA",
           background: "#F8FAFC",
           textPrimary: "#0F172A",
-          textSecondary: "#64748B",
-          textTertiary: "#94A3B8",
-          textDisabled: "#CBD5E1",
+          textSecondary: "#475569", // Darkened for better hierarchy
+          textTertiary: "#64748B",  // Darkened to pass WCAG AA
+          textDisabled: "#94A3B8",
         },
         darkSurface: {
           DEFAULT: "#0F172A",
