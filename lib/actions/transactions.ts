@@ -18,6 +18,7 @@ import {
 } from "@/lib/constants";
 import type { Transaction, TransactionType } from "@/types";
 import { z } from "zod";
+import { randomUUID } from "crypto";
 
 // ─────────────────────────────────────────────────────────────────
 // Internal Supabase query helper
@@ -176,7 +177,10 @@ export async function createTransaction(payload: CreateTransactionPayload): Prom
   }
   const safePayload = validationResult.data
 
-  // Use atomic RPC function for ACID compliance
+  // Generate idempotency key to prevent duplicate transactions
+  const idempotencyKey = randomUUID();
+
+  // Use atomic RPC function for ACID compliance with idempotency
   const { data, error } = await db(supabase).rpc("atomic_create_transaction", {
     p_user_id: user.id,
     p_category_id: safePayload.category_id,
@@ -191,6 +195,7 @@ export async function createTransaction(payload: CreateTransactionPayload): Prom
     p_recurring_interval: safePayload.is_recurring ? safePayload.recurring_interval ?? DEFAULT_RECURRING_INTERVAL : null,
     p_recurring_unit: safePayload.is_recurring ? safePayload.recurring_unit ?? DEFAULT_RECURRING_UNIT : null,
     p_recurring_next_date: safePayload.is_recurring ? safePayload.recurring_next_date ?? null : null,
+    p_idempotency_key: idempotencyKey,
   });
 
   if (error) {
@@ -198,11 +203,16 @@ export async function createTransaction(payload: CreateTransactionPayload): Prom
     return { success: false, error: "Failed to create transaction. Please try again." };
   }
 
-  const result = data as { success?: boolean; error?: string; transaction_id?: string } | null;
+  const result = data as { success?: boolean; error?: string; transaction_id?: string; idempotent?: boolean } | null;
   if (!result?.success) {
     const errorMsg = result?.error || "Unknown error";
     console.error("[ATOMIC] Transaction creation failed:", errorMsg);
     return { success: false, error: `Transaction failed: ${errorMsg}` };
+  }
+
+  // Log idempotent requests for monitoring (silent success - no action needed)
+  if (result.idempotent) {
+    console.log("[IDEMPOTENCY] Duplicate transaction request handled:", result.transaction_id);
   }
 
   revalidateTransactionPaths();
@@ -318,10 +328,15 @@ export async function logRecurringTransaction(
 
   const { supabase, user } = await getAuthenticatedClient();
 
-  // Use atomic RPC function for ACID compliance
+  // Generate idempotency key for recurring transaction logging
+  // Combines parentId and current date for natural idempotency
+  const idempotencyKey = randomUUID();
+
+  // Use atomic RPC function for ACID compliance with idempotency
   const { data, error } = await db(supabase).rpc("atomic_log_recurring_transaction", {
     p_parent_id: parentId,
     p_user_id: user.id,
+    p_idempotency_key: idempotencyKey,
   });
 
   if (error) {
@@ -329,11 +344,16 @@ export async function logRecurringTransaction(
     return { success: false, error: "Failed to log recurring transaction" };
   }
 
-  const result = data as { success?: boolean; error?: string; transaction_id?: string; next_date?: string } | null;
+  const result = data as { success?: boolean; error?: string; transaction_id?: string; next_date?: string; idempotent?: boolean } | null;
   if (!result?.success) {
     const errorMsg = result?.error || "Unknown error";
     console.error("[ATOMIC] Recurring transaction logging failed:", errorMsg);
     return { success: false, error: `Logging failed: ${errorMsg}` };
+  }
+
+  // Log idempotent requests for monitoring
+  if (result.idempotent) {
+    console.log("[IDEMPOTENCY] Duplicate recurring transaction handled:", result.transaction_id);
   }
 
   revalidateTransactionPaths();
