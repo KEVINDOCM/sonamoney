@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { getAuthenticatedClient } from "@/lib/utils/auth";
 import { revalidateTransactionPaths } from "@/lib/utils/revalidate";
-import { adjustAccountBalance } from "@/lib/utils/balance";
 import { withActionResult } from "@/lib/utils/actions";
 import { validateUUID, sanitizeNotes } from "@/lib/utils/validation";
 import { computeNextDate } from "@/lib/utils/dateUtils";
@@ -33,6 +32,7 @@ function db(supabase: AnyQueryable) {
   return supabase as {
     from: (table: string) => AnyQueryable;
     auth: AnyQueryable;
+    rpc: (fn: string, params: Record<string, unknown>) => Promise<{ data: unknown; error: Error | null }>;
   };
 }
 
@@ -150,21 +150,6 @@ export async function fetchDashboardSummary(): Promise<DashboardSummary> {
   };
 }
 
-// Helper function to update account balance
-async function updateAccountBalance(
-  supabase: AnyQueryable,
-  accountId: string,
-  amount: number,
-  type: "income" | "expense",
-  operation: "add" | "revert"
-): Promise<void> {
-  const delta = operation === "add"
-    ? (type === "income" ? amount : -amount)
-    : (type === "income" ? -amount : amount);
-  // Cast to match balance.ts local interface
-  await adjustAccountBalance(supabase as unknown as Parameters<typeof adjustAccountBalance>[0], accountId, delta);
-}
-
 const createTransactionSchema = z.object({
   category_id: z.string().uuid("Invalid category ID"),
   amount: z.number().positive("Amount must be positive").max(999999999999, "Amount too large"),
@@ -180,7 +165,7 @@ const createTransactionSchema = z.object({
   recurring_interval: z.number().int().positive().nullable().optional(),
   recurring_unit: z.enum(["day", "week", "month"]).nullable().optional(),
   recurring_next_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
-})
+});
 
 export async function createTransaction(payload: CreateTransactionPayload): Promise<ActionResult> {
   const { supabase, user } = await getAuthenticatedClient();
@@ -191,36 +176,33 @@ export async function createTransaction(payload: CreateTransactionPayload): Prom
   }
   const safePayload = validationResult.data
 
-  const { error } = await db(supabase).from("transactions").insert({
-    user_id: user.id,
-    category_id: safePayload.category_id,
-    amount: Number(safePayload.amount),
-    type: safePayload.type,
-    date: safePayload.date,
-    notes: sanitizeNotes(safePayload.notes),
-    is_recurring: safePayload.is_recurring,
-    recurring_interval: safePayload.is_recurring ? safePayload.recurring_interval ?? DEFAULT_RECURRING_INTERVAL : null,
-    recurring_unit: safePayload.is_recurring ? safePayload.recurring_unit ?? DEFAULT_RECURRING_UNIT : null,
-    recurring_next_date: safePayload.is_recurring ? safePayload.recurring_next_date ?? null : null,
-    account_id: safePayload.account_id ?? null,
-    tax_rate: safePayload.tax_rate ?? null,
-    commission_rate: safePayload.commission_rate ?? null,
-    currency: safePayload.currency ?? "IDR",
-    exchange_rate_at_time: safePayload.exchange_rate_at_time ?? 1,
+  // Use atomic RPC function for ACID compliance
+  const { data, error } = await db(supabase).rpc("atomic_create_transaction", {
+    p_user_id: user.id,
+    p_category_id: safePayload.category_id,
+    p_amount: Number(safePayload.amount),
+    p_type: safePayload.type,
+    p_date: safePayload.date,
+    p_notes: sanitizeNotes(safePayload.notes),
+    p_account_id: safePayload.account_id ?? null,
+    p_currency: safePayload.currency ?? "IDR",
+    p_exchange_rate_at_time: safePayload.exchange_rate_at_time ?? 1,
+    p_is_recurring: safePayload.is_recurring,
+    p_recurring_interval: safePayload.is_recurring ? safePayload.recurring_interval ?? DEFAULT_RECURRING_INTERVAL : null,
+    p_recurring_unit: safePayload.is_recurring ? safePayload.recurring_unit ?? DEFAULT_RECURRING_UNIT : null,
+    p_recurring_next_date: safePayload.is_recurring ? safePayload.recurring_next_date ?? null : null,
   });
 
   if (error) {
+    console.error("[ATOMIC] Transaction creation failed:", error.message);
     return { success: false, error: "Failed to create transaction. Please try again." };
   }
 
-  if (payload.account_id) {
-    await updateAccountBalance(
-      supabase,
-      payload.account_id,
-      Number(payload.amount),
-      payload.type,
-      "add"
-    );
+  const result = data as { success?: boolean; error?: string; transaction_id?: string } | null;
+  if (!result?.success) {
+    const errorMsg = result?.error || "Unknown error";
+    console.error("[ATOMIC] Transaction creation failed:", errorMsg);
+    return { success: false, error: `Transaction failed: ${errorMsg}` };
   }
 
   revalidateTransactionPaths();
@@ -235,6 +217,10 @@ const transactionSchema = z.object({
   notes: z.string().nullable().optional(),
 });
 
+/**
+ * CR-2026-001: Atomic Transaction Update
+ * Uses database-level PostgreSQL function for ACID compliance
+ */
 export async function updateTransaction(id: string, payload: UpdateTransactionPayload): Promise<ActionResult> {
   try {
     validateUUID(id)
@@ -249,72 +235,44 @@ export async function updateTransaction(id: string, payload: UpdateTransactionPa
     return { success: false, error: "Invalid data" };
   }
 
-  const { data: existing, error: fetchError } = await db(supabase)
-    .from("transactions")
-    .select("*")
-    .eq("id", id)
-    .eq("user_id", user.id)
-    .single();
-
-  if (fetchError || !existing) {
-    return { success: false, error: "Transaction not found" };
-  }
-
-  const typedExisting = existing as { account_id?: string | null; amount: number; type: "income" | "expense" };
-
-  const { error } = await db(supabase)
-    .from("transactions")
-    .update({
-      category_id: payload.category_id,
-      amount: payload.amount,
-      type: payload.type,
-      date: payload.date,
-      notes: payload.notes ?? null,
-      account_id: payload.account_id ?? null,
-      currency: payload.currency ?? "IDR",
-      exchange_rate_at_time: payload.exchange_rate_at_time ?? 1,
-      is_recurring: payload.is_recurring,
-      recurring_interval: payload.is_recurring
-        ? payload.recurring_interval ?? DEFAULT_RECURRING_INTERVAL
-        : null,
-      recurring_unit: payload.is_recurring
-        ? payload.recurring_unit ?? DEFAULT_RECURRING_UNIT
-        : null,
-      recurring_next_date: payload.is_recurring
-        ? payload.recurring_next_date ?? null
-        : null,
-    })
-    .eq("id", id)
-    .eq("user_id", user.id);
+  // Use atomic RPC function for ACID compliance
+  const { data, error } = await db(supabase).rpc("atomic_update_transaction", {
+    p_transaction_id: id,
+    p_user_id: user.id,
+    p_category_id: payload.category_id,
+    p_amount: payload.amount,
+    p_type: payload.type,
+    p_date: payload.date,
+    p_notes: sanitizeNotes(payload.notes),
+    p_account_id: payload.account_id ?? null,
+    p_currency: payload.currency ?? "IDR",
+    p_exchange_rate_at_time: payload.exchange_rate_at_time ?? 1,
+    p_is_recurring: payload.is_recurring ?? false,
+    p_recurring_interval: payload.is_recurring ? payload.recurring_interval ?? DEFAULT_RECURRING_INTERVAL : null,
+    p_recurring_unit: payload.is_recurring ? payload.recurring_unit ?? DEFAULT_RECURRING_UNIT : null,
+    p_recurring_next_date: payload.is_recurring ? payload.recurring_next_date ?? null : null,
+  });
 
   if (error) {
-    return { success: false, error: "Failed to update transaction. Please try again." }
+    console.error("[ATOMIC] Transaction update failed:", error.message);
+    return { success: false, error: "Failed to update transaction. Please try again." };
   }
 
-  if (typedExisting.account_id) {
-    await updateAccountBalance(
-      supabase,
-      typedExisting.account_id,
-      typedExisting.amount,
-      typedExisting.type,
-      "revert"
-    );
-  }
-
-  if (payload.account_id && payload.amount && payload.type) {
-    await updateAccountBalance(
-      supabase,
-      payload.account_id,
-      payload.amount,
-      payload.type,
-      "add"
-    );
+  const result = data as { success?: boolean; error?: string } | null;
+  if (!result?.success) {
+    const errorMsg = result?.error || "Unknown error";
+    console.error("[ATOMIC] Transaction update failed:", errorMsg);
+    return { success: false, error: `Update failed: ${errorMsg}` };
   }
 
   revalidateTransactionPaths();
   return { success: true };
 }
 
+/**
+ * CR-2026-001: Atomic Transaction Delete
+ * Uses database-level PostgreSQL function for ACID compliance
+ */
 export async function deleteTransaction(id: string): Promise<ActionResult> {
   try {
     validateUUID(id)
@@ -324,43 +282,31 @@ export async function deleteTransaction(id: string): Promise<ActionResult> {
 
   const { supabase, user } = await getAuthenticatedClient();
 
-  const { data: existing, error: fetchError } = await db(supabase)
-    .from("transactions")
-    .select("*")
-    .eq("id", id)
-    .eq("user_id", user.id)
-    .single();
-
-  if (fetchError || !existing) {
-    return { success: false, error: "Transaction not found" };
-  }
-
-  const typedExisting = existing as { account_id?: string | null; amount: number; type: "income" | "expense" };
-
-  const { error } = await db(supabase)
-    .from("transactions")
-    .delete()
-    .eq("id", id)
-    .eq("user_id", user.id);
+  // Use atomic RPC function for ACID compliance
+  const { data, error } = await db(supabase).rpc("atomic_delete_transaction", {
+    p_transaction_id: id,
+    p_user_id: user.id,
+  });
 
   if (error) {
-    return { success: false, error: "Failed to delete transaction. Please try again." }
+    console.error("[ATOMIC] Transaction deletion failed:", error.message);
+    return { success: false, error: "Failed to delete transaction. Please try again." };
   }
 
-  if (typedExisting.account_id) {
-    await updateAccountBalance(
-      supabase,
-      typedExisting.account_id,
-      typedExisting.amount,
-      typedExisting.type,
-      "revert"
-    );
+  const result = data as { success?: boolean; error?: string } | null;
+  if (!result?.success) {
+    const errorMsg = result?.error || "Unknown error";
+    console.error("[ATOMIC] Transaction deletion failed:", errorMsg);
+    return { success: false, error: `Deletion failed: ${errorMsg}` };
   }
 
   revalidateTransactionPaths();
   return { success: true };
 }
 
+/**
+ * CR-2026-001: Atomic Recurring Transaction Logging
+ */
 export async function logRecurringTransaction(
   parentId: string
 ): Promise<ActionResult> {
@@ -372,116 +318,96 @@ export async function logRecurringTransaction(
 
   const { supabase, user } = await getAuthenticatedClient();
 
-  const { data: parent, error: fetchError } = await db(supabase)
-    .from("transactions")
-    .select("*")
-    .eq("id", parentId)
-    .eq("user_id", user.id)
-    .single();
+  // Use atomic RPC function for ACID compliance
+  const { data, error } = await db(supabase).rpc("atomic_log_recurring_transaction", {
+    p_parent_id: parentId,
+    p_user_id: user.id,
+  });
 
-  if (fetchError || !parent) return { success: false, error: "Transaction not found" };
+  if (error) {
+    console.error("[ATOMIC] Recurring transaction logging failed:", error.message);
+    return { success: false, error: "Failed to log recurring transaction" };
+  }
 
-  const typedParent = parent as {
-    category_id: string;
-    type: "income" | "expense";
-    amount: number;
-    notes: string | null;
-    recurring_interval?: number | null;
-    recurring_unit?: string | null;
-  };
-
-  const today = new Date().toISOString().slice(0, 10);
-  const { error: insertError } = await db(supabase)
-    .from("transactions")
-    .insert({
-      user_id: user.id,
-      category_id: typedParent.category_id,
-      type: typedParent.type,
-      amount: typedParent.amount,
-      date: today,
-      notes: typedParent.notes,
-      is_recurring: false,
-      recurring_parent_id: parentId,
-    });
-
-  if (insertError) return { success: false, error: "Failed to log recurring transaction" }
-
-  // Update next date on parent using shared utility
-  const nextDate = computeNextDate(
-    today,
-    typedParent.recurring_interval ?? DEFAULT_RECURRING_INTERVAL,
-    typedParent.recurring_unit ?? DEFAULT_RECURRING_UNIT
-  );
-
-  await db(supabase)
-    .from("transactions")
-    .update({ recurring_next_date: nextDate })
-    .eq("id", parentId)
-    .eq("user_id", user.id);
+  const result = data as { success?: boolean; error?: string; transaction_id?: string; next_date?: string } | null;
+  if (!result?.success) {
+    const errorMsg = result?.error || "Unknown error";
+    console.error("[ATOMIC] Recurring transaction logging failed:", errorMsg);
+    return { success: false, error: `Logging failed: ${errorMsg}` };
+  }
 
   revalidateTransactionPaths();
   return { success: true };
 }
 
+/**
+ * CR-2026-001: Atomic Recurring Skip
+ */
 export async function skipRecurringOccurrence(
   parentId: string
 ): Promise<ActionResult<null>> {
   return withActionResult(async () => {
     const { supabase, user } = await getAuthenticatedClient()
 
-    const { data: parent, error: fetchError } = await db(supabase)
-      .from("transactions")
-      .select("id, recurring_interval, recurring_unit, recurring_next_date")
-      .eq("id", parentId)
-      .eq("user_id", user.id)
-      .single()
-
-    if (fetchError || !parent) {
-      throw new Error("Recurring transaction not found")
+    // Validate UUID
+    try {
+      validateUUID(parentId)
+    } catch {
+      throw new Error("Invalid transaction ID")
     }
 
-    const typedParent = parent as {
-      id: string
-      recurring_interval: number
-      recurring_unit: string
-      recurring_next_date: string | null
+    // Use atomic RPC function
+    const { data, error } = await db(supabase).rpc("atomic_skip_recurring", {
+      p_parent_id: parentId,
+      p_user_id: user.id,
+    });
+
+    if (error) {
+      console.error("[ATOMIC] Recurring skip failed:", error.message);
+      throw new Error("Failed to skip recurring occurrence");
     }
 
-    const nextDate = computeNextDate(
-      typedParent.recurring_next_date ?? new Date().toISOString().slice(0, 10),
-      typedParent.recurring_interval ?? 1,
-      typedParent.recurring_unit ?? "month"
-    )
-
-    const { error: updateError } = await db(supabase)
-      .from("transactions")
-      .update({ recurring_next_date: nextDate })
-      .eq("id", parentId)
-      .eq("user_id", user.id)
-
-    if (updateError) throw updateError
+    const result = data as { success?: boolean; error?: string; next_date?: string } | null;
+    if (!result?.success) {
+      throw new Error(result?.error || "Skip failed");
+    }
 
     revalidateTransactionPaths()
     return null
   })
 }
 
+/**
+ * CR-2026-001: Atomic Recurring Stop
+ */
 export async function stopRecurring(
   parentId: string
 ): Promise<ActionResult<null>> {
   return withActionResult(async () => {
     const { supabase, user } = await getAuthenticatedClient()
 
-    const { error } = await db(supabase)
-      .from("transactions")
-      .update({
-        is_recurring: false,
-        recurring_next_date: null,
-      })
-      .eq("id", parentId)
-      .eq("user_id", user.id)
+    // Validate UUID
+    try {
+      validateUUID(parentId)
+    } catch {
+      throw new Error("Invalid transaction ID")
+    }
 
-    if (error) throw error
+    // Use atomic RPC function
+    const { data, error } = await db(supabase).rpc("atomic_stop_recurring", {
+      p_parent_id: parentId,
+      p_user_id: user.id,
+    });
+
+    if (error) {
+      console.error("[ATOMIC] Recurring stop failed:", error.message);
+      throw new Error("Failed to stop recurring transaction");
+    }
+
+    const result = data as { success?: boolean; error?: string } | null;
+    if (!result?.success) {
+      throw new Error(result?.error || "Stop failed");
+    }
 
     revalidateTransactionPaths()
     return null
