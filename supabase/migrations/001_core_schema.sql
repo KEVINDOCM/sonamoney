@@ -1,199 +1,391 @@
 -- ============================================
--- 001: CORE SCHEMA
--- All main tables: accounts, categories, transactions, transfers, settings, goals
+-- 001: CORE SCHEMA - OPTIMIZED
+-- All main tables with performance-first design
+-- Optimized for 1M+ users with proper indexing strategy
 -- ============================================
 
 -- Enable required extensions
-create extension if not exists "pgcrypto";
-create extension if not exists "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- ============================================
+-- USER ROLES TABLE (Early creation for RLS dependencies)
+-- ============================================
+CREATE TABLE IF NOT EXISTS public.user_roles (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    role TEXT NOT NULL CHECK (role IN ('user', 'admin', 'auditor', 'support')),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    created_by UUID REFERENCES auth.users(id),
+    updated_by UUID REFERENCES auth.users(id),
+    UNIQUE(user_id)
+);
+
+ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "user_roles_admin_only" ON public.user_roles
+    FOR ALL
+    TO authenticated
+    USING (
+        user_id = (SELECT auth.uid())
+        OR EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = (SELECT auth.uid()) AND role = 'admin')
+    );
+
+CREATE INDEX idx_user_roles_user_id ON public.user_roles(user_id);
+CREATE INDEX idx_user_roles_role ON public.user_roles(role);
+
+COMMENT ON TABLE public.user_roles IS 'RBAC role assignments for users';
+
+-- ============================================
+-- HELPER FUNCTIONS (needed for RLS policies)
+-- ============================================
+CREATE OR REPLACE FUNCTION public.is_admin(p_user_id UUID)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+    RETURN EXISTS(
+        SELECT 1 FROM public.user_roles
+        WHERE user_id = p_user_id AND role = 'admin'
+    );
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_user_role(p_user_id UUID)
+RETURNS TEXT
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    v_role TEXT;
+BEGIN
+    SELECT role INTO v_role
+    FROM public.user_roles
+    WHERE user_id = p_user_id;
+    RETURN COALESCE(v_role, 'user');
+END;
+$$;
 
 -- ============================================
 -- ACCOUNTS TABLE
 -- ============================================
-create table if not exists public.accounts (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users (id) on delete cascade,
-  name text not null,
-  type text not null check (type in ('reguler', 'tabungan', 'utang')),
-  icon text,
-  currency text not null default 'IDR',
-  balance numeric not null default 0,
-  is_default boolean not null default false,
-  created_at timestamptz not null default now()
+CREATE TABLE IF NOT EXISTS public.accounts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    type TEXT NOT NULL CHECK (type IN ('regular', 'tabungan', 'utang', 'savings', 'checking', 'credit')),
+    icon TEXT,
+    color TEXT DEFAULT '#00B9A7',
+    currency TEXT NOT NULL DEFAULT 'IDR',
+    balance NUMERIC(15,2) NOT NULL DEFAULT 0,
+    is_default BOOLEAN NOT NULL DEFAULT FALSE,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-alter table public.accounts enable row level security;
+ALTER TABLE public.accounts ENABLE ROW LEVEL SECURITY;
 
--- Performance-optimized RLS policies (using subquery for auth.uid())
-create policy "Users can view own accounts" on public.accounts
-  for select using ((select auth.uid()) = user_id);
-create policy "Users can insert own accounts" on public.accounts
-  for insert with check ((select auth.uid()) = user_id);
-create policy "Users can update own accounts" on public.accounts
-  for update using ((select auth.uid()) = user_id);
-create policy "Users can delete own accounts" on public.accounts
-  for delete using ((select auth.uid()) = user_id);
+CREATE POLICY "accounts_isolation_policy" ON public.accounts
+    FOR ALL
+    TO authenticated
+    USING (
+        user_id = (SELECT auth.uid())
+        OR public.is_admin((SELECT auth.uid()))
+    )
+    WITH CHECK (user_id = (SELECT auth.uid()));
 
-create index idx_accounts_user_id on public.accounts(user_id);
+CREATE INDEX idx_accounts_user_id ON public.accounts(user_id);
+CREATE INDEX idx_accounts_user_active ON public.accounts(user_id, is_active);
+CREATE UNIQUE INDEX idx_accounts_unique_default_per_user 
+ON public.accounts(user_id) 
+WHERE is_default = TRUE;
+
+COMMENT ON TABLE public.accounts IS 'User financial accounts with optimized RLS and indexing';
 
 -- ============================================
 -- CATEGORIES TABLE
 -- ============================================
-create table if not exists public.categories (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users (id) on delete cascade,
-  name text not null,
-  type text not null check (type in ('income', 'expense')),
-  color text not null,
-  budget_limit numeric,
-  created_at timestamptz not null default now()
+CREATE TABLE IF NOT EXISTS public.categories (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    type TEXT NOT NULL CHECK (type IN ('income', 'expense')),
+    color TEXT NOT NULL DEFAULT '#00B9A7',
+    icon TEXT DEFAULT '📁',
+    budget_limit NUMERIC(15,2),
+    is_default BOOLEAN NOT NULL DEFAULT FALSE,
+    sort_order INTEGER DEFAULT 0,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-alter table public.categories enable row level security;
+ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
 
-create policy "Users can view own categories" on public.categories
-  for select using ((select auth.uid()) = user_id);
-create policy "Users can insert own categories" on public.categories
-  for insert with check ((select auth.uid()) = user_id);
-create policy "Users can update own categories" on public.categories
-  for update using ((select auth.uid()) = user_id);
-create policy "Users can delete own categories" on public.categories
-  for delete using ((select auth.uid()) = user_id);
+CREATE POLICY "categories_isolation_policy" ON public.categories
+    FOR ALL
+    TO authenticated
+    USING (
+        user_id = (SELECT auth.uid())
+        OR is_default = TRUE
+        OR public.is_admin((SELECT auth.uid()))
+    )
+    WITH CHECK (user_id = (SELECT auth.uid()));
+
+CREATE INDEX idx_categories_user_id ON public.categories(user_id);
+CREATE INDEX idx_categories_user_type ON public.categories(user_id, type);
+CREATE INDEX idx_categories_user_budget ON public.categories(user_id) WHERE budget_limit IS NOT NULL;
+
+COMMENT ON TABLE public.categories IS 'Transaction categories with budget tracking support';
 
 -- ============================================
--- TRANSACTIONS TABLE
+-- TRANSACTIONS TABLE (HIGH-VOLUME)
 -- ============================================
-create table if not exists public.transactions (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users (id) on delete cascade,
-  category_id uuid not null references public.categories (id) on delete cascade,
-  account_id uuid references public.accounts (id) on delete set null,
-  amount numeric not null,
-  type text not null check (type in ('income', 'expense')),
-  date date not null,
-  notes text,
-  -- Recurring fields
-  is_recurring boolean default false,
-  recurring_interval integer,
-  recurring_unit text check (recurring_unit in ('day', 'week', 'month')),
-  recurring_next_date date,
-  recurring_parent_id uuid references public.transactions (id) on delete set null,
-  -- Tax and commission
-  tax_rate numeric default 0,
-  commission_rate numeric default 0,
-  -- Multi-currency
-  currency text default 'IDR',
-  exchange_rate_at_time numeric default 1,
-  created_at timestamptz not null default now()
+CREATE TABLE IF NOT EXISTS public.transactions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    category_id UUID NOT NULL REFERENCES public.categories(id) ON DELETE CASCADE,
+    account_id UUID REFERENCES public.accounts(id) ON DELETE SET NULL,
+    amount NUMERIC(15,2) NOT NULL CHECK (amount > 0),
+    type TEXT NOT NULL CHECK (type IN ('income', 'expense')),
+    date DATE NOT NULL,
+    notes TEXT,
+    is_recurring BOOLEAN NOT NULL DEFAULT FALSE,
+    recurring_interval INTEGER,
+    recurring_unit TEXT CHECK (recurring_unit IN ('day', 'week', 'month', 'year')),
+    recurring_next_date DATE,
+    recurring_parent_id UUID REFERENCES public.transactions(id) ON DELETE SET NULL,
+    tax_rate NUMERIC(5,4) DEFAULT 0,
+    commission_rate NUMERIC(5,4) DEFAULT 0,
+    currency TEXT NOT NULL DEFAULT 'IDR',
+    exchange_rate_at_time NUMERIC(15,8) DEFAULT 1,
+    idempotency_key UUID UNIQUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-alter table public.transactions enable row level security;
+ALTER TABLE public.transactions ENABLE ROW LEVEL SECURITY;
 
-create policy "Users can view own transactions" on public.transactions
-  for select using ((select auth.uid()) = user_id);
-create policy "Users can insert own transactions" on public.transactions
-  for insert with check ((select auth.uid()) = user_id);
-create policy "Users can update own transactions" on public.transactions
-  for update using ((select auth.uid()) = user_id);
-create policy "Users can delete own transactions" on public.transactions
-  for delete using ((select auth.uid()) = user_id);
+CREATE POLICY "transactions_isolation_policy" ON public.transactions
+    FOR ALL
+    TO authenticated
+    USING (
+        user_id = (SELECT auth.uid())
+        OR public.get_user_role((SELECT auth.uid())) IN ('admin', 'auditor')
+    )
+    WITH CHECK (user_id = (SELECT auth.uid()));
 
--- Indexes for transactions
-create index idx_transactions_user_id on public.transactions(user_id);
-create index idx_transactions_account_id on public.transactions(account_id);
-create index idx_transactions_category_id on public.transactions(category_id);
-create index idx_transactions_date on public.transactions(date);
-create index idx_transactions_is_recurring on public.transactions(is_recurring) where is_recurring = true;
-create index idx_transactions_recurring_next_date on public.transactions(recurring_next_date) where is_recurring = true;
+-- Core indexes
+CREATE INDEX idx_transactions_user_id ON public.transactions(user_id);
+CREATE INDEX idx_transactions_account_id ON public.transactions(account_id) WHERE account_id IS NOT NULL;
+CREATE INDEX idx_transactions_category_id ON public.transactions(category_id);
+CREATE INDEX idx_transactions_recurring_parent ON public.transactions(recurring_parent_id) WHERE recurring_parent_id IS NOT NULL;
+
+-- Composite indexes for common query patterns
+CREATE INDEX idx_transactions_user_date ON public.transactions(user_id, date DESC);
+CREATE INDEX idx_transactions_user_type_date ON public.transactions(user_id, type, date DESC);
+CREATE INDEX idx_transactions_user_category ON public.transactions(user_id, category_id, date DESC);
+
+-- Partial index for recurring transactions
+CREATE INDEX idx_transactions_recurring_due ON public.transactions(user_id, recurring_next_date)
+    WHERE is_recurring = TRUE AND recurring_next_date IS NOT NULL;
+
+-- Idempotency key index (partial for non-null only)
+CREATE INDEX idx_transactions_idempotency ON public.transactions(idempotency_key) WHERE idempotency_key IS NOT NULL;
+
+COMMENT ON TABLE public.transactions IS 'High-volume transaction data with optimized indexes';
 
 -- ============================================
 -- TRANSFERS TABLE
 -- ============================================
-create table if not exists public.transfers (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users (id) on delete cascade,
-  from_account_id uuid not null references public.accounts (id) on delete cascade,
-  to_account_id uuid not null references public.accounts (id) on delete cascade,
-  amount numeric not null,
-  from_currency text default 'IDR',
-  to_currency text default 'IDR',
-  exchange_rate numeric default 1,
-  converted_amount numeric,
-  date date not null,
-  notes text,
-  created_at timestamptz not null default now()
+CREATE TABLE IF NOT EXISTS public.transfers (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    from_account_id UUID NOT NULL REFERENCES public.accounts(id) ON DELETE CASCADE,
+    to_account_id UUID NOT NULL REFERENCES public.accounts(id) ON DELETE CASCADE,
+    amount NUMERIC(15,2) NOT NULL CHECK (amount > 0),
+    from_currency TEXT NOT NULL DEFAULT 'IDR',
+    to_currency TEXT NOT NULL DEFAULT 'IDR',
+    exchange_rate NUMERIC(15,8) NOT NULL DEFAULT 1,
+    converted_amount NUMERIC(15,2),
+    fee_amount NUMERIC(15,2) DEFAULT 0,
+    date DATE NOT NULL,
+    notes TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-alter table public.transfers enable row level security;
+ALTER TABLE public.transfers ENABLE ROW LEVEL SECURITY;
 
-create policy "Users can view own transfers" on public.transfers
-  for select using ((select auth.uid()) = user_id);
-create policy "Users can insert own transfers" on public.transfers
-  for insert with check ((select auth.uid()) = user_id);
-create policy "Users can update own transfers" on public.transfers
-  for update using ((select auth.uid()) = user_id);
-create policy "Users can delete own transfers" on public.transfers
-  for delete using ((select auth.uid()) = user_id);
+CREATE POLICY "transfers_isolation_policy" ON public.transfers
+    FOR ALL
+    TO authenticated
+    USING (user_id = (SELECT auth.uid()))
+    WITH CHECK (user_id = (SELECT auth.uid()));
 
--- Indexes for transfers
-create index idx_transfers_user_id on public.transfers(user_id);
-create index idx_transfers_from_account_id on public.transfers(from_account_id);
-create index idx_transfers_to_account_id on public.transfers(to_account_id);
-create index idx_transfers_date on public.transfers(date);
+CREATE INDEX idx_transfers_user_id ON public.transfers(user_id);
+CREATE INDEX idx_transfers_user_date ON public.transfers(user_id, date DESC);
+CREATE INDEX idx_transfers_from_account ON public.transfers(from_account_id, date DESC);
+CREATE INDEX idx_transfers_to_account ON public.transfers(to_account_id, date DESC);
+
+COMMENT ON TABLE public.transfers IS 'Inter-account transfers with currency conversion support';
 
 -- ============================================
 -- SETTINGS TABLE
 -- ============================================
-create table if not exists public.settings (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users (id) on delete cascade,
-  currency text not null default 'IDR',
-  language text not null default 'id',
-  theme text not null default 'light',
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+CREATE TABLE IF NOT EXISTS public.settings (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    currency TEXT NOT NULL DEFAULT 'IDR',
+    language TEXT NOT NULL DEFAULT 'id',
+    theme TEXT NOT NULL DEFAULT 'system',
+    timezone TEXT NOT NULL DEFAULT 'Asia/Jakarta',
+    date_format TEXT NOT NULL DEFAULT 'DD/MM/YYYY',
+    number_format TEXT NOT NULL DEFAULT 'id-ID',
+    enable_receipt_scanning BOOLEAN DEFAULT TRUE,
+    enable_recurring_notifications BOOLEAN DEFAULT TRUE,
+    enable_budget_alerts BOOLEAN DEFAULT TRUE,
+    email_notifications BOOLEAN DEFAULT TRUE,
+    push_notifications BOOLEAN DEFAULT TRUE,
+    weekly_summary_day INTEGER DEFAULT 0,
+    require_password_for_sensitive BOOLEAN DEFAULT TRUE,
+    session_timeout_minutes INTEGER DEFAULT 30,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE(user_id)
 );
 
-alter table public.settings enable row level security;
+ALTER TABLE public.settings ENABLE ROW LEVEL SECURITY;
 
-create policy "Users can view own settings" on public.settings
-  for select using ((select auth.uid()) = user_id);
-create policy "Users can insert own settings" on public.settings
-  for insert with check ((select auth.uid()) = user_id);
-create policy "Users can update own settings" on public.settings
-  for update using ((select auth.uid()) = user_id);
-create policy "Users can delete own settings" on public.settings
-  for delete using ((select auth.uid()) = user_id);
+CREATE POLICY "settings_isolation_policy" ON public.settings
+    FOR ALL
+    TO authenticated
+    USING (user_id = (SELECT auth.uid()))
+    WITH CHECK (user_id = (SELECT auth.uid()));
 
-create index idx_settings_user_id on public.settings(user_id);
+CREATE INDEX idx_settings_user_id ON public.settings(user_id);
+
+COMMENT ON TABLE public.settings IS 'Per-user application settings and preferences';
 
 -- ============================================
 -- GOALS TABLE
 -- ============================================
-create table if not exists public.goals (
-  id uuid primary key default uuid_generate_v4(),
-  user_id uuid not null references auth.users(id) on delete cascade,
-  name text not null,
-  target_amount numeric(15,2) not null default 0,
-  current_amount numeric(15,2) not null default 0,
-  currency text not null default 'IDR',
-  deadline date,
-  icon text default '🎯',
-  color text default '#00B9A7',
-  is_completed boolean default false,
-  created_at timestamptz default now(),
-  updated_at timestamptz default now()
+CREATE TABLE IF NOT EXISTS public.goals (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    target_amount NUMERIC(15,2) NOT NULL CHECK (target_amount > 0),
+    current_amount NUMERIC(15,2) NOT NULL DEFAULT 0,
+    currency TEXT NOT NULL DEFAULT 'IDR',
+    deadline DATE,
+    icon TEXT DEFAULT '🎯',
+    color TEXT DEFAULT '#00B9A7',
+    is_completed BOOLEAN NOT NULL DEFAULT FALSE,
+    completed_at TIMESTAMPTZ,
+    priority INTEGER DEFAULT 1,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-alter table public.goals enable row level security;
+ALTER TABLE public.goals ENABLE ROW LEVEL SECURITY;
 
-create policy "Users can view own goals" on public.goals
-  for select using ((select auth.uid()) = user_id);
-create policy "Users can insert own goals" on public.goals
-  for insert with check ((select auth.uid()) = user_id);
-create policy "Users can update own goals" on public.goals
-  for update using ((select auth.uid()) = user_id);
-create policy "Users can delete own goals" on public.goals
-  for delete using ((select auth.uid()) = user_id);
+CREATE POLICY "goals_isolation_policy" ON public.goals
+    FOR ALL
+    TO authenticated
+    USING (
+        user_id = (SELECT auth.uid())
+        OR public.get_user_role((SELECT auth.uid())) IN ('admin', 'auditor')
+    )
+    WITH CHECK (user_id = (SELECT auth.uid()));
 
-create index idx_goals_user_id on public.goals(user_id);
+CREATE INDEX idx_goals_user_id ON public.goals(user_id);
+CREATE INDEX idx_goals_user_deadline ON public.goals(user_id, deadline) WHERE deadline IS NOT NULL;
+CREATE INDEX idx_goals_user_completed ON public.goals(user_id, is_completed) WHERE is_completed = FALSE;
+
+COMMENT ON TABLE public.goals IS 'Financial goals tracking with deadline support';
+
+-- ============================================
+-- TRIGGER: Auto-assign 'user' role on signup
+-- ============================================
+CREATE OR REPLACE FUNCTION public.assign_default_role()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+    INSERT INTO public.user_roles (user_id, role)
+    VALUES (NEW.id, 'user')
+    ON CONFLICT (user_id) DO NOTHING;
+    RETURN NEW;
+END;
+$$;
+
+COMMENT ON FUNCTION public.assign_default_role() IS 'Auto-assigns user role to new signups';
+
+-- ============================================
+-- TRIGGER: Updated timestamp function
+-- ============================================
+CREATE OR REPLACE FUNCTION public.update_updated_at_column()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER update_accounts_updated_at
+    BEFORE UPDATE ON public.accounts
+    FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+CREATE TRIGGER update_categories_updated_at
+    BEFORE UPDATE ON public.categories
+    FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+CREATE TRIGGER update_transactions_updated_at
+    BEFORE UPDATE ON public.transactions
+    FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+CREATE TRIGGER update_settings_updated_at
+    BEFORE UPDATE ON public.settings
+    FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+CREATE TRIGGER update_goals_updated_at
+    BEFORE UPDATE ON public.goals
+    FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+CREATE TRIGGER update_user_roles_updated_at
+    BEFORE UPDATE ON public.user_roles
+    FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+-- ============================================
+-- GRANT PERMISSIONS
+-- ============================================
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.accounts TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.categories TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.transactions TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.transfers TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.settings TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.goals TO authenticated;
+GRANT SELECT ON public.user_roles TO authenticated;
+
+REVOKE ALL ON public.accounts FROM anon;
+REVOKE ALL ON public.categories FROM anon;
+REVOKE ALL ON public.transactions FROM anon;
+REVOKE ALL ON public.transfers FROM anon;
+REVOKE ALL ON public.settings FROM anon;
+REVOKE ALL ON public.goals FROM anon;
+REVOKE ALL ON public.user_roles FROM anon;
+
+-- ============================================
+-- REFRESH SCHEMA CACHE
+-- ============================================
+NOTIFY pgrst, 'reload schema';

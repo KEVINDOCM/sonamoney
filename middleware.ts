@@ -3,10 +3,11 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr"
 import {
   checkGeneralRateLimit,
   checkAuthRateLimit,
-  checkSensitiveRateLimit,
   isBlocked,
   recordFailedAttempt,
 } from "@/lib/security/rateLimiter"
+import { requiresElevatedAccess, getCurrentUserRole } from "@/lib/security/rbac"
+import { validateCSRFToken, requiresCSRFProtection, extractCSRFToken, generateCSRFToken } from "./lib/security/csrf"
 
 // ============================================
 // CRITICAL: ADMIN IP WHITELIST
@@ -28,7 +29,7 @@ interface SecurityLogEntry {
   ipHash: string
   path: string
   userAgent: string
-  event: "POTENTIAL_BYPASS_ATTEMPT" | "MAINTENANCE_BLOCK" | "ADMIN_ACCESS" | "IP_BLOCKED" | "SUSPICIOUS_ACTIVITY"
+  event: "POTENTIAL_BYPASS_ATTEMPT" | "MAINTENANCE_BLOCK" | "ADMIN_ACCESS" | "IP_BLOCKED" | "SUSPICIOUS_ACTIVITY" | "CSRF_FAILURE" | "RBAC_VIOLATION"
   details?: string
   anonymizerMarkers?: string[]
 }
@@ -46,6 +47,7 @@ function logSecurityEvent(entry: SecurityLogEntry): void {
 
 interface MiddlewareRequest {
   url: string
+  method?: string
   nextUrl: {
     pathname: string
   }
@@ -176,6 +178,7 @@ export async function middleware(request: MiddlewareRequest) {
   const { pathname } = request.nextUrl
   const requestUrl = request.url
   const hostname = request.headers.get("host") || ""
+  const method = request.method || "GET"
   
   // Vercel canonical redirect (301 Permanent)
   if (
@@ -482,6 +485,34 @@ export async function middleware(request: MiddlewareRequest) {
     }
   }
 
+  // ============================================
+  // CSRF PROTECTION FOR STATE-CHANGING REQUESTS
+  // ============================================
+  if (isApiRoute && requiresCSRFProtection(method)) {
+    // Skip CSRF for auth endpoints (they establish sessions)
+    if (!isAuthEndpoint) {
+      const csrfToken = extractCSRFToken(request.headers)
+      const validation = await validateCSRFToken(csrfToken)
+      
+      if (!validation.valid) {
+        logSecurityEvent({
+          timestamp: new Date().toISOString(),
+          ip,
+          ipHash: hashIP(ip),
+          path: pathname,
+          userAgent,
+          event: "CSRF_FAILURE",
+          anonymizerMarkers,
+          details: `CSRF validation failed: ${validation.reason}`
+        })
+        return new Response(
+          JSON.stringify({ error: `CSRF validation failed: ${validation.reason}` }),
+          { status: 403, headers: { "Content-Type": "application/json" } }
+        )
+      }
+    }
+  }
+
   let response = NextResponse.next()
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -513,6 +544,68 @@ export async function middleware(request: MiddlewareRequest) {
   const protectedPaths = ["/dashboard","/transactions","/analytics","/budget","/accounts","/categories","/settings","/calendar","/goals","/recurring","/reports","/debt","/notifications"]
   const isProtected = protectedPaths.some((path) => pathname.startsWith(path))
   const isAuthPath = pathname === "/login" || pathname === "/signup"
+
+  // ============================================
+  // RBAC: ROLE-BASED ACCESS CONTROL
+  // ============================================
+  if (user) {
+    // Check if path requires elevated access
+    const accessCheck = requiresElevatedAccess(pathname)
+    if (accessCheck.required) {
+      const userRole = await getCurrentUserRole()
+      
+      // Admin paths require admin role
+      if (pathname.startsWith("/admin") && userRole !== "admin") {
+        logSecurityEvent({
+          timestamp: new Date().toISOString(),
+          ip,
+          ipHash: hashIP(ip),
+          path: pathname,
+          userAgent,
+          event: "RBAC_VIOLATION",
+          anonymizerMarkers,
+          details: `Non-admin user attempted to access admin path`
+        })
+        return new Response(
+          JSON.stringify({ error: "Admin access required" }),
+          { status: 403, headers: { "Content-Type": "application/json" } }
+        )
+      }
+      
+      // Auditor paths require auditor or admin role
+      if (pathname.startsWith("/audit") && userRole !== "auditor" && userRole !== "admin") {
+        logSecurityEvent({
+          timestamp: new Date().toISOString(),
+          ip,
+          ipHash: hashIP(ip),
+          path: pathname,
+          userAgent,
+          event: "RBAC_VIOLATION",
+          anonymizerMarkers,
+          details: `Non-auditor user attempted to access auditor path`
+        })
+        return new Response(
+          JSON.stringify({ error: "Auditor access required" }),
+          { status: 403, headers: { "Content-Type": "application/json" } }
+        )
+      }
+    }
+
+    // Set CSRF token cookie for authenticated users if not present
+    const csrfCookie = request.cookies.get("csrf_token")
+    if (!csrfCookie) {
+      const csrfToken = generateCSRFToken()
+      response.cookies.set({
+        name: "csrf_token",
+        value: csrfToken,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        path: "/",
+        maxAge: 24 * 60 * 60 // 24 hours
+      })
+    }
+  }
 
   if (isProtected && !user) {
     const loginUrl = new URL("/login", requestUrl)

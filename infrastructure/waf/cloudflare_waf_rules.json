@@ -1,0 +1,154 @@
+{
+  "name": "SonaMoney WAF Configuration",
+  "description": "Cloudflare WAF rules for SonaMoney financial application",
+  "version": "1.0.0",
+  "rules": [
+    {
+      "name": "Block High-Risk Countries",
+      "description": "Block traffic from high-risk countries",
+      "expression": "(ip.geoip.country in {\"CN\", \"RU\", \"KP\", \"IR\"})",
+      "action": "block",
+      "enabled": true,
+      "priority": 1
+    },
+    {
+      "name": "SQL Injection Protection",
+      "description": "Block common SQL injection patterns",
+      "expression": "(http.request.uri.query contains \"union select\" or http.request.uri.query contains \"union all select\" or http.request.uri.query contains \"insert into\" or http.request.uri.query contains \"delete from\" or http.request.uri.query contains \"drop table\" or http.request.uri.query contains \"1=1\")",
+      "action": "block",
+      "enabled": true,
+      "priority": 2
+    },
+    {
+      "name": "XSS Protection",
+      "description": "Block XSS patterns in query strings",
+      "expression": "(http.request.uri.query contains \"<script>\" or http.request.uri.query contains \"javascript:\" or http.request.uri.query contains \"onload=\" or http.request.uri.query contains \"onerror=\")",
+      "action": "block",
+      "enabled": true,
+      "priority": 3
+    },
+    {
+      "name": "Path Traversal Protection",
+      "description": "Block path traversal attempts",
+      "expression": "(http.request.uri.path contains \"../\" or http.request.uri.path contains \"..\\\" or http.request.uri.query contains \"file://\" or http.request.uri.query contains \"..//\")",
+      "action": "block",
+      "enabled": true,
+      "priority": 4
+    },
+    {
+      "name": "API Rate Limiting",
+      "description": "Rate limit API requests to prevent abuse",
+      "expression": "(http.request.uri.path contains \"/api/\")",
+      "action": "rate_limit",
+      "ratelimit": {
+        "characteristics": ["ip.src", "cf.colo.id"],
+        "period": 60,
+        "requests_per_period": 100,
+        "mitigation_timeout": 600
+      },
+      "enabled": true,
+      "priority": 5
+    },
+    {
+      "name": "Block Low Bot Score",
+      "description": "Block requests from known bad bots",
+      "expression": "(cf.bot_management.score lt 30)",
+      "action": "block",
+      "enabled": true,
+      "priority": 6
+    },
+    {
+      "name": "Challenge Suspected Bots",
+      "description": "Show managed challenge to suspected bots",
+      "expression": "(cf.bot_management.score ge 30 and cf.bot_management.score lt 50)",
+      "action": "managed_challenge",
+      "enabled": true,
+      "priority": 7
+    },
+    {
+      "name": "High Threat Score Block",
+      "description": "Block IPs with high threat score",
+      "expression": "(cf.threat_score gt 49)",
+      "action": "block",
+      "enabled": true,
+      "priority": 8
+    },
+    {
+      "name": "Medium Threat Score Challenge",
+      "description": "Challenge IPs with medium threat score",
+      "expression": "(cf.threat_score gt 24 and cf.threat_score le 49)",
+      "action": "managed_challenge",
+      "enabled": true,
+      "priority": 9
+    },
+    {
+      "name": "Enforce API Authentication",
+      "description": "Block API requests without authorization header",
+      "expression": "(http.request.uri.path contains \"/api/\" and not http.request.uri.path contains \"/api/auth/\" and not any(http.request.headers.names[*] == \"authorization\"))",
+      "action": "block",
+      "enabled": true,
+      "priority": 10
+    }
+  ],
+  "managed_rulesets": [
+    {
+      "name": "OWASP Core Ruleset",
+      "description": "Enable OWASP Top 10 protection",
+      "ruleset_id": "4814384a9e5d4991b9815dcfc25d2f1f",
+      "action": "managed_challenge",
+      "enabled": true
+    },
+    {
+      "name": "Cloudflare Managed Rules",
+      "description": "Enable Cloudflare managed rule categories",
+      "ruleset_id": "efb7b8c949ac4650a09736fc376e9aee",
+      "action": "block",
+      "enabled": true
+    },
+    {
+      "name": "Cloudflare Exposed Credentials Check",
+      "description": "Check for exposed credentials",
+      "ruleset_id": "c2e184081120413c86c3a7e2e7480e3c",
+      "action": "managed_challenge",
+      "enabled": true
+    }
+  ],
+  "rate_limiting": {
+    "rules": [
+      {
+        "name": "General API Rate Limit",
+        "threshold": 100,
+        "period": 60,
+        "action": "block",
+        "match": "(http.request.uri.path contains \"/api/\")"
+      },
+      {
+        "name": "Auth Endpoint Rate Limit",
+        "threshold": 10,
+        "period": 60,
+        "action": "block",
+        "match": "(http.request.uri.path contains \"/api/auth/\")"
+      },
+      {
+        "name": "Sensitive Endpoint Rate Limit",
+        "threshold": 20,
+        "period": 60,
+        "action": "block",
+        "match": "(http.request.uri.path contains \"/api/scan-receipt\")"
+      }
+    ]
+  },
+  "bot_management": {
+    "enabled": true,
+    "auto_update_model": true,
+    "fight_mode": true,
+    "session_score": true
+  },
+  "ddos_protection": {
+    "http_ddos": {
+      "enabled": true,
+      "action": "managed_challenge",
+      "sensitivity": "default"
+    }
+  }
+}
