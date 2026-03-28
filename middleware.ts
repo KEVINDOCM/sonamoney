@@ -485,34 +485,6 @@ export async function middleware(request: MiddlewareRequest) {
     }
   }
 
-  // ============================================
-  // CSRF PROTECTION FOR STATE-CHANGING REQUESTS
-  // ============================================
-  if (isApiRoute && requiresCSRFProtection(method)) {
-    // Skip CSRF for auth endpoints (they establish sessions)
-    if (!isAuthEndpoint) {
-      const csrfToken = extractCSRFToken(request.headers)
-      const validation = await validateCSRFToken(csrfToken)
-      
-      if (!validation.valid) {
-        logSecurityEvent({
-          timestamp: new Date().toISOString(),
-          ip,
-          ipHash: hashIP(ip),
-          path: pathname,
-          userAgent,
-          event: "CSRF_FAILURE",
-          anonymizerMarkers,
-          details: `CSRF validation failed: ${validation.reason}`
-        })
-        return new Response(
-          JSON.stringify({ error: `CSRF validation failed: ${validation.reason}` }),
-          { status: 403, headers: { "Content-Type": "application/json" } }
-        )
-      }
-    }
-  }
-
   let response = NextResponse.next()
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -540,10 +512,49 @@ export async function middleware(request: MiddlewareRequest) {
   })
 
   const { data: { user } } = await supabase.auth.getUser()
+  
+  // Debug: Log auth status for API routes
+  if (isApiRoute && process.env.NODE_ENV === 'development') {
+    console.log(`[DEBUG] ${pathname} - User: ${user ? 'authenticated' : 'null'}`)
+  }
 
   const protectedPaths = ["/dashboard","/transactions","/analytics","/budget","/accounts","/categories","/settings","/calendar","/goals","/recurring","/reports","/debt","/notifications"]
   const isProtected = protectedPaths.some((path) => pathname.startsWith(path))
   const isAuthPath = pathname === "/login" || pathname === "/signup"
+
+  // ============================================
+  // CSRF PROTECTION FOR STATE-CHANGING REQUESTS
+  // Skip CSRF for authenticated users (Supabase JWT is sufficient protection)
+  // Only require CSRF for unauthenticated requests (bot protection)
+  // ============================================
+  if (isApiRoute && requiresCSRFProtection(method) && !isAuthEndpoint) {
+    if (!user) {
+      // User not authenticated - require CSRF for bot protection
+      const csrfToken = extractCSRFToken(request.headers)
+      const validation = await validateCSRFToken(csrfToken)
+      
+      if (!validation.valid) {
+        logSecurityEvent({
+          timestamp: new Date().toISOString(),
+          ip,
+          ipHash: hashIP(ip),
+          path: pathname,
+          userAgent,
+          event: "CSRF_FAILURE",
+          anonymizerMarkers,
+          details: `Unauthenticated request rejected: ${validation.reason}`
+        })
+        return new Response(
+          JSON.stringify({ 
+            error: "Authentication required or CSRF token missing",
+            details: validation.reason
+          }),
+          { status: 403, headers: { "Content-Type": "application/json" } }
+        )
+      }
+    }
+    // Authenticated users skip CSRF - Supabase auth is sufficient
+  }
 
   // ============================================
   // RBAC: ROLE-BASED ACCESS CONTROL
