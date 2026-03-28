@@ -19,10 +19,12 @@ interface EditCategoryModalProps {
     title: string;
     description: string;
     name: string;
+    namePlaceholder: string;
     type: string;
     expense: string;
     income: string;
     budgetLimit: string;
+    budgetLimitPlaceholder: string;
     cancel: string;
     save: string;
   };
@@ -48,6 +50,7 @@ export function EditCategoryModal({
         <Input
           label={labels.name}
           name="name"
+          placeholder={labels.namePlaceholder}
           value={formState.name}
           onChange={onInputChange}
           required
@@ -72,6 +75,7 @@ export function EditCategoryModal({
           label={labels.budgetLimit}
           name="budgetLimit"
           type="number"
+          placeholder={labels.budgetLimitPlaceholder}
           value={formState.budgetLimit}
           onChange={onInputChange}
         />

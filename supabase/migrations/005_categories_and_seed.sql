@@ -31,22 +31,25 @@ INSERT INTO public.default_categories (name, type, color, icon, sort_order, budg
     ('Makanan', 'expense', '#FF6B6B', '🍔', 1, 2000000),
     ('Transportasi', 'expense', '#4ECDC4', '🚗', 2, 1000000),
     ('Belanja', 'expense', '#FFE66D', '🛍️', 3, 1500000),
-    ('Hiburan', 'expense', '#9B59B6', '🎬', 4, NULL),
-    ('Kesehatan', 'expense', '#E74C3C', '🏥', 5, NULL),
-    ('Pendidikan', 'expense', '#3498DB', '📚', 6, NULL),
-    ('Tagihan', 'expense', '#F39C12', '💡', 7, 1500000),
-    ('Investasi', 'expense', '#27AE60', '📈', 8, NULL),
-    ('Donasi', 'expense', '#E91E63', '🎁', 9, NULL),
-    ('Lainnya', 'expense', '#95A5A6', '📦', 10, NULL)
+    ('Tagihan', 'expense', '#F39C12', '📝', 4, 1500000),
+    ('Hiburan', 'expense', '#9B59B6', '🎬', 5, NULL),
+    ('Kesehatan', 'expense', '#E74C3C', '❤️', 6, NULL),
+    ('Pendidikan', 'expense', '#3498DB', '📚', 7, NULL),
+    ('Tempat Tinggal', 'expense', '#8E44AD', '🏠', 8, NULL),
+    ('Perjalanan', 'expense', '#1ABC9C', '✈️', 9, NULL),
+    ('Tabungan', 'expense', '#27AE60', '�', 10, NULL),
+    ('Hadiah', 'expense', '#E91E63', '🎁', 11, NULL),
+    ('Langganan', 'expense', '#34495E', '📺', 12, NULL),
+    ('Lainnya', 'expense', '#95A5A6', '📦', 13, NULL)
 ON CONFLICT DO NOTHING;
 
 -- ============================================
 -- SEED DEFAULT CATEGORIES (income)
 -- ============================================
 INSERT INTO public.default_categories (name, type, color, icon, sort_order) VALUES
-    ('Gaji', 'income', '#27AE60', '💰', 1),
-    ('Bonus', 'income', '#2ECC71', '🎉', 2),
-    ('Investasi', 'income', '#3498DB', '📊', 3),
+    ('Gaji', 'income', '#27AE60', '�', 1),
+    ('Freelance', 'income', '#2ECC71', '💻', 2),
+    ('Investasi', 'income', '#3498DB', '�', 3),
     ('Hadiah', 'income', '#9B59B6', '🎁', 4),
     ('Lainnya', 'income', '#95A5A6', '📦', 5)
 ON CONFLICT DO NOTHING;

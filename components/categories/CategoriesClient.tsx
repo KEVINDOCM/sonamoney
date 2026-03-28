@@ -258,10 +258,12 @@ export function CategoriesClient({ initialCategories }: CategoriesClientProps) {
           title: mounted ? t("categories.edit") : "Edit category",
           description: mounted ? t("categories.description") : "Set up how this category should be tracked.",
           name: mounted ? t("categories.name") : "Name",
+          namePlaceholder: mounted ? t("categories.namePlaceholder") : "e.g. Food & Drinks",
           type: mounted ? t("categories.type") : "Type",
           expense: mounted ? t("categories.expense") : "Expense",
           income: mounted ? t("categories.income") : "Income",
           budgetLimit: mounted ? t("categories.budgetLimit") : "Budget limit (optional)",
+          budgetLimitPlaceholder: mounted ? t("common.optional") : "optional",
           cancel: mounted ? t("common.cancel") : "Cancel",
           save: mounted ? t("common.save") : "Save changes",
         }}

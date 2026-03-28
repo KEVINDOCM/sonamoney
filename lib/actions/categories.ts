@@ -266,6 +266,55 @@ export async function seedDefaultCategories(userId: string): Promise<void> {
       user_id: userId,
       icon: "❤️",
     },
+    {
+      name: "Education",
+      type: "expense",
+      color: EXPENSE_COLOR_PALETTE[6] ?? DEFAULT_CATEGORY_COLOR,
+      user_id: userId,
+      icon: "📚",
+    },
+    {
+      name: "Housing",
+      type: "expense",
+      color: EXPENSE_COLOR_PALETTE[7] ?? DEFAULT_CATEGORY_COLOR,
+      user_id: userId,
+      icon: "🏠",
+    },
+    {
+      name: "Travel",
+      type: "expense",
+      color: EXPENSE_COLOR_PALETTE[8] ?? DEFAULT_CATEGORY_COLOR,
+      user_id: userId,
+      icon: "✈️",
+    },
+    {
+      name: "Savings",
+      type: "expense",
+      color: EXPENSE_COLOR_PALETTE[9] ?? DEFAULT_CATEGORY_COLOR,
+      user_id: userId,
+      icon: "💰",
+    },
+    {
+      name: "Gifts",
+      type: "expense",
+      color: EXPENSE_COLOR_PALETTE[10] ?? DEFAULT_CATEGORY_COLOR,
+      user_id: userId,
+      icon: "🎁",
+    },
+    {
+      name: "Subscriptions",
+      type: "expense",
+      color: EXPENSE_COLOR_PALETTE[11] ?? DEFAULT_CATEGORY_COLOR,
+      user_id: userId,
+      icon: "📺",
+    },
+    {
+      name: "Others",
+      type: "expense",
+      color: "#95A5A6",
+      user_id: userId,
+      icon: "📦",
+    },
   ];
 
   await supabase.from("categories").insert(defaultCategories);

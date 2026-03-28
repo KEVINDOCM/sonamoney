@@ -105,6 +105,7 @@ export const translations = {
       loggedSuccess: "Transaction logged for this month",
       exportPdf: "Export PDF",
       exportExcel: "Export Excel",
+      amountPlaceholder: "e.g. 50000",
     },
     analytics: {
       title: "Analytics",
@@ -528,6 +529,7 @@ export const translations = {
       loggedSuccess: "Transaksi dicatat untuk bulan ini",
       exportPdf: "Ekspor PDF",
       exportExcel: "Ekspor Excel",
+      amountPlaceholder: "mis. 50000",
     },
     analytics: {
       title: "Analitik",
