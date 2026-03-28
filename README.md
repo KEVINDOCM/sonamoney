@@ -118,7 +118,7 @@ Edit `.env.local` with your credentials:
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase Project Settings → API | ✅ |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase Project Settings → API | ✅ |
 | `GEMINI_API_KEY` | [Google AI Studio](https://makersuite.google.com/app/apikey) | ✅ |
-| `NEXT_PUBLIC_REQUEST_SECRET` | Generate: `openssl rand -base64 32` | ✅ |
+| `REQUEST_SECRET` | Generate: `openssl rand -base64 32` | ✅ Server-side only |
 
 ### 🗄️ Database Setup
 

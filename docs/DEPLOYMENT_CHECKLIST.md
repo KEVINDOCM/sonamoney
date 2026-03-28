@@ -3,12 +3,13 @@
 ## Pre-Deployment Checklist
 
 ### Environment Variables
-- [ ] `REQUEST_SECRET` set in production environment (NOT `NEXT_PUBLIC_REQUEST_SECRET`)
+- [ ] `REQUEST_SECRET` set in production environment (server-side only, NOT client-accessible)
 - [ ] `UPSTASH_REDIS_REST_URL` set in production
 - [ ] `UPSTASH_REDIS_REST_TOKEN` set in production
 - [ ] `NEXT_PUBLIC_SUPABASE_URL` verified
 - [ ] `NEXT_PUBLIC_SUPABASE_ANON_KEY` verified
-- [ ] `MAINTENANCE_ADMIN_IPS` configured (optional)
+- [ ] `MAINTENANCE_ADMIN_IPS` configured (optional, comma-separated IPs)
+- [ ] `REQUEST_SECRET` rotated and verified (min 16 chars, server-side only)
 
 ### Security Configuration
 - [ ] `X-Frame-Options: DENY` in response headers
