@@ -1,6 +1,7 @@
 "use client";
 
-import { createBrowserClient } from "@supabase/ssr";
+import { createBrowserClient, type CookieOptions } from "@supabase/ssr";
+import type { Database } from "./database.types";
 
 // Gunakan '!' untuk ngasih tau TypeScript kalau variable ini PASTI ada di .env
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -11,8 +12,5 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.error("Missing Supabase Environment Variables!");
 }
 
-export const createSupabaseBrowserClient = () => 
-  createBrowserClient(
-    supabaseUrl,
-    supabaseAnonKey
-  );
+export const createSupabaseBrowserClient = () =>
+  createBrowserClient<Database>(supabaseUrl, supabaseAnonKey);

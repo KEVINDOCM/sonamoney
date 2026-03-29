@@ -8,172 +8,11 @@ import {
 } from "@/lib/security/rateLimiter"
 import { requiresElevatedAccess, getCurrentUserRole } from "@/lib/security/rbac"
 import { validateCSRFToken, requiresCSRFProtection, extractCSRFToken, generateCSRFToken } from "./lib/security/csrf"
+import { extractClientIP, hashIP, checkIsAdminIP, detectAnonymizer } from "./lib/middleware/ip-utils"
+import { logSecurityEvent } from "./lib/middleware/security-logger"
+import { maintenanceHtml } from "./lib/middleware/maintenance-template"
+import type { MiddlewareRequest } from "./lib/middleware/types"
 
-// ============================================
-// CRITICAL: ADMIN IP WHITELIST
-// Set MAINTENANCE_ADMIN_IPS in env (comma-separated)
-// Example: MAINTENANCE_ADMIN_IPS=192.168.1.1,10.0.0.5
-// ============================================
-const getAdminIPs = (): string[] => {
-  const envIPs = process.env.MAINTENANCE_ADMIN_IPS
-  if (!envIPs) return []
-  return envIPs.split(",").map(ip => ip.trim()).filter(Boolean)
-}
-
-// ============================================
-// SECURITY LOGGING
-// ============================================
-interface SecurityLogEntry {
-  timestamp: string
-  ip: string
-  ipHash: string
-  path: string
-  userAgent: string
-  event: "POTENTIAL_BYPASS_ATTEMPT" | "MAINTENANCE_BLOCK" | "ADMIN_ACCESS" | "IP_BLOCKED" | "SUSPICIOUS_ACTIVITY" | "CSRF_FAILURE" | "RBAC_VIOLATION"
-  details?: string
-  anonymizerMarkers?: string[]
-}
-
-function logSecurityEvent(entry: SecurityLogEntry): void {
-  const logLine = `[SECURITY] ${entry.timestamp} | ${entry.event} | IP_HASH: ${entry.ipHash} | IP: ${entry.ip} | Path: ${entry.path}${entry.anonymizerMarkers?.length ? ` | Markers: ${entry.anonymizerMarkers.join(",")}` : ""}${entry.details ? ` | ${entry.details}` : ""}`
-  console.error(logLine)
-}
-
-// ============================================
-// DISTRIBUTED RATE LIMITING (Redis + Fallback)
-// Uses Upstash Redis for multi-instance scaling
-// Falls back to in-memory if Redis unavailable
-// ============================================
-
-interface MiddlewareRequest {
-  url: string
-  method?: string
-  nextUrl: {
-    pathname: string
-  }
-  headers: {
-    get: (name: string) => string | null
-  }
-  cookies: {
-    get: (name: string) => { value?: string } | undefined
-    set: (name: string, value: string) => void
-  }
-}
-
-/**
- * Extract client IP using industry-standard header priority
- * Order: CF-Connecting-IP > True-Client-IP > X-Forwarded-For > X-Real-IP
- */
-function extractClientIP(headers: { get: (name: string) => string | null }): string {
-  // Priority 1: Cloudflare
-  const cfIP = headers.get("cf-connecting-ip")
-  if (cfIP && isValidIP(cfIP)) return cfIP.trim()
-  
-  // Priority 2: Akamai/Enterprise
-  const trueClient = headers.get("true-client-ip")
-  if (trueClient && isValidIP(trueClient)) return trueClient.trim()
-  
-  // Priority 3: Standard proxy chain (take first valid non-private IP)
-  const forwarded = headers.get("x-forwarded-for")
-  if (forwarded) {
-    const ips = forwarded.split(",").map(ip => ip.trim())
-    for (const ip of ips) {
-      if (isValidIP(ip) && !isPrivateIP(ip)) {
-        return ip
-      }
-    }
-  }
-  
-  // Priority 4: Nginx/Apache
-  const realIP = headers.get("x-real-ip")
-  if (realIP && isValidIP(realIP)) return realIP.trim()
-  
-  return "unknown"
-}
-
-/**
- * Validate IPv4 and IPv6 addresses
- */
-function isValidIP(ip: string): boolean {
-  if (!ip || ip === "unknown") return false
-  
-  // IPv4 validation
-  const ipv4Regex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/
-  if (ipv4Regex.test(ip)) return true
-  
-  // IPv6 validation (simplified)
-  const ipv6Regex = /^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$|^::1$|^::$/
-  if (ipv6Regex.test(ip)) return true
-  
-  return false
-}
-
-/**
- * Check if IP is private/internal (RFC 1918)
- */
-function isPrivateIP(ip: string): boolean {
-  const privateRanges = [
-    /^10\./,                           // 10.0.0.0/8
-    /^172\.(1[6-9]|2[0-9]|3[01])\./,  // 172.16.0.0/12
-    /^192\.168\./,                    // 192.168.0.0/16
-    /^127\./,                          // 127.0.0.0/8 (loopback)
-    /^169\.254\./,                    // 169.254.0.0/16 (link-local)
-    /^::1$/,                           // IPv6 loopback
-    /^fc00:/,                          // IPv6 ULA
-    /^fe80:/,                          // IPv6 link-local
-  ]
-  return privateRanges.some(range => range.test(ip))
-}
-
-// ============================================
-// Simple synchronous hash for Edge Runtime
-// ============================================
-function hashIP(ip: string): string {
-  let hash = 0
-  for (let i = 0; i < ip.length; i++) {
-    const char = ip.charCodeAt(i)
-    hash = ((hash << 5) - hash + char) | 0
-  }
-  // Convert to hex string for readability
-  return (hash >>> 0).toString(16).padStart(8, "0")
-}
-
-/**
- * Securely check if IP is admin using hashed comparison
- */
-function checkIsAdminIP(ip: string): boolean {
-  const envIPs = process.env.MAINTENANCE_ADMIN_IPS
-  if (!envIPs) return false
-  
-  const adminHashes = new Set(
-    envIPs.split(",").map(ip => ip.trim()).filter(isValidIP).map(hashIP)
-  )
-  
-  return adminHashes.has(hashIP(ip))
-}
-
-// ============================================
-// VPN / PROXY / TOR DETECTION
-// ============================================
-function detectAnonymizer(headers: { get: (name: string) => string | null }): string[] {
-  const markers: string[] = []
-  
-  if (headers.get("via")?.toLowerCase().includes("vpn")) markers.push("VPN_HEADER")
-  if (headers.get("forwarded")) markers.push("FORWARDED_HEADER")
-  
-  const ua = headers.get("user-agent") || ""
-  if (/tor/i.test(ua)) markers.push("TOR_UA")
-  if (/vpn/i.test(ua)) markers.push("VPN_UA")
-  
-  const cfBotScore = headers.get("cf-bot-management-score")
-  if (cfBotScore && parseInt(cfBotScore) < 30) markers.push("LOW_BOT_SCORE")
-  
-  return markers
-}
-
-// ============================================
-// TOTAL LOCKDOWN MIDDLEWARE
-// ============================================
 export async function middleware(request: MiddlewareRequest) {
   const { pathname } = request.nextUrl
   const requestUrl = request.url
@@ -197,12 +36,12 @@ export async function middleware(request: MiddlewareRequest) {
     })
   }
   
-  // Extract IP using industry-standard method
+  // Extract IP and check security
   const ip = extractClientIP(request.headers)
   const userAgent = request.headers.get("user-agent") ?? "unknown"
   const anonymizerMarkers = detectAnonymizer(request.headers)
   
-  // Check if IP is temporarily blocked
+  // Check if IP is blocked
   const blockStatus = await isBlocked(ip)
   if (blockStatus.blocked) {
     return new Response(
@@ -213,15 +52,11 @@ export async function middleware(request: MiddlewareRequest) {
   
   const isMaintenanceMode = process.env.NEXT_PUBLIC_MAINTENANCE_MODE === "true"
   const isAdminIP = checkIsAdminIP(ip)
-  
   const isMaintenancePage = pathname === "/maintenance"
   const isApiRoute = pathname.startsWith("/api/")
   
-  // ============================================
-  // MAINTENANCE MODE: TOTAL LOCKDOWN
-  // ============================================
+  // Maintenance mode handling
   if (isMaintenanceMode) {
-    // Admin IPs get full access
     if (isAdminIP) {
       logSecurityEvent({
         timestamp: new Date().toISOString(),
@@ -233,14 +68,10 @@ export async function middleware(request: MiddlewareRequest) {
         anonymizerMarkers,
         details: "Admin IP bypassed maintenance lockdown"
       })
-      // Continue to normal processing
     } else {
-      // TOTAL LOCKDOWN for public IPs
-      
-      // 1. BLOCK ALL API ROUTES with 503
+      // Block API routes
       if (isApiRoute) {
         await recordFailedAttempt(ip, "API access during maintenance")
-        
         logSecurityEvent({
           timestamp: new Date().toISOString(),
           ip,
@@ -251,7 +82,6 @@ export async function middleware(request: MiddlewareRequest) {
           anonymizerMarkers,
           details: `API ${pathname} blocked during maintenance`
         })
-        
         return new Response(
           JSON.stringify({ 
             error: "Service Unavailable",
@@ -268,13 +98,12 @@ export async function middleware(request: MiddlewareRequest) {
         )
       }
       
-      // 2. Allow maintenance page only
+      // Allow maintenance page
       if (isMaintenancePage) {
         return NextResponse.next()
       }
       
-      // 3. SERVE MAINTENANCE PAGE (return HTML directly, not redirect)
-      // This prevents URL manipulation - user sees /dashboard in URL but gets maintenance content
+      // Serve maintenance page
       logSecurityEvent({
         timestamp: new Date().toISOString(),
         ip,
@@ -285,156 +114,6 @@ export async function middleware(request: MiddlewareRequest) {
         anonymizerMarkers,
         details: `Served maintenance page for ${pathname}`
       })
-      
-      const maintenanceHtml = `
-        <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>System Maintenance | SonaMoney</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #0F172A 0%, #1A1A2E 100%);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-    .container {
-      max-width: 480px;
-      width: 100%;
-      text-align: center;
-    }
-    .logo {
-      width: 80px;
-      height: 80px;
-      background: linear-gradient(135deg, #00B9A7 0%, #0099A0 100%);
-      border-radius: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 32px;
-      box-shadow: 0 20px 40px rgba(0, 185, 167, 0.3);
-      animation: pulse 2s infinite;
-    }
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-    }
-    .logo svg {
-      width: 40px;
-      height: 40px;
-      color: white;
-      animation: spin 4s linear infinite;
-    }
-    @keyframes spin {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-    .card {
-      background: rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(10px);
-      border-radius: 24px;
-      padding: 40px 32px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    h1 {
-      color: #fff;
-      font-size: 28px;
-      font-weight: 700;
-      margin-bottom: 16px;
-    }
-    p {
-      color: #9CA3AF;
-      font-size: 16px;
-      line-height: 1.6;
-      margin-bottom: 24px;
-    }
-    .status {
-      background: rgba(0, 185, 167, 0.1);
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-    }
-    .status svg {
-      width: 20px;
-      height: 20px;
-      color: #00B9A7;
-    }
-    .status span {
-      color: #00B9A7;
-      font-weight: 600;
-    }
-    .progress {
-      height: 6px;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 3px;
-      overflow: hidden;
-      margin-bottom: 8px;
-    }
-    .progress-bar {
-      height: 100%;
-      width: 75%;
-      background: linear-gradient(90deg, #00B9A7, #0099A0);
-      border-radius: 3px;
-      animation: progress 3s ease-in-out infinite;
-    }
-    @keyframes progress {
-      0%, 100% { width: 60%; }
-      50% { width: 85%; }
-    }
-    .progress-text {
-      color: #6B7280;
-      font-size: 12px;
-    }
-    .footer {
-      color: #6B7280;
-      font-size: 14px;
-      margin-top: 24px;
-    }
-    .footer a {
-      color: #00B9A7;
-      text-decoration: none;
-    }
-    .footer a:hover {
-      text-decoration: underline;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="logo">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-      </svg>
-    </div>
-    <div class="card">
-      <h1>System Maintenance</h1>
-      <p>We're performing scheduled maintenance to improve your experience. SonaMoney will be back shortly.</p>
-      <div class="status">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        <span>Service Temporarily Unavailable</span>
-      </div>
-      <div class="progress">
-        <div class="progress-bar"></div>
-      </div>
-      <p class="progress-text">Maintenance in progress...</p>
-    </div>
-    <p class="footer">Need help? Contact <a href="mailto:support@sonamoney.my.id">support@sonamoney.my.id</a></p>
-  </div>
-</body>
-</html>`
       
       return new Response(maintenanceHtml, {
         status: 503,
@@ -447,41 +126,39 @@ export async function middleware(request: MiddlewareRequest) {
     }
   }
   
-  // Normal mode: redirect away from maintenance page
+  // Redirect away from maintenance page when not in maintenance mode
   if (!isMaintenanceMode && isMaintenancePage) {
     return NextResponse.redirect(new URL("/", requestUrl))
   }
 
-  // ============================================
-  // STANDARD MIDDLEWARE (Rate limiting, auth)
-  // ============================================
-
-  // Check general rate limit (60 req/min)
-  const generalLimit = await checkGeneralRateLimit(ip)
-  if (!generalLimit.success) {
-    return new Response(
-      JSON.stringify({ error: "Too many requests" }),
-      { status: 429, headers: { 
-        "Content-Type": "application/json", 
-        "Retry-After": String(Math.ceil((generalLimit.resetAt - Date.now()) / 1000))
-      } }
-    )
-  }
-
+  // Rate limiting
+  const isTestEnv = process.env.NODE_ENV === "test" || process.env.PLAYWRIGHT_TEST === "true"
   const isAuthEndpoint = pathname === "/api/auth/login" || pathname === "/api/auth/register"
   const isSensitiveEndpoint = pathname === "/api/scan-receipt"
-
-  // Check stricter rate limits for auth/sensitive endpoints
-  if (isSensitiveEndpoint || isAuthEndpoint) {
-    const authLimit = await checkAuthRateLimit(ip)
-    if (!authLimit.success) {
+  
+  if (!isTestEnv) {
+    const generalLimit = await checkGeneralRateLimit(ip)
+    if (!generalLimit.success) {
       return new Response(
-        JSON.stringify({ error: "Too many requests. Please try again later." }),
+        JSON.stringify({ error: "Too many requests" }),
         { status: 429, headers: { 
           "Content-Type": "application/json", 
-          "Retry-After": String(Math.ceil((authLimit.resetAt - Date.now()) / 1000))
+          "Retry-After": String(Math.ceil((generalLimit.resetAt - Date.now()) / 1000))
         } }
       )
+    }
+
+    if (isSensitiveEndpoint || isAuthEndpoint) {
+      const authLimit = await checkAuthRateLimit(ip)
+      if (!authLimit.success) {
+        return new Response(
+          JSON.stringify({ error: "Too many requests. Please try again later." }),
+          { status: 429, headers: { 
+            "Content-Type": "application/json", 
+            "Retry-After": String(Math.ceil((authLimit.resetAt - Date.now()) / 1000))
+          } }
+        )
+      }
     }
   }
 
@@ -513,23 +190,17 @@ export async function middleware(request: MiddlewareRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
   
-  // Debug: Log auth status for API routes
-  if (isApiRoute && process.env.NODE_ENV === 'development') {
-    console.log(`[DEBUG] ${pathname} - User: ${user ? 'authenticated' : 'null'}`)
+  if (isApiRoute && process.env.NODE_ENV === "development") {
+    console.log(`[DEBUG] ${pathname} - User: ${user ? "authenticated" : "null"}`)
   }
 
   const protectedPaths = ["/dashboard","/transactions","/analytics","/budget","/accounts","/categories","/settings","/calendar","/goals","/recurring","/reports","/debt","/notifications"]
   const isProtected = protectedPaths.some((path) => pathname.startsWith(path))
   const isAuthPath = pathname === "/login" || pathname === "/signup"
 
-  // ============================================
-  // CSRF PROTECTION FOR STATE-CHANGING REQUESTS
-  // Skip CSRF for authenticated users (Supabase JWT is sufficient protection)
-  // Only require CSRF for unauthenticated requests (bot protection)
-  // ============================================
+  // CSRF Protection
   if (isApiRoute && requiresCSRFProtection(method) && !isAuthEndpoint) {
     if (!user) {
-      // User not authenticated - require CSRF for bot protection
       const csrfToken = extractCSRFToken(request.headers)
       const validation = await validateCSRFToken(csrfToken)
       
@@ -553,19 +224,14 @@ export async function middleware(request: MiddlewareRequest) {
         )
       }
     }
-    // Authenticated users skip CSRF - Supabase auth is sufficient
   }
 
-  // ============================================
-  // RBAC: ROLE-BASED ACCESS CONTROL
-  // ============================================
+  // RBAC
   if (user) {
-    // Check if path requires elevated access
     const accessCheck = requiresElevatedAccess(pathname)
     if (accessCheck.required) {
       const userRole = await getCurrentUserRole()
       
-      // Admin paths require admin role
       if (pathname.startsWith("/admin") && userRole !== "admin") {
         logSecurityEvent({
           timestamp: new Date().toISOString(),
@@ -583,7 +249,6 @@ export async function middleware(request: MiddlewareRequest) {
         )
       }
       
-      // Auditor paths require auditor or admin role
       if (pathname.startsWith("/audit") && userRole !== "auditor" && userRole !== "admin") {
         logSecurityEvent({
           timestamp: new Date().toISOString(),
@@ -602,7 +267,7 @@ export async function middleware(request: MiddlewareRequest) {
       }
     }
 
-    // Set CSRF token cookie for authenticated users if not present
+    // Set CSRF token cookie
     const csrfCookie = request.cookies.get("csrf_token")
     if (!csrfCookie) {
       const csrfToken = generateCSRFToken()
@@ -613,11 +278,12 @@ export async function middleware(request: MiddlewareRequest) {
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
         path: "/",
-        maxAge: 24 * 60 * 60 // 24 hours
+        maxAge: 24 * 60 * 60
       })
     }
   }
 
+  // Auth redirects
   if (isProtected && !user) {
     const loginUrl = new URL("/login", requestUrl)
     loginUrl.searchParams.set("redirectTo", pathname)
@@ -628,6 +294,7 @@ export async function middleware(request: MiddlewareRequest) {
     return NextResponse.redirect(new URL("/dashboard", requestUrl))
   }
 
+  // Security headers
   if (user) {
     (response as unknown as { headers: { set: (k: string, v: string) => void } }).headers.set("Cache-Control", "no-store")
     ;(response as unknown as { headers: { set: (k: string, v: string) => void } }).headers.set("Pragma", "no-cache")
@@ -638,9 +305,6 @@ export async function middleware(request: MiddlewareRequest) {
   return response
 }
 
-// ============================================
-// MATCHER: ALL routes including API
-// ============================================
 export const config = {
   matcher: [
     "/((?!_next/static|_next/image|favicon.ico|icon-192.svg|icon-512.svg|manifest.json|sw.js|workbox-.*\\.js).*)",

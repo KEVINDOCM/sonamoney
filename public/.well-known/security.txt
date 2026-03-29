@@ -1,0 +1,13 @@
+# SonaMoney Security Contact and Policy Information
+# For security issues, contact: security@sonamoney.my.id
+# Last updated: 2026-03-28
+
+Contact: mailto:security@sonamoney.my.id
+Contact: https://sonamoney.my.id/security/contact
+Expires: 2027-03-28T00:00:00.000Z
+Encryption: https://sonamoney.my.id/pgp-key.txt
+Acknowledgments: https://sonamoney.my.id/security/hall-of-fame
+Preferred-Languages: en, id
+Canonical: https://sonamoney.my.id/.well-known/security.txt
+Policy: https://sonamoney.my.id/security/policy
+Hiring: https://sonamoney.my.id/careers

@@ -18,6 +18,8 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:security": "npx tsx scripts/test-security.mjs",
+    "analyze": "ANALYZE=true npm run build",
+    "analyze:windows": "set ANALYZE=true&& npm run build",
     "maintenance:on": "vercel env rm NEXT_PUBLIC_MAINTENANCE_MODE production --yes 2>nul || true && echo 'true' | vercel env add NEXT_PUBLIC_MAINTENANCE_MODE production --yes && vercel --prod",
     "maintenance:off": "vercel env rm NEXT_PUBLIC_MAINTENANCE_MODE production --yes 2>nul || true && echo 'false' | vercel env add NEXT_PUBLIC_MAINTENANCE_MODE production --yes && vercel --prod"
   },
@@ -30,6 +32,7 @@
     "@supabase/supabase-js": "^2.98.0",
     "@upstash/redis": "^1.37.0",
     "@vercel/speed-insights": "^2.0.0",
+    "critters": "^0.0.23",
     "framer-motion": "^12.37.0",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.0",
@@ -46,7 +49,9 @@
     "zustand": "^5.0.11"
   },
   "devDependencies": {
+    "@next/bundle-analyzer": "^16.2.1",
     "@playwright/test": "^1.58.2",
+    "@tanstack/react-query": "^5.95.2",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/node": "^25.5.0",
@@ -62,6 +67,7 @@
     "tailwindcss": "^3.4.15",
     "terser-webpack-plugin": "^5.4.0",
     "typescript": "^5.9.3",
-    "vitest": "^4.1.0"
+    "vitest": "^4.1.0",
+    "web-vitals": "^5.2.0"
   }
 }

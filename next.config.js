@@ -1,4 +1,8 @@
 /** @type {import('next').NextConfig} */
+const withBundleAnalyzer = require("@next/bundle-analyzer")({
+  enabled: process.env.ANALYZE === "true",
+})
+
 const withPWA = require("next-pwa")({
   dest: "public",
   register: true,
@@ -106,7 +110,8 @@ const securityHeaders = [
       // Form submissions: self only
       "form-action 'self'",
       // Upgrade insecure requests
-      "upgrade-insecure-requests",
+      "upgrade-insecure-requests;" +
+      "report-uri /api/csp-report",
     ].join("; "),
   },
   // Rate limit hint for clients
@@ -116,7 +121,8 @@ const securityHeaders = [
   },
 ]
 
-module.exports = withPWA({
+module.exports = withBundleAnalyzer(
+  withPWA({
   turbopack: {},
 
   // Compress responses
@@ -203,3 +209,4 @@ module.exports = withPWA({
     ]
   },
 })
+)

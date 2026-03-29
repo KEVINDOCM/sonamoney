@@ -7,6 +7,7 @@ import { ToastProvider } from "@/components/ui/ToastProvider";
 import { CurrencyProvider } from "@/lib/contexts/CurrencyContext";
 import { TranslationProvider } from "@/lib/contexts/TranslationContext";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { ReactQueryProvider } from "@/components/providers/ReactQueryProvider";
 
 const inter = Inter({ subsets: ["latin"], display: "swap" });
 
@@ -198,13 +199,15 @@ export default function RootLayout({ children }: RootLayoutProps) {
         />
       </head>
       <body className={`${inter.className} bg-brand-background text-brand-textPrimary dark:bg-darkSurface dark:text-slate-200`}>
-        <ToastProvider>
-          <TranslationProvider>
-            <CurrencyProvider>
-              {children}
-            </CurrencyProvider>
-          </TranslationProvider>
-        </ToastProvider>
+        <ReactQueryProvider>
+          <ToastProvider>
+            <TranslationProvider>
+              <CurrencyProvider>
+                {children}
+              </CurrencyProvider>
+            </TranslationProvider>
+          </ToastProvider>
+        </ReactQueryProvider>
         <SpeedInsights />
       </body>
     </html>
