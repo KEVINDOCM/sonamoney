@@ -13,11 +13,12 @@ import { validateUUID, sanitizeText } from "@/lib/utils/validation"
 import { createCategorySchema, updateCategorySchema } from "@/lib/validation/schemas"
 import type { Category, CategoryType } from "@/types";
 
+// Simplified Supabase client interface for type safety
 interface SupabaseAuthClient {
   auth: {
     getUser: () => Promise<{ data: { user: unknown } }>;
   };
-  from?: (table: string) => QueryBuilder;
+  from: (table: string) => QueryBuilder;
 }
 
 interface QueryBuilder {
@@ -29,8 +30,9 @@ interface QueryBuilder {
 
 interface FilterBuilder {
   eq: (column: string, value: string | number | boolean) => FilterBuilder & PromiseExecutor;
-  single: () => Promise<{ data: unknown | null; error: Error | null }>;
+  gte: (column: string, value: string) => FilterBuilder & PromiseExecutor;
   order: (column: string, options: { ascending: boolean }) => Promise<{ data: unknown[] | null; error: Error | null }>;
+  single: () => Promise<{ data: unknown | null; error: Error | null }>;
 }
 
 interface PromiseExecutor {
@@ -39,7 +41,7 @@ interface PromiseExecutor {
 
 export async function fetchCategories(): Promise<Category[]> {
   const { supabase: rawSupabase, user } = await getAuthenticatedClient();
-  const supabase: SupabaseAuthClient = rawSupabase;
+  const supabase = rawSupabase as SupabaseAuthClient;
 
   if (!supabase.from) return [];
 
@@ -50,12 +52,12 @@ export async function fetchCategories(): Promise<Category[]> {
     .order("created_at", { ascending: false });
 
   if (error || !data) return [];
-  return data as Category[];
+  return data as unknown as Category[];
 }
 
 export async function createCategory(payload: CreateCategoryPayload): Promise<ActionResult> {
   const { supabase: rawSupabase, user } = await getAuthenticatedClient();
-  const supabase: SupabaseAuthClient = rawSupabase;
+  const supabase = rawSupabase as SupabaseAuthClient;
 
   if (!supabase.from) {
     return { success: false, error: "Database client not available" };
@@ -112,7 +114,7 @@ export async function updateCategory(payload: UpdateCategoryPayload): Promise<Ac
   }
 
   const { supabase: rawSupabase, user } = await getAuthenticatedClient();
-  const supabase: SupabaseAuthClient = rawSupabase;
+  const supabase = rawSupabase as SupabaseAuthClient;
 
   if (!supabase.from) {
     return { success: false, error: "Database client not available" };
@@ -153,7 +155,7 @@ export async function deleteCategory(id: string): Promise<ActionResult> {
   }
 
   const { supabase: rawSupabase, user } = await getAuthenticatedClient();
-  const supabase: SupabaseAuthClient = rawSupabase;
+  const supabase = rawSupabase as SupabaseAuthClient;
 
   if (!supabase.from) {
     return { success: false, error: "Database client not available" };
@@ -175,7 +177,7 @@ export async function deleteCategory(id: string): Promise<ActionResult> {
 
 export async function seedDefaultCategories(userId: string): Promise<void> {
   const { supabase: rawSupabase } = await getAuthenticatedClient();
-  const supabase: SupabaseAuthClient = rawSupabase;
+  const supabase = rawSupabase as SupabaseAuthClient;
 
   if (!supabase.from) return;
 
@@ -317,7 +319,7 @@ export async function updateBudgetLimit(
   }
 
   const { supabase: rawSupabase, user } = await getAuthenticatedClient();
-  const supabase: SupabaseAuthClient = rawSupabase;
+  const supabase = rawSupabase as SupabaseAuthClient;
 
   if (!supabase.from) {
     return { success: false, error: "Database client not available" };

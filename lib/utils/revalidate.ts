@@ -1,27 +1,41 @@
 import { revalidatePath } from "next/cache"
 
-// Revalidate all finance-related paths
-export function revalidateFinancePaths(): void {
-  revalidatePath("/dashboard")
-  revalidatePath("/transactions")
-  revalidatePath("/analytics")
-  revalidatePath("/budget")
-  revalidatePath("/calendar")
+// Base paths that most operations need to revalidate
+const CORE_FINANCE_PATHS = ["/dashboard", "/transactions", "/analytics", "/budget", "/calendar"];
+
+// Category-related paths
+const CATEGORY_PATHS = ["/budget", "/categories", "/transactions", "/analytics"];
+
+interface RevalidateOptions {
+  includeCategories?: boolean;
+  includeGoals?: boolean;
 }
 
-// Revalidate transaction-related paths only
-export function revalidateTransactionPaths(): void {
-  revalidatePath("/dashboard")
-  revalidatePath("/transactions")
-  revalidatePath("/analytics")
-  revalidatePath("/budget")
-  revalidatePath("/calendar")
+/**
+ * Revalidate finance-related paths with optional category inclusion
+ * Consolidates revalidateFinancePaths, revalidateTransactionPaths, and revalidateCategoryPaths
+ */
+export function revalidateFinancePaths(options?: RevalidateOptions): void {
+  const paths = new Set<string>(CORE_FINANCE_PATHS);
+  
+  if (options?.includeCategories) {
+    CATEGORY_PATHS.forEach(p => paths.add(p));
+  }
+  
+  if (options?.includeGoals) {
+    paths.add("/goals");
+  }
+  
+  paths.forEach(path => revalidatePath(path));
 }
 
-// Revalidate category-related paths only
+// Backward-compatible aliases
+/** @deprecated Use revalidateFinancePaths({ includeCategories: true }) */
 export function revalidateCategoryPaths(): void {
-  revalidatePath("/budget")
-  revalidatePath("/categories")
-  revalidatePath("/transactions")
-  revalidatePath("/analytics")
+  revalidateFinancePaths({ includeCategories: true });
+}
+
+/** @deprecated Use revalidateFinancePaths() */
+export function revalidateTransactionPaths(): void {
+  revalidateFinancePaths();
 }

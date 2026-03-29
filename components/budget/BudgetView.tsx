@@ -72,7 +72,12 @@ export function BudgetView({ transactions, initialCategories }: BudgetClientProp
     const expenseContext = contextCategories
       .filter((c) => c.type === "expense")
 
-    if (expenseContext.length === 0) return
+    // If context is empty but we have local categories, don't wipe them
+    // This prevents categories from disappearing during context refetch
+    if (expenseContext.length === 0 && localCategories.length > 0) return
+
+    // If both are empty, nothing to do
+    if (expenseContext.length === 0 && localCategories.length === 0) return
 
     setLocalCategories((prev) => {
       // Build lookup of current local budget_limits
@@ -117,14 +122,20 @@ export function BudgetView({ transactions, initialCategories }: BudgetClientProp
       }
 
       // IDs changed (new category added/deleted)
-      // Full replace with budget_limit preserved
-      return expenseContext.map((ctxCat) => ({
+      // Merge context with local, preserving local budget_limits
+      const merged = expenseContext.map((ctxCat) => ({
         ...ctxCat,
         budget_limit:
           ctxCat.budget_limit ??
           localBudgetMap.get(ctxCat.id) ??
           null,
       }))
+      
+      // Also preserve any local-only categories (not in context yet)
+      const contextIds = new Set(expenseContext.map(c => c.id))
+      const localOnly = prev.filter(localCat => !contextIds.has(localCat.id))
+      
+      return [...merged, ...localOnly]
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [contextCategories])
