@@ -1,5 +1,5 @@
 import * as React from "react";
-import { AnalyticsClient } from "@/components/analytics/AnalyticsClient";
+import { AnalyticsView } from "@/components/analytics/AnalyticsView";
 import { getAuthenticatedClient } from "@/lib/utils/auth"
 import type { SupabaseClient } from "@supabase/supabase-js"
 import type { Transaction } from "@/types";
@@ -59,7 +59,7 @@ async function AnalyticsContent() {
         .order("date", { ascending: false })
 
     return (
-        <AnalyticsClient
+        <AnalyticsView
             transactions={(transactions as unknown as Transaction[]) || []}
         />
     )

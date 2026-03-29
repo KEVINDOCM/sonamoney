@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { SettingsClient } from "@/components/settings/SettingsClient";
+import { SettingsView } from "@/components/settings/SettingsView";
 
 interface UserWithMetadata {
   email?: string;
@@ -27,7 +27,7 @@ export default async function SettingsPage() {
         <h1 className="page-title">Settings</h1>
         <p className="section-subtitle">Manage your account preferences</p>
       </div>
-      <SettingsClient email={email} displayName={displayName} />
+      <SettingsView email={email} displayName={displayName} />
     </div>
   );
 }

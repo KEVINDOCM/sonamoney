@@ -26,7 +26,7 @@ interface CategoryFormState {
   budgetLimit: string;
 }
 
-export function CategoriesClient({ initialCategories }: CategoriesClientProps) {
+export function CategoriesView({ initialCategories }: CategoriesClientProps) {
   const [categories, setCategories] = useState<Category[]>(initialCategories);
   const [isSubmitting, startTransition] = useTransition();
   const { toast, toasts, removeToast } = useToast();

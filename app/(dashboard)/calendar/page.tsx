@@ -1,5 +1,5 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { CalendarClient } from "@/components/calendar/CalendarClient";
+import { CalendarView } from "@/components/calendar/CalendarView";
 import type { TransactionWithCategory } from "@/types";
 
 // Force dynamic rendering since this page uses cookies for auth
@@ -53,7 +53,7 @@ export default async function CalendarPage() {
 
     return (
       <div className="page-container">
-        <CalendarClient transactions={transactions ?? []} />
+        <CalendarView transactions={transactions ?? []} />
       </div>
     );
   } catch (error) {

@@ -2,7 +2,7 @@ import { fetchDashboardSummary, fetchTransactions } from "@/lib/actions/transact
 import { fetchCategories } from "@/lib/actions/categories";
 import { fetchGoals } from "@/lib/actions/goals";
 import { getOrComputeHealthScore } from "@/lib/actions/healthScore";
-import { DashboardClient } from "@/components/dashboard/DashboardClient";
+import { DashboardView } from "@/components/dashboard/DashboardView";
 import { getAuthenticatedClient } from "@/lib/utils/auth";
 import type { Category } from "@/types";
 
@@ -89,7 +89,7 @@ export default async function DashboardPage() {
     );
 
     return (
-      <DashboardClient
+      <DashboardView
         summary={summary}
         transactions={allTransactions.slice(0, 5)}
         allTransactions={allTransactions}

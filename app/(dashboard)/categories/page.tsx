@@ -1,6 +1,6 @@
 import * as React from "react";
 import { fetchCategories } from "@/lib/actions/categories";
-import { CategoriesClient } from "@/components/categories/CategoriesClient";
+import { CategoriesView } from "@/components/categories/CategoriesView";
 import { NewCategoryModal } from "@/components/categories/NewCategoryModal";
 
 function CategoriesSkeleton() {
@@ -37,7 +37,7 @@ async function CategoriesContent() {
   const categories = await fetchCategories();
   return (
     <div className="page-container">
-      <CategoriesClient initialCategories={categories} />
+      <CategoriesView initialCategories={categories} />
       <NewCategoryModal />
     </div>
   );

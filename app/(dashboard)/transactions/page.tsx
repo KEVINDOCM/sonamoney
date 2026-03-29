@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/Card";
 import { fetchTransactions } from "@/lib/actions/transactions";
 import { fetchCategories } from "@/lib/actions/categories";
-import { TransactionsClient } from "@/components/transactions/TransactionsClient";
+import { TransactionsView } from "@/components/transactions/TransactionsView";
 
 interface TransactionsPageProps {
   // searchParams must be a Promise in Next.js 15
@@ -22,7 +22,7 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
 
   return (
     <Card>
-      <TransactionsClient
+      <TransactionsView
         transactions={items}
         categories={categories}
         total={total}

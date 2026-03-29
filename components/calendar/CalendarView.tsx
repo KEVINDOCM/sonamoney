@@ -53,7 +53,7 @@ function buildDayMap(transactions: TransactionWithCategory[]): Map<string, DayDa
   return map;
 }
 
-export function CalendarClient({ transactions }: CalendarClientProps) {
+export function CalendarView({ transactions }: CalendarClientProps) {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const { t, mounted } = useTranslation();

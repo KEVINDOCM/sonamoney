@@ -80,7 +80,7 @@ interface DashboardClientProps {
   healthScore: SavedHealthScore;
 }
 
-export function DashboardClient({
+export function DashboardView({
   summary,
   transactions,
   allTransactions,

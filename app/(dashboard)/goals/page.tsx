@@ -1,6 +1,6 @@
 import * as React from "react"
 import { fetchGoals } from "@/lib/actions/goals"
-import { GoalsClient } from "@/components/goals/GoalsClient"
+import { GoalsView } from "@/components/goals/GoalsView"
 
 // Force dynamic rendering since this page uses cookies for auth (via fetchGoals)
 export const dynamic = "force-dynamic";
@@ -59,7 +59,7 @@ export default async function GoalsPage() {
 async function GoalsContent() {
   try {
     const goals = await fetchGoals()
-    return <GoalsClient initialGoals={goals} />
+    return <GoalsView initialGoals={goals} />
   } catch (error) {
     console.error("GoalsPage: Error fetching goals:", error)
     return <GoalsError />

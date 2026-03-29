@@ -59,7 +59,7 @@ interface BudgetCategoryData {
   hasLimit: boolean;
 }
 
-export function BudgetClient({ transactions, initialCategories }: BudgetClientProps) {
+export function BudgetView({ transactions, initialCategories }: BudgetClientProps) {
   const { categories: contextCategories } = useUserData();
   const { toast, toasts, removeToast } = useToast();
   const { t, mounted } = useTranslation();

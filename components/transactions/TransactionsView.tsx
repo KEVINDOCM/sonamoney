@@ -82,7 +82,7 @@ function parsePayeeAndNotes(notes: string | null): { payee: string; notes: strin
   return { payee: "", notes: notes }
 }
 
-export function TransactionsClient({
+export function TransactionsView({
   transactions: initialTransactions,
   categories,
   total,

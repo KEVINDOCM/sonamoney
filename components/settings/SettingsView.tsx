@@ -17,7 +17,7 @@ interface SettingsClientProps {
   displayName: string;
 }
 
-export function SettingsClient({ email, displayName: initialDisplayName }: SettingsClientProps) {
+export function SettingsView({ email: initialEmail, displayName: initialDisplayName }: SettingsClientProps) {
   const { isDark, toggle, mounted: darkModeMounted } = useDarkMode();
   const { t, lang, setLanguage, mounted: i18nMounted } = useTranslation();
   const { toasts, toast, removeToast } = useToast();
@@ -48,7 +48,7 @@ export function SettingsClient({ email, displayName: initialDisplayName }: Setti
   async function handleSendReset(): Promise<void> {
     setIsSendingReset(true);
     setHasResetSuccess(false);
-    const result = await sendPasswordReset(email);
+    const result = await sendPasswordReset(initialEmail);
     setIsSendingReset(false);
     if (result.error) {
       toast.error(result.error);
@@ -124,7 +124,7 @@ export function SettingsClient({ email, displayName: initialDisplayName }: Setti
           </label>
           <input
             type="email"
-            value={email}
+            value={initialEmail}
             disabled
             placeholder={i18nMounted ? t("settings.email") : "Email"}
             className="w-full h-10 border border-gray-200 dark:border-gray-700 rounded-lg px-3 text-sm bg-gray-50 dark:bg-gray-800 text-gray-400 dark:text-gray-500 cursor-not-allowed"
@@ -190,7 +190,7 @@ export function SettingsClient({ email, displayName: initialDisplayName }: Setti
                 {i18nMounted ? t("settings.emailSent") : "Reset email sent"}
               </p>
               <p className="text-xs text-emerald-600 mt-0.5">
-                {i18nMounted ? t("settings.resetEmailSent") : `Check your inbox at ${email} and follow the link to reset your password.`}
+                {i18nMounted ? t("settings.resetEmailSent") : `Check your inbox at ${initialEmail} and follow the link to reset your password.`}
               </p>
             </div>
           </div>

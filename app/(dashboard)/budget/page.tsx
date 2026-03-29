@@ -1,5 +1,5 @@
 import { fetchCategories } from "@/lib/actions/categories";
-import { BudgetClient } from "@/components/budget/BudgetClient";
+import { BudgetView } from "@/components/budget/BudgetView";
 import { getAuthenticatedClient } from "@/lib/utils/auth"
 import type { SupabaseClient } from "@supabase/supabase-js"
 import type { Category, Transaction } from "@/types";
@@ -31,7 +31,7 @@ export default async function BudgetPage() {
   )
 
   return (
-    <BudgetClient
+    <BudgetView
       transactions={(transactions ?? [])}
       initialCategories={initialCategories}
     />

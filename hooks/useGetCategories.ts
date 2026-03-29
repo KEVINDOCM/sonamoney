@@ -1,44 +1,28 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import type { Category } from "@/types";
 import { fetchCategories } from "@/lib/actions/categories";
 
-interface UseGetCategoriesState {
-  categories: Category[];
-  isLoading: boolean;
-  error: string | null;
+// Query key for categories cache
+const CATEGORIES_QUERY_KEY = ["categories"];
+
+/**
+ * React Query hook for fetching categories
+ * Replaces legacy useEffect pattern with proper caching
+ */
+export function useGetCategories() {
+  return useQuery<Category[], Error>({
+    queryKey: CATEGORIES_QUERY_KEY,
+    queryFn: async () => {
+      const result = await fetchCategories();
+      return result;
+    },
+    staleTime: 10 * 60 * 1000, // 10 minutes - categories rarely change
+    gcTime: 30 * 60 * 1000, // 30 minutes garbage collection
+  });
 }
 
-export function useGetCategories(): UseGetCategoriesState {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let isActive = true;
-
-    const load = async () => {
-      try {
-        const result = await fetchCategories();
-        if (!isActive) return;
-        setCategories(result);
-      } catch {
-        if (!isActive) return;
-        setError("Failed to load categories.");
-      } finally {
-        if (!isActive) return;
-        setIsLoading(false);
-      }
-    };
-
-    void load();
-
-    return () => {
-      isActive = false;
-    };
-  }, []);
-
-  return { categories, isLoading, error };
-}
+// Export query key for cache invalidation
+export { CATEGORIES_QUERY_KEY };
 

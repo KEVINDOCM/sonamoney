@@ -9,8 +9,8 @@ import {
   EXPENSE_COLOR_PALETTE,
   DEFAULT_CATEGORY_COLOR,
 } from "@/lib/constants/colors"
-import { z } from "zod"
 import { validateUUID, sanitizeText } from "@/lib/utils/validation"
+import { createCategorySchema, updateCategorySchema } from "@/lib/validation/schemas"
 import type { Category, CategoryType } from "@/types";
 
 interface SupabaseAuthClient {
@@ -36,21 +36,6 @@ interface FilterBuilder {
 interface PromiseExecutor {
   then: (onfulfilled: (value: { data: unknown | null; error: { message: string; code?: string } | null }) => void) => Promise<void>;
 }
-
-const createCategorySchema = z.object({
-  name: z.string().min(1).max(50).trim(),
-  type: z.enum(["income", "expense"]),
-  color: z.string().max(20).optional(),
-  budget_limit: z.number().positive().nullable().optional(),
-})
-
-const updateCategorySchema = z.object({
-  id: z.string().uuid(),
-  name: z.string().min(1).max(50).trim().optional(),
-  type: z.enum(["income", "expense"]).optional(),
-  color: z.string().max(20).optional(),
-  budget_limit: z.number().positive().nullable().optional(),
-})
 
 export async function fetchCategories(): Promise<Category[]> {
   const { supabase: rawSupabase, user } = await getAuthenticatedClient();

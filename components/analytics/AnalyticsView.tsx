@@ -316,7 +316,7 @@ export interface AnalyticsClientProps {
     transactions: Transaction[];
 }
 
-export function AnalyticsClient({ transactions }: AnalyticsClientProps) {
+export function AnalyticsView({ transactions }: AnalyticsClientProps) {
     const { categories } = useUserData();
     const budgetCategories = useMemo(() => 
         categories.filter(c => c.type === "expense" && c.budget_limit !== null),

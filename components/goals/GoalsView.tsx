@@ -28,7 +28,7 @@ const GOAL_COLORS = [
   "#00C48C", "#FF5B5B", "#EC4899",
 ]
 
-export function GoalsClient({
+export function GoalsView({
   initialGoals,
 }: GoalsClientProps) {
   const { t, mounted } = useTranslation()
