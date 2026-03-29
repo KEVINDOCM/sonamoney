@@ -4,6 +4,7 @@ import { fetchGoals } from "@/lib/actions/goals";
 import { getOrComputeHealthScore } from "@/lib/actions/healthScore";
 import { DashboardView } from "@/components/dashboard/DashboardView";
 import { getAuthenticatedClient } from "@/lib/utils/auth";
+import { withCache, CACHE_TTL } from "@/lib/services/cache";
 import type { Category } from "@/types";
 
 // Force dynamic rendering since this page uses cookies for auth
@@ -17,6 +18,7 @@ export default async function DashboardPage() {
 
     const currentMonth = new Date().toISOString().slice(0, 7);
 
+    // Fetch with caching for hot queries
     const [
       summary,
       { items: allTransactions },
@@ -24,10 +26,10 @@ export default async function DashboardPage() {
       goals,
       { data: monthTransactions },
     ] = await Promise.all([
-      fetchDashboardSummary(),
+      withCache(user.id, "dashboard-summary", fetchDashboardSummary, { ttl: CACHE_TTL.DASHBOARD_SUMMARY }),
       fetchTransactions({ page: 1, pageSize: 5 }),
-      fetchCategories(),
-      fetchGoals(),
+      withCache(user.id, "categories", () => fetchCategories(), { ttl: CACHE_TTL.CATEGORIES }),
+      withCache(user.id, "goals", fetchGoals, { ttl: CACHE_TTL.GOALS }),
       supabase
         .from("transactions")
         .select("category_id, amount, type")

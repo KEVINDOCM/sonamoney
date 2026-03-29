@@ -78,7 +78,6 @@ export function TurnstileWidget({ onVerify, onError, action = "login" }: Turnsti
       sitekey: TURNSTILE_SITE_KEY,
       action,
       callback: (token: string) => {
-        console.log("[CAPTCHA] Verification successful")
         onVerify(token)
       },
       "error-callback": () => {

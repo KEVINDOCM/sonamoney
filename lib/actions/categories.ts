@@ -3,6 +3,7 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getAuthenticatedClient } from "@/lib/utils/auth";
 import { revalidateCategoryPaths } from "@/lib/utils/revalidate";
+import { invalidateCache } from "@/lib/services/cache";
 import { ActionResult, CreateCategoryPayload, UpdateCategoryPayload } from "@/lib/types/actions";
 import {
   INCOME_COLOR_PALETTE,
@@ -102,6 +103,8 @@ export async function createCategory(payload: CreateCategoryPayload): Promise<Ac
   }
 
   revalidateCategoryPaths();
+  const { user: currentUser } = await getAuthenticatedClient();
+  await invalidateCache(currentUser.id, "categories");
   return { success: true };
 }
 
@@ -143,6 +146,7 @@ export async function updateCategory(payload: UpdateCategoryPayload): Promise<Ac
   }
 
   revalidateCategoryPaths();
+  await invalidateCache(user.id, "categories");
   return { success: true };
 }
 
@@ -172,6 +176,7 @@ export async function deleteCategory(id: string): Promise<ActionResult> {
   }
 
   revalidateCategoryPaths();
+  await invalidateCache(user.id, "categories");
   return { success: true };
 }
 

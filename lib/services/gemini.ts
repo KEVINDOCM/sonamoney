@@ -249,7 +249,9 @@ export async function generateAIResponse(
 ): Promise<string> {
   const apiKey = process.env.GEMINI_API_KEY
 
-  console.log("[DEBUG-GEMINI] API Key check - exists:", !!apiKey, "length:", apiKey?.length)
+  if (process.env.NODE_ENV === "development") {
+    console.log("[DEBUG-GEMINI] API Key check - exists:", !!apiKey, "length:", apiKey?.length)
+  }
 
   if (!apiKey) {
     console.error("[DEBUG-GEMINI] GEMINI_API_KEY not configured")
@@ -258,7 +260,9 @@ export async function generateAIResponse(
 
   const genAI = new GoogleGenerativeAI(apiKey)
   const model = genAI.getGenerativeModel({ model: AI_MODEL })
-  console.log("[DEBUG-GEMINI] Model initialized:", AI_MODEL)
+  if (process.env.NODE_ENV === "development") {
+    console.log("[DEBUG-GEMINI] Model initialized:", AI_MODEL)
+  }
 
   // Use lightweight prompt for short messages to save tokens
   const isShortMessage = userMessage.length < 50
@@ -271,15 +275,21 @@ export async function generateAIResponse(
     ? `${systemPrompt}\n\nPrevious conversation:\n${historyText}\n\nUser: ${userMessage}\nSona:`
     : `${systemPrompt}\n\nUser: ${userMessage}\nSona:`
 
-  console.log("[DEBUG-GEMINI] Prompt length:", fullPrompt.length)
-  console.log("[DEBUG-GEMINI] Context - accounts:", context.accounts.length, "transactions:", context.recentTransactions.length)
+  if (process.env.NODE_ENV === "development") {
+    console.log("[DEBUG-GEMINI] Prompt length:", fullPrompt.length)
+    console.log("[DEBUG-GEMINI] Context - accounts:", context.accounts.length, "transactions:", context.recentTransactions.length)
+  }
 
   try {
     const result = await model.generateContent(fullPrompt)
-    console.log("[DEBUG-GEMINI] generateContent succeeded")
+    if (process.env.NODE_ENV === "development") {
+      console.log("[DEBUG-GEMINI] generateContent succeeded")
+    }
     const response = result.response
     const text = response.text()
-    console.log("[DEBUG-GEMINI] Response text length:", text.length)
+    if (process.env.NODE_ENV === "development") {
+      console.log("[DEBUG-GEMINI] Response text length:", text.length)
+    }
 
     const truncated = truncateToWordLimit(text, MAX_RESPONSE_WORDS)
     return truncated

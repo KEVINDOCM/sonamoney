@@ -153,7 +153,9 @@ export async function validateRequest(
 
   // Debug: Log REQUEST_SECRET status (first 3 chars only for security)
   const secretPrefix = REQUEST_SECRET ? REQUEST_SECRET.substring(0, 3) + "***" : "NOT_SET"
-  console.log(`[SECURITY] REQUEST_SECRET loaded: ${secretPrefix}`)
+  if (process.env.NODE_ENV === "development") {
+    console.log(`[SECURITY] REQUEST_SECRET loaded: ${secretPrefix}`)
+  }
 
   // Get client IP to determine validation mode
   const clientIp = getClientIp(req)
@@ -164,7 +166,9 @@ export async function validateRequest(
     ? (isAdminByIp ? "admin" : "user")
     : mode
 
-  console.log(`[SECURITY] Validation mode: ${actualMode} (IP: ${clientIp}, Config: ${mode})`)
+  if (process.env.NODE_ENV === "development") {
+    console.log(`[SECURITY] Validation mode: ${actualMode} (IP: ${clientIp}, Config: ${mode})`)
+  }
 
   // 1. Check timestamp header (required for anti-replay on ALL requests)
   const signature = req.headers.get("x-request-signature")
@@ -199,7 +203,9 @@ export async function validateRequest(
         // Log detailed info for debugging clock skew
         const now = Date.now()
         const diff = now - ts
+      if (process.env.NODE_ENV === "development") {
         console.log(`[SECURITY] User timestamp rejected: diff=${diff}ms, server=${now}, client=${ts}`)
+      }
         return {
           success: false,
           error: "Request expired - please check your system clock",
@@ -207,7 +213,9 @@ export async function validateRequest(
           mode: actualMode,
         }
       }
-      console.log(`[SECURITY] Admin mode - allowing stale timestamp`)
+      if (process.env.NODE_ENV === "development") {
+        console.log(`[SECURITY] Admin mode - allowing stale timestamp`)
+      }
     }
 
     // 3. HMAC Signature Validation
@@ -224,14 +232,20 @@ export async function validateRequest(
             mode: actualMode,
           }
         }
-        console.log(`[SECURITY] Admin HMAC signature verified`)
+        if (process.env.NODE_ENV === "development") {
+          console.log(`[SECURITY] Admin HMAC signature verified`)
+        }
       } else {
         // User mode: Log and ignore signature (users don't have REQUEST_SECRET)
-        console.log(`[SECURITY] User mode - skipping HMAC validation (signature present but ignored)`)
+        if (process.env.NODE_ENV === "development") {
+          console.log(`[SECURITY] User mode - skipping HMAC validation`)
+        }
       }
     } else if (actualMode === "admin" && requireTimestamp) {
       // Admin requires signature when timestamp is required
-      console.log(`[SECURITY] Admin mode - signature missing, proceeding with session validation`)
+      if (process.env.NODE_ENV === "development") {
+        console.log(`[SECURITY] Admin mode - signature missing, proceeding with session validation`)
+      }
     }
   }
 
