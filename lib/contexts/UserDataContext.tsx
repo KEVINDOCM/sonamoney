@@ -9,6 +9,8 @@ import {
   type ReactNode,
 } from "react"
 import { fetchCategories } from "@/lib/actions/categories"
+import { useGuestCategories } from "@/lib/guest/hooks/useGuestCategories"
+import { createSupabaseBrowserClient } from "@/lib/supabase/client"
 import type { Category } from "@/types"
 
 interface UserDataContextValue {
@@ -16,28 +18,66 @@ interface UserDataContextValue {
   isLoading: boolean
   refetchCategories: () => Promise<void>
   refetchAll: () => Promise<void>
+  isGuest: boolean
 }
 
 const UserDataContext = createContext<UserDataContextValue | null>(null) as { Provider: React.ComponentType<{ value: UserDataContextValue | null; children?: ReactNode }>; };
 
 export function UserDataProvider({ children }: { children: ReactNode }) {
-  const [categories, setCategories] = useState<Category[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
+  const [authCategories, setAuthCategories] = useState<Category[]>([])
+  const [isAuthLoading, setIsAuthLoading] = useState(true)
+  
+  // Guest mode categories
+  const { categories: guestCategories, isLoading: isGuestLoading, refreshCategories: refreshGuestCategories } = useGuestCategories()
 
-  const refetchCategories = useCallback(async () => {
-    const data = await fetchCategories()
-    setCategories(data)
+  // Check auth status on mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      const supabase = createSupabaseBrowserClient() as { auth: { getUser: () => Promise<{ data: { user: unknown } }> } }
+      const { data: { user } } = await supabase.auth.getUser()
+      setIsAuthenticated(!!user)
+      setIsAuthLoading(false)
+    }
+    checkAuth()
   }, [])
 
+  const refetchAuthCategories = useCallback(async () => {
+    const data = await fetchCategories()
+    setAuthCategories(data)
+  }, [])
+
+  const refetchCategories = useCallback(async () => {
+    if (isAuthenticated) {
+      await refetchAuthCategories()
+    } else {
+      refreshGuestCategories()
+    }
+  }, [isAuthenticated, refetchAuthCategories, refreshGuestCategories])
+
   const refetchAll = useCallback(async () => {
-    setIsLoading(true)
     await refetchCategories()
-    setIsLoading(false)
   }, [refetchCategories])
 
+  // Load auth categories when authenticated
   useEffect(() => {
-    refetchAll()
-  }, [refetchAll])
+    if (isAuthenticated) {
+      refetchAuthCategories()
+    }
+  }, [isAuthenticated, refetchAuthCategories])
+
+  // Listen for auth state changes
+  useEffect(() => {
+    const supabase = createSupabaseBrowserClient() as { auth: { onAuthStateChange: (callback: (event: string, session: { user: unknown } | null) => void) => { data: { subscription: { unsubscribe: () => void } } } } }
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsAuthenticated(!!session?.user)
+    })
+    return () => subscription.unsubscribe()
+  }, [])
+
+  const isLoading = isAuthLoading || (isAuthenticated ? false : isGuestLoading)
+  const categories = isAuthenticated ? authCategories : (guestCategories as Category[])
+  const isGuest = !isAuthenticated
 
   return (
     <UserDataContext.Provider
@@ -46,6 +86,7 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
         isLoading,
         refetchCategories,
         refetchAll,
+        isGuest,
       }}
     >
       {children}

@@ -36,6 +36,7 @@
     "@upstash/redis": "^1.37.0",
     "@vercel/speed-insights": "^2.0.0",
     "critters": "^0.0.23",
+    "driver.js": "^1.4.0",
     "framer-motion": "^12.37.0",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.0",

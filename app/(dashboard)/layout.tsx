@@ -2,6 +2,8 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { UserDataProvider } from "@/lib/contexts/UserDataContext";
 import { ChatProvider } from "@/components/chat";
+import { MigrationProgress } from "@/components/guest/MigrationProgress";
+import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
 import type { Category, Transaction } from "@/types";
 
 interface SupabaseAuthClient {
@@ -49,6 +51,8 @@ export default async function DashboardLayout({ children }: DashboardLayoutProps
     return pct >= 70;
   }).length ?? 0;
 
+  const isGuest = !user;
+
   return (
     <UserDataProvider>
       <Sidebar budgetWarningCount={budgetWarningCount}>
@@ -56,6 +60,8 @@ export default async function DashboardLayout({ children }: DashboardLayoutProps
           {children}
         </ChatProvider>
       </Sidebar>
+      <MigrationProgress />
+      <OnboardingTour isGuest={isGuest} />
     </UserDataProvider>
   );
 }

@@ -283,11 +283,16 @@ export async function middleware(request: MiddlewareRequest) {
     }
   }
 
-  // Auth redirects
+  // Auth redirects - allow guest access to protected routes
+  // Guest mode: protected routes are accessible without auth, but API routes still require auth
   if (isProtected && !user) {
-    const loginUrl = new URL("/login", requestUrl)
-    loginUrl.searchParams.set("redirectTo", pathname)
-    return NextResponse.redirect(loginUrl)
+    // Check if this is an API request that requires authentication
+    if (isApiRoute && !pathname.startsWith('/api/public')) {
+      const loginUrl = new URL("/login", requestUrl)
+      loginUrl.searchParams.set("redirectTo", pathname)
+      return NextResponse.redirect(loginUrl)
+    }
+    // Allow guest access to protected pages - don't redirect
   }
 
   if (isAuthPath && user) {
