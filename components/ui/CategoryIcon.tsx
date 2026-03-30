@@ -1,4 +1,4 @@
-interface CategoryIconProps {
+export interface CategoryIconProps {
   icon?: string | null;
   color?: string | null;
   size?: "sm" | "md" | "lg";

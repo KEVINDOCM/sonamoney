@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
-import { formatCurrency } from "@/lib/utils/formatCurrency";
+import { formatCurrency } from "@/lib/utils/currency";
 import type { Transaction, TransactionWithCategory } from "@/types";
 import { CalendarDays, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useTranslation } from "@/lib/i18n/useTranslation";
@@ -167,7 +167,7 @@ export function CalendarView({ transactions }: CalendarClientProps) {
               <button
                 key={day}
                 onClick={() => setSelectedDate(isSelected ? null : dateKey)}
-                aria-pressed={isSelected ? true : undefined}
+                aria-pressed={isSelected ? "true" : "false"}
                 aria-label={new Date(year, month, day).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
                 className={`h-16 lg:h-20 rounded-xl p-1.5 flex flex-col items-start transition-all duration-200 text-left w-full ${
                   isSelected
