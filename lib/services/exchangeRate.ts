@@ -32,10 +32,10 @@ export async function getExchangeRates(base: string = "USD"): Promise<Record<str
     // ignore cache errors
   }
 
-  // Fetch from Frankfurter API
+  // Fetch from proxy API (avoids CORS issues)
   try {
     const response = await fetch(
-      `https://api.frankfurter.app/latest?from=${base}&to=IDR` 
+      `/api/exchange-rate?from=${base}&to=IDR`
     )
     if (!response.ok) throw new Error("Failed to fetch rates")
     const data = await response.json()
