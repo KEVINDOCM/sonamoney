@@ -15,14 +15,41 @@ import type {
   MFAVerificationResult,
 } from "@/lib/types/mfa";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AnyQueryable = any;
+interface QueryResponse<T = unknown> {
+  data: T | null;
+  error: Error | null;
+  count?: number | null;
+}
 
-function db(supabase: AnyQueryable) {
-  return supabase as {
-    rpc: (fn: string, params: Record<string, unknown>) => Promise<{ data: unknown; error: Error | null }>;
-    from: (table: string) => AnyQueryable;
-  };
+interface QueryableClient {
+  rpc: (fn: string, params: Record<string, unknown>) => Promise<{ data: unknown; error: Error | null }>;
+  from: (table: string) => QueryableBuilder;
+}
+
+interface QueryableBuilder {
+  select: (columns: string, options?: { count?: string; head?: boolean }) => QueryableFilter;
+  insert: (data: unknown | unknown[]) => QueryablePostInsert;
+  update: (data: unknown) => QueryableFilter;
+  delete: () => QueryableFilter;
+}
+
+interface QueryablePostInsert extends QueryableFilter {
+  select: (columns: string) => QueryablePostSelect;
+}
+
+interface QueryablePostSelect {
+  single: () => Promise<{ data: unknown | null; error: Error | null }>;
+}
+
+interface QueryableFilter extends Promise<QueryResponse<unknown[]>> {
+  eq: (column: string, value: string | number | boolean) => QueryableFilter;
+  gt: (column: string, value: string) => QueryableFilter;
+  order: (column: string, options: { ascending: boolean }) => Promise<QueryResponse<unknown[]>>;
+  single: () => Promise<{ data: unknown | null; error: Error | null }>;
+}
+
+function db(supabase: unknown): QueryableClient {
+  return supabase as QueryableClient;
 }
 
 /**

@@ -115,8 +115,40 @@ interface RPCResult {
   next_date?: string;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AnyQueryable = any;
+interface QueryResponse<T = unknown> {
+  data: T | null;
+  error: Error | null;
+  count?: number | null;
+}
+
+interface QueryableClient {
+  from: (table: string) => QueryableBuilder;
+  rpc: (fn: string, params: Record<string, unknown>) => Promise<{ data: unknown; error: Error | null }>;
+}
+
+interface QueryableBuilder {
+  select: (columns: string, options?: { count?: string; head?: boolean }) => QueryableFilter;
+  insert: (data: unknown | unknown[]) => QueryablePostInsert;
+  update: (data: unknown) => QueryableFilter;
+  delete: () => QueryableFilter;
+}
+
+interface QueryableOrdered extends QueryableFilter {
+  range: (from: number, to: number) => Promise<QueryResponse<unknown[]>>;
+}
+
+interface QueryableFilter extends Promise<QueryResponse<unknown[]>> {
+  eq: (column: string, value: string | number | boolean) => QueryableFilter;
+  gte: (column: string, value: string) => QueryableFilter;
+  lte: (column: string, value: string) => QueryableFilter;
+  order: (column: string, options: { ascending: boolean }) => QueryableOrdered;
+  single: () => Promise<{ data: unknown | null; error: Error | null }>;
+  range: (from: number, to: number) => Promise<QueryResponse<unknown[]>>;
+}
+
+interface QueryablePostInsert extends QueryableFilter {
+  select: (columns: string) => { single: () => Promise<{ data: unknown | null; error: Error | null }> };
+}
 
 /**
  * TransactionService
@@ -141,8 +173,7 @@ export class TransactionService {
   static async create(
     supabase: SupabaseClient
   ): Promise<TransactionService> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data, error } = await (supabase.auth.getUser() as Promise<any>);
+    const { data, error } = await supabase.auth.getUser() as { data: { user: { id: string } | null }; error: Error | null };
     const user = data?.user;
     
     if (error || !user) {
@@ -152,16 +183,15 @@ export class TransactionService {
       );
     }
 
-    return new TransactionService(supabase, user.id as string);
+    return new TransactionService(supabase, user.id);
   }
 
   // ─────────────────────────────────────────────────────────────────
   // Private Helpers
   // ─────────────────────────────────────────────────────────────────
 
-  private db(): AnyQueryable {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return this.supabase as any;
+  private db(): QueryableClient {
+    return this.supabase as unknown as QueryableClient;
   }
 
   private log(level: "info" | "warn" | "error", message: string, meta?: Record<string, unknown>): void {
@@ -291,8 +321,8 @@ export class TransactionService {
       // Aggregate by month
       const monthlyData = new Map<string, { income: number; expense: number }>();
 
-      for (const row of data ?? []) {
-        const month = row.month as string;
+      for (const row of (data ?? []) as Array<{ month: string; type: string; total_amount: number }>) {
+        const month = row.month;
         const type = row.type as TransactionType;
         const amount = Number(row.total_amount);
 

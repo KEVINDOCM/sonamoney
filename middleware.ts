@@ -11,6 +11,7 @@ import { validateCSRFToken, requiresCSRFProtection, extractCSRFToken, generateCS
 import { extractClientIP, hashIP, checkIsAdminIP, detectAnonymizer } from "./lib/middleware/ip-utils"
 import { logSecurityEvent } from "./lib/middleware/security-logger"
 import { maintenanceHtml } from "./lib/middleware/maintenance-template"
+import { getCachedSession, cacheSession } from "./lib/middleware/session-cache"
 import type { MiddlewareRequest } from "./lib/middleware/types"
 
 export async function middleware(request: MiddlewareRequest) {
@@ -41,13 +42,16 @@ export async function middleware(request: MiddlewareRequest) {
   const userAgent = request.headers.get("user-agent") ?? "unknown"
   const anonymizerMarkers = detectAnonymizer(request.headers)
   
-  // Check if IP is blocked
-  const blockStatus = await isBlocked(ip)
-  if (blockStatus.blocked) {
-    return new Response(
-      JSON.stringify({ error: "Access temporarily blocked due to suspicious activity" }),
-      { status: 403, headers: { "Content-Type": "application/json" } }
-    )
+  // Check if IP is blocked - skip for static assets and health checks
+  const isHealthCheck = pathname === "/api/health" || pathname === "/_next/static/"
+  if (!isHealthCheck) {
+    const blockStatus = await isBlocked(ip)
+    if (blockStatus.blocked) {
+      return new Response(
+        JSON.stringify({ error: "Access temporarily blocked due to suspicious activity" }),
+        { status: 403, headers: { "Content-Type": "application/json" } }
+      )
+    }
   }
   
   const isMaintenanceMode = process.env.NEXT_PUBLIC_MAINTENANCE_MODE === "true"
@@ -58,7 +62,8 @@ export async function middleware(request: MiddlewareRequest) {
   // Maintenance mode handling
   if (isMaintenanceMode) {
     if (isAdminIP) {
-      logSecurityEvent({
+      // Fire-and-forget logging for performance
+      Promise.resolve().then(() => logSecurityEvent({
         timestamp: new Date().toISOString(),
         ip,
         ipHash: hashIP(ip),
@@ -67,12 +72,13 @@ export async function middleware(request: MiddlewareRequest) {
         event: "ADMIN_ACCESS",
         anonymizerMarkers,
         details: "Admin IP bypassed maintenance lockdown"
-      })
+      })).catch(() => {/* silent fail */})
     } else {
       // Block API routes
       if (isApiRoute) {
         await recordFailedAttempt(ip, "API access during maintenance")
-        logSecurityEvent({
+        // Async logging - don't block response
+        Promise.resolve().then(() => logSecurityEvent({
           timestamp: new Date().toISOString(),
           ip,
           ipHash: hashIP(ip),
@@ -81,7 +87,7 @@ export async function middleware(request: MiddlewareRequest) {
           event: "POTENTIAL_BYPASS_ATTEMPT",
           anonymizerMarkers,
           details: `API ${pathname} blocked during maintenance`
-        })
+        })).catch(() => {/* silent fail */})
         return new Response(
           JSON.stringify({ 
             error: "Service Unavailable",
@@ -104,7 +110,8 @@ export async function middleware(request: MiddlewareRequest) {
       }
       
       // Serve maintenance page
-      logSecurityEvent({
+      // Async logging - don't block response
+      Promise.resolve().then(() => logSecurityEvent({
         timestamp: new Date().toISOString(),
         ip,
         ipHash: hashIP(ip),
@@ -113,7 +120,7 @@ export async function middleware(request: MiddlewareRequest) {
         event: "MAINTENANCE_BLOCK",
         anonymizerMarkers,
         details: `Served maintenance page for ${pathname}`
-      })
+      })).catch(() => {/* silent fail */})
       
       return new Response(maintenanceHtml, {
         status: 503,
@@ -131,12 +138,12 @@ export async function middleware(request: MiddlewareRequest) {
     return NextResponse.redirect(new URL("/", requestUrl))
   }
 
-  // Rate limiting
+  // Rate limiting - skip for health checks to improve monitoring response time
   const isTestEnv = process.env.NODE_ENV === "test" || process.env.PLAYWRIGHT_TEST === "true"
   const isAuthEndpoint = pathname === "/api/auth/login" || pathname === "/api/auth/register"
   const isSensitiveEndpoint = pathname === "/api/scan-receipt"
   
-  if (!isTestEnv) {
+  if (!isTestEnv && !isHealthCheck) {
     const generalLimit = await checkGeneralRateLimit(ip)
     if (!generalLimit.success) {
       return new Response(
@@ -174,21 +181,41 @@ export async function middleware(request: MiddlewareRequest) {
     )
   }
 
-  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
-    cookies: {
-      get: (name: string) => request.cookies.get(name)?.value,
-      set: (name: string, value: string, options: CookieOptions) => {
-        request.cookies.set(name, value)
-        response.cookies.set({ name, value, ...options })
+  // Check for cached session first (performance optimization)
+  const sbAccessToken = request.cookies.get("sb-access-token")?.value
+  let user: { id: string } | null = null
+  
+  if (sbAccessToken) {
+    const cachedSession = await getCachedSession(sbAccessToken)
+    if (cachedSession) {
+      user = { id: cachedSession.userId }
+    }
+  }
+  
+  // If no cached session, verify with Supabase
+  if (!user) {
+    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+      cookies: {
+        get: (name: string) => request.cookies.get(name)?.value,
+        set: (name: string, value: string, options: CookieOptions) => {
+          request.cookies.set(name, value)
+          response.cookies.set({ name, value, ...options })
+        },
+        remove: (name: string, options: CookieOptions) => {
+          request.cookies.set(name, "")
+          response.cookies.set({ name, value: "", ...options, maxAge: 0 })
+        },
       },
-      remove: (name: string, options: CookieOptions) => {
-        request.cookies.set(name, "")
-        response.cookies.set({ name, value: "", ...options, maxAge: 0 })
-      },
-    },
-  })
+    })
 
-  const { data: { user } } = await supabase.auth.getUser()
+    const authResult = await supabase.auth.getUser()
+    user = authResult.data.user as { id: string } | null
+    
+    // Cache the session for future requests
+    if (user && sbAccessToken) {
+      await cacheSession(sbAccessToken, { userId: user.id })
+    }
+  }
   
   if (isApiRoute && process.env.NODE_ENV === "development") {
     console.log(`[DEBUG] ${pathname} - User: ${user ? "authenticated" : "null"}`)

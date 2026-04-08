@@ -1,18 +1,20 @@
 "use client"
 
 import { motion } from "framer-motion"
+import { useReducedMotion } from "@/lib/hooks/useReducedMotion"
 import { features } from "./data"
 
 export function FeaturesSection() {
+  const prefersReducedMotion = useReducedMotion()
   return (
     <section id="features" className="py-16 lg:py-24 px-4 lg:px-6 max-w-6xl mx-auto">
       {/* Section header */}
       <motion.div
         className="text-center mb-12"
-        initial={{ opacity: 0, y: 30 }}
+        initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        transition={{ duration: 0.6 }}
+        transition={{ duration: prefersReducedMotion ? 0 : 0.6 }}
       >
         <div className="inline-flex items-center gap-2 bg-[#E6F7F6] rounded-full px-4 py-1.5 mb-4">
           <span className="text-xs font-semibold text-[#00B9A7]">Everything you need</span>
@@ -30,11 +32,11 @@ export function FeaturesSection() {
         {features.map((feature, index) => (
           <motion.div
             key={feature.title}
-            initial={{ opacity: 0, y: 30 }}
+            initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: index * 0.1 }}
-            whileHover={{
+            transition={{ duration: prefersReducedMotion ? 0 : 0.5, delay: prefersReducedMotion ? 0 : index * 0.1 }}
+            whileHover={prefersReducedMotion ? undefined : {
               scale: 1.02,
               transition: { duration: 0.2 }
             }}

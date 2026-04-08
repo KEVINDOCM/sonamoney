@@ -605,9 +605,9 @@ export function AnalyticsView({ transactions }: AnalyticsClientProps) {
                                         tick={{ fontSize: 12, fill: "#6b7280" }}
                                     />
                                     <Tooltip
-                                        formatter={(value: unknown, name?: string): [string, string] => [
+                                        formatter={(value: unknown, name?: unknown): [string, string] => [
                                             formatCurrency(Number(value), baseCurrency),
-                                            name === "budget" ? "Budget" : "Actual"
+                                            String(name) === "budget" ? "Budget" : "Actual"
                                         ]}
                                         contentStyle={{ backgroundColor: "white", border: "none", borderRadius: "16px", boxShadow: "0 4px 20px rgba(0,0,0,0.08)", fontSize: "12px" }}
                                     />

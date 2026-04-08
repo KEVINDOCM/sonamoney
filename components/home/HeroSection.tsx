@@ -4,10 +4,12 @@ import Link from "next/link"
 import { motion } from "framer-motion"
 import { ArrowRight, CheckCircle, Shield, Smartphone } from "lucide-react"
 import { useTranslation } from "@/lib/i18n/useTranslation"
+import { useReducedMotion } from "@/lib/hooks/useReducedMotion"
 import { containerVariants, itemVariants } from "./animations"
 
 export function HeroSection() {
   const { t } = useTranslation()
+  const prefersReducedMotion = useReducedMotion()
 
   return (
     <section className="pt-24 pb-16 lg:pt-32 lg:pb-24 px-4 lg:px-6 max-w-6xl mx-auto">
@@ -15,8 +17,8 @@ export function HeroSection() {
         {/* Left — Text */}
         <motion.div
           className="flex flex-col items-start text-left lg:items-start lg:text-left space-y-6"
-          variants={containerVariants}
-          initial="hidden"
+          variants={prefersReducedMotion ? undefined : containerVariants}
+          initial={prefersReducedMotion ? "visible" : "hidden"}
           animate="visible"
         >
           {/* Badge */}

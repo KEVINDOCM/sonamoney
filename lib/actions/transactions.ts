@@ -22,19 +22,40 @@ import { randomUUID } from "crypto";
 
 // ─────────────────────────────────────────────────────────────────
 // Internal Supabase query helper
-// The @supabase/ssr client without a database type schema requires
-// this single cast at the boundary — removes the need for 4 fake
-// interface declarations that existed previously.
+// Uses unknown at the boundary with proper type assertions at call sites.
 // ─────────────────────────────────────────────────────────────────
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AnyQueryable = any;
+interface QueryableClient {
+  from: (table: string) => QueryableBuilder;
+  auth: { getUser: () => Promise<{ data: { user: { id: string } | null } }> };
+  rpc: (fn: string, params: Record<string, unknown>) => Promise<{ data: unknown; error: Error | null }>;
+}
 
-function db(supabase: AnyQueryable) {
-  return supabase as {
-    from: (table: string) => AnyQueryable;
-    auth: AnyQueryable;
-    rpc: (fn: string, params: Record<string, unknown>) => Promise<{ data: unknown; error: Error | null }>;
-  };
+interface QueryResponse<T = unknown> {
+  data: T | null;
+  error: Error | null;
+  count?: number | null;
+}
+
+interface QueryableBuilder {
+  select: (columns: string, options?: { count?: string; head?: boolean }) => QueryableFilter;
+  insert: (data: unknown | unknown[]) => Promise<{ error: Error | null }>;
+  update: (data: unknown) => QueryableFilter;
+  delete: () => QueryableFilter;
+}
+
+interface QueryableFilter extends Promise<QueryResponse<unknown[]>> {
+  eq: (column: string, value: string | number | boolean) => QueryableFilter;
+  gte: (column: string, value: string) => QueryableFilter;
+  order: (column: string, options: { ascending: boolean }) => QueryableOrdered;
+  single: () => Promise<{ data: unknown | null; error: Error | null }>;
+}
+
+interface QueryableOrdered extends QueryableFilter {
+  range: (from: number, to: number) => Promise<QueryResponse<unknown[]>>;
+}
+
+function db(supabase: unknown): QueryableClient {
+  return supabase as QueryableClient;
 }
 
 export interface FetchTransactionsParams {
@@ -80,13 +101,13 @@ export async function fetchTransactions(
     .order("date", { ascending: false })
     .range(from, to);
 
-  if (error || !data || count === null) {
+  if (error || !data || count == null) {
     return { items: [], total: 0, page, pageSize };
   }
 
   return {
     items: data as Transaction[],
-    total: count,
+    total: count ?? 0,
     page,
     pageSize,
   };

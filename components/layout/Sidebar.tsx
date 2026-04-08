@@ -22,7 +22,6 @@ import {
 import { OnboardingModal } from "@/components/onboarding/OnboardingModal";
 
 export interface SidebarProps {
-  budgetWarningCount: number;
   children: React.ReactNode;
 }
 
@@ -44,11 +43,33 @@ const SECONDARY_NAV_ITEMS = [
 
 const ALL_NAV_ITEMS = [...PRIMARY_NAV_ITEMS, ...SECONDARY_NAV_ITEMS];
 
-export function Sidebar({ budgetWarningCount, children }: SidebarProps) {
+export function Sidebar({ children }: SidebarProps) {
   const pathname = navigation.usePathname();
   const [isMoreOpen, setIsMoreOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [budgetWarningCount, setBudgetWarningCount] = useState(0);
   const { t, mounted } = useTranslation();
+
+  // Fetch budget warnings client-side (replaces server-side blocking fetch)
+  useEffect(() => {
+    async function fetchBudgetWarnings() {
+      try {
+        const response = await fetch('/api/budget/warnings');
+        if (response.ok) {
+          const data = await response.json();
+          setBudgetWarningCount(data.count || 0);
+        }
+      } catch {
+        // Silent fail - non-critical feature
+        setBudgetWarningCount(0);
+      }
+    }
+    
+    fetchBudgetWarnings();
+    // Refresh every 5 minutes
+    const interval = setInterval(fetchBudgetWarnings, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Keyboard shortcut for Cmd+B / Ctrl+B
   useEffect(() => {

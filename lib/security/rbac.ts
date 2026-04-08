@@ -45,12 +45,19 @@ export async function getCurrentUserRole(): Promise<UserRole | null> {
 
     if (!user) return null
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data, error } = await (supabase as any)
+    const { data, error } = await (supabase as unknown as {
+      from: (table: string) => {
+        select: (columns: string) => {
+          eq: (column: string, value: string) => {
+            single: () => Promise<{ data: unknown | null; error: Error | null }>;
+          };
+        };
+      };
+    })
       .from("user_roles")
       .select("role")
       .eq("user_id", user.id)
-      .single() as { data: { role: UserRole } | null; error: any }
+      .single() as { data: { role: UserRole } | null; error: Error | null }
 
     if (error || !data) {
       // Default to 'user' if no role assigned

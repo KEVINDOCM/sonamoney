@@ -208,15 +208,15 @@ export async function refreshCSRFToken(): Promise<string> {
 export function withCSRFProtection(
   handler: (req: NextRequest) => Promise<Response>
 ): (req: NextRequest) => Promise<Response> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return async (request: any): Promise<Response> => {
+  return async (request): Promise<Response> => {
+    const req = request as NextRequest & { method: string; headers: { get: (name: string) => string | null } }
     // Skip CSRF for GET/HEAD/OPTIONS
-    if (!requiresCSRFProtection(request.method as string)) {
-      return handler(request as NextRequest)
+    if (!requiresCSRFProtection(req.method)) {
+      return handler(req)
     }
 
     // Validate CSRF token
-    const token = extractCSRFToken(request.headers as { get: (name: string) => string | null })
+    const token = extractCSRFToken(req.headers)
     const validation = await validateCSRFToken(token)
 
     if (!validation.valid) {
