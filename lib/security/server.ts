@@ -196,16 +196,16 @@ export async function validateRequest(
     }
 
     // Anti-replay: Check freshness
-    const freshnessWindow = actualMode === "admin" ? REQUEST_TIMEOUT_MS * 10 : REQUEST_TIMEOUT_MS * 2 // 60s for users
+    // Use generous window for user mode to handle Vercel cold starts, network latency, and clock skew
+    const freshnessWindow = actualMode === "admin" ? REQUEST_TIMEOUT_MS * 10 : REQUEST_TIMEOUT_MS * 10 // 300s (5 min) for users
     if (!isRequestFresh(ts, freshnessWindow)) {
+      // Log detailed info for debugging clock skew (always log in production for troubleshooting)
+      const now = Date.now()
+      const diff = now - ts
+      console.log(`[SECURITY] Timestamp rejected: diff=${diff}ms, server=${now}, client=${ts}, mode=${actualMode}, window=${freshnessWindow}`)
+      
       // User gets leniency for clock skew issues
       if (actualMode !== "admin") {
-        // Log detailed info for debugging clock skew
-        const now = Date.now()
-        const diff = now - ts
-      if (process.env.NODE_ENV === "development") {
-        console.log(`[SECURITY] User timestamp rejected: diff=${diff}ms, server=${now}, client=${ts}`)
-      }
         return {
           success: false,
           error: "Request expired - please check your system clock",
@@ -213,9 +213,8 @@ export async function validateRequest(
           mode: actualMode,
         }
       }
-      if (process.env.NODE_ENV === "development") {
-        console.log(`[SECURITY] Admin mode - allowing stale timestamp`)
-      }
+      // Admin mode: log but allow (they may be using API tools with clock drift)
+      console.log(`[SECURITY] Admin mode - allowing stale timestamp`)
     }
 
     // 3. HMAC Signature Validation

@@ -1,4 +1,4 @@
-import { createSupabaseServerClient } from "@/lib/supabase/server"
+import { createClient } from "@supabase/supabase-js"
 import { logAuditEvent } from "@/lib/utils/auditLog"
 import { getSiteUrl } from "@/lib/utils/url"
 import { checkPasswordBreached } from "@/lib/utils/passwordSecurity"
@@ -13,10 +13,40 @@ interface SupabaseAuthApi {
   }
 }
 
+// Create a direct Supabase client for API routes (no cookie dependency needed for signup)
+function createSupabaseApiClient(): SupabaseAuthApi {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  
+  if (!url || !key) {
+    throw new Error("Missing Supabase environment variables")
+  }
+  
+  return createClient(url, key, {
+    auth: {
+      persistSession: false,
+    },
+  }) as unknown as SupabaseAuthApi
+}
+
 export async function POST(req: Request): Promise<Response> {
+  let ip = "unknown"
   try {
-    const ip = getClientIp(req)
-    const body = await req.json()
+    ip = getClientIp(req)
+    
+    // Check critical environment variables
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      console.error("[AUTH] Missing Supabase environment variables")
+      return Response.json({ error: "Server configuration error: Missing Supabase config" }, { status: 500 })
+    }
+    
+    let body: Record<string, unknown>
+    try {
+      body = await req.json()
+    } catch (parseErr) {
+      console.error("[AUTH] Failed to parse request body:", parseErr)
+      return Response.json({ error: "Invalid request format" }, { status: 400 })
+    }
 
     // Validate request (signature, timestamp, XSS, schema)
     const validation = await validateRequest(req, body, signupSchema)
@@ -56,7 +86,7 @@ export async function POST(req: Request): Promise<Response> {
       )
     }
 
-    const supabase = await createSupabaseServerClient() as unknown as SupabaseAuthApi
+    const supabase = createSupabaseApiClient()
     const origin = req.headers.get("origin") ?? getSiteUrl()
 
     const { error } = await supabase.auth.signUp({
@@ -65,14 +95,23 @@ export async function POST(req: Request): Promise<Response> {
       options: { emailRedirectTo: `${origin}/callback` },
     })
 
-    if (error && !error.message.includes("already registered")) {
+    if (error) {
+      // Log the actual error for debugging
+      console.error("[AUTH] Supabase signup error:", error.message, "Status:", (error as { status?: number }).status)
+      
+      // Handle "already registered" gracefully (don't leak user existence)
+      const errorMsg = error.message.toLowerCase()
+      if (errorMsg.includes("already registered") || errorMsg.includes("user already") || errorMsg.includes("already exists")) {
+        return Response.json({ success: true, message: GENERIC_SUCCESS }, { status: 200 })
+      }
+      
       await logAuditEvent({
         eventType: "auth.register.failure",
         eventStatus: "failure",
         ipAddress: ip,
-        metadata: { reason: "signup_error" },
+        metadata: { reason: "signup_error", error: error.message.slice(0, 100) },
       })
-      return Response.json({ error: GENERIC_ERROR }, { status: 500 })
+      return Response.json({ error: `Registration failed: ${error.message}` }, { status: 500 })
     }
 
     await logAuditEvent({
@@ -83,7 +122,9 @@ export async function POST(req: Request): Promise<Response> {
     })
 
     return Response.json({ success: true, message: GENERIC_SUCCESS }, { status: 200 })
-  } catch {
-    return Response.json({ error: GENERIC_ERROR }, { status: 500 })
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : "Unknown error"
+    console.error("[AUTH] Unhandled register error:", errorMessage)
+    return Response.json({ error: `Server error: ${errorMessage}` }, { status: 500 })
   }
 }
