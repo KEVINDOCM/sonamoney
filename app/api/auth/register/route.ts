@@ -9,7 +9,14 @@ const GENERIC_ERROR = "Failed to create account. Please try again."
 
 interface SupabaseAuthApi {
   auth: {
-    signUp: (credentials: { email: string; password: string; options: { emailRedirectTo: string } }) => Promise<{ error: Error | null }>
+    signUp: (credentials: {
+      email: string
+      password: string
+      options: {
+        emailRedirectTo: string
+        captchaToken?: string
+      }
+    }) => Promise<{ error: Error | null }>
   }
 }
 
@@ -89,10 +96,16 @@ export async function POST(req: Request): Promise<Response> {
     const supabase = createSupabaseApiClient()
     const origin = req.headers.get("origin") ?? getSiteUrl()
 
+    // Get captcha token if provided (required when captcha is enabled in Supabase)
+    const captchaToken = body.captchaToken as string | undefined
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: `${origin}/callback` },
+      options: {
+        emailRedirectTo: `${origin}/callback`,
+        ...(captchaToken && { captchaToken }),
+      },
     })
 
     if (error) {

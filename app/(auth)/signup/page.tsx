@@ -7,6 +7,7 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client"
 import { signupSchema } from "@/lib/security"
 import { validatePasswordStrength } from "@/lib/utils/passwordSecurity"
 import { generateSecureHeaders } from "@/lib/security/client"
+import { TurnstileWidget } from "@/components/security/TurnstileCaptcha"
 import { AlertTriangle } from "lucide-react"
 
 interface AuthClient {
@@ -29,6 +30,7 @@ export default function SignupPage() {
   const [error, setError] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [password, setPassword] = useState("")
+  const [captchaToken, setCaptchaToken] = useState<string>("")
   const [passwordStrength, setPasswordStrength] =
     useState<{
       score: number
@@ -67,7 +69,7 @@ export default function SignupPage() {
     }
 
     try {
-      const payload = { email, password, website }
+      const payload = { email, password, website, captchaToken }
       const headers = await generateSecureHeaders(payload)
 
       const res = await fetch("/api/auth/register", {
@@ -271,6 +273,21 @@ export default function SignupPage() {
                     </div>
                   </div>
                 )}
+              </div>
+
+              {/* CAPTCHA Widget - required when CAPTCHA is enabled in Supabase */}
+              <div className="space-y-1.5">
+                <label className="
+                  text-xs font-semibold text-[#1A1A2E]
+                  uppercase tracking-wide block
+                ">
+                  Security Verification
+                </label>
+                <TurnstileWidget
+                  onVerify={(token) => setCaptchaToken(token)}
+                  onError={() => setError("CAPTCHA verification failed. Please refresh and try again.")}
+                  action="signup"
+                />
               </div>
 
               {/* Honeypot field - hidden from real users, bots will fill this */}
