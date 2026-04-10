@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { loginSchema } from "@/lib/utils/validation";
+import { Lock, AlertTriangle, Hand } from "lucide-react";
 
 interface AuthErrorState {
   message: string;
@@ -143,7 +144,7 @@ export default function AuthLoginPage() {
           {/* Header */}
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#E6F7F6] mb-4">
-              <span className="text-2xl">👋</span>
+              <Hand className="w-6 h-6 text-[#00B9A7]" />
             </div>
             <h1 className="text-2xl font-extrabold text-[#1A1A2E]">{mounted ? t("auth.welcomeBack") : "Welcome back"}</h1>
             <p className="text-sm text-[#6B7280] mt-1">{mounted ? t("auth.loginDescription") : "Log in to your SonaMoney account"}</p>
@@ -162,7 +163,7 @@ export default function AuthLoginPage() {
             {/* Error message */}
             {error && (
               <div className="rounded-2xl bg-[#FFF0F0] border border-[#FF5B5B]/20 px-4 py-3 flex items-center gap-2">
-                <span>⚠️</span>
+                <AlertTriangle className="w-4 h-4 text-[#FF5B5B]" />
                 <p className="text-sm text-[#FF5B5B] font-medium">{error}</p>
               </div>
             )}
@@ -171,7 +172,7 @@ export default function AuthLoginPage() {
             {lockoutMs > 0 && (
               <div className="rounded-2xl bg-amber-50 border border-amber-200 px-4 py-3">
                 <p className="text-sm text-amber-700 font-medium">
-                  🔒 Account locked. Try again in{" "}
+                  <Lock className="w-4 h-4 inline" /> Account locked. Try again in{" "}
                   {Math.ceil(lockoutMs / 60000)} minute{Math.ceil(lockoutMs / 60000) !== 1 ? "s" : ""}.
                 </p>
               </div>

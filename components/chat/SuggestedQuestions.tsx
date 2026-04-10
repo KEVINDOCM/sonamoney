@@ -1,5 +1,8 @@
 "use client";
 
+import { BarChart3, Banknote, Target, Lightbulb, TrendingUp } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+
 // ============================================
 // SUGGESTED QUESTIONS
 // Categorized question chips with icons
@@ -8,7 +11,7 @@
 interface SuggestedQuestion {
   id: string;
   label: string;
-  icon: string;
+  icon: LucideIcon;
   category: "spending" | "budget" | "savings" | "general";
 }
 
@@ -28,7 +31,7 @@ export function SuggestedQuestions({
   const questions: SuggestedQuestion[] = [
     {
       id: "q1",
-      icon: "📊",
+      icon: BarChart3,
       label: mounted
         ? t("ai.suggestedQ1")
         : "How am I doing this month?",
@@ -36,7 +39,7 @@ export function SuggestedQuestions({
     },
     {
       id: "q2",
-      icon: "💸",
+      icon: Banknote,
       label: mounted
         ? t("ai.suggestedQ2")
         : "Where am I overspending?",
@@ -44,7 +47,7 @@ export function SuggestedQuestions({
     },
     {
       id: "q3",
-      icon: "🎯",
+      icon: Target,
       label: mounted
         ? t("ai.suggestedQ3")
         : "Which budgets need attention?",
@@ -52,7 +55,7 @@ export function SuggestedQuestions({
     },
     {
       id: "q4",
-      icon: "�",
+      icon: Lightbulb,
       label: mounted
         ? t("ai.suggestedQ4")
         : "Give me 3 money saving tips",
@@ -60,7 +63,7 @@ export function SuggestedQuestions({
     },
     {
       id: "q5",
-      icon: "📈",
+      icon: TrendingUp,
       label: mounted
         ? t("ai.suggestedQ5")
         : "Compare this month vs last month",
@@ -81,7 +84,7 @@ export function SuggestedQuestions({
             className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-[#1A1A2E] dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm hover:border-[#00B9A7] hover:text-[#00B9A7] hover:bg-[#E6F7F6] dark:hover:bg-[#00B9A7]/10 active:scale-95 transition-all duration-200 text-left"
             type="button"
           >
-            <span>{question.icon}</span>
+            <question.icon className="w-3.5 h-3.5" />
             <span>{question.label}</span>
           </button>
         ))}

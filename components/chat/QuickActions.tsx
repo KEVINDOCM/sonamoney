@@ -1,5 +1,8 @@
 "use client";
 
+import { Search, Lightbulb, ClipboardList, Wallet } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+
 // ============================================
 // QUICK ACTIONS
 // Follow-up action chips after AI response
@@ -7,7 +10,7 @@
 
 interface QuickAction {
   id: string;
-  icon: string;
+  icon: LucideIcon;
   label: string;
 }
 
@@ -21,10 +24,10 @@ export function QuickActions({ onSelect, mounted, t }: QuickActionsProps): React
   if (!mounted) return null;
 
   const actions: QuickAction[] = [
-    { id: "more", icon: "🔍", label: t("ai.quickActionMore") },
-    { id: "tips", icon: "💡", label: t("ai.quickActionTips") },
-    { id: "breakdown", icon: "📋", label: t("ai.quickActionBreakdown") },
-    { id: "savings", icon: "💰", label: t("ai.quickActionSavings") },
+    { id: "more", icon: Search, label: t("ai.quickActionMore") },
+    { id: "tips", icon: Lightbulb, label: t("ai.quickActionTips") },
+    { id: "breakdown", icon: ClipboardList, label: t("ai.quickActionBreakdown") },
+    { id: "savings", icon: Wallet, label: t("ai.quickActionSavings") },
   ];
 
   return (
@@ -41,7 +44,7 @@ export function QuickActions({ onSelect, mounted, t }: QuickActionsProps): React
                      transition-all duration-200"
           type="button"
         >
-          <span>{action.icon}</span>
+          <action.icon className="w-3.5 h-3.5" />
           <span>{action.label}</span>
         </button>
       ))}

@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { getSiteUrl } from "@/lib/utils/url"
+import { Key, BarChart3, FileText, FileSpreadsheet, Plug } from "lucide-react"
 
 export const metadata: Metadata = {
   title: "Manual Expense Tracker App | No Bank Connection Required — SonaMoney",
@@ -116,7 +117,7 @@ export default function ManualTrackerPage() {
           <div className="grid md:grid-cols-3 gap-8">
             <div className="p-6 rounded-2xl bg-[#F5F7FA]">
               <div className="w-12 h-12 bg-[#00B9A7]/10 rounded-xl flex items-center justify-center mb-4">
-                <span className="text-2xl">🔐</span>
+                <Key className="w-6 h-6 text-[#00B9A7]" />
               </div>
               <h3 className="text-lg font-bold text-[#1A1A2E] mb-2">
                 Maximum Privacy
@@ -247,22 +248,22 @@ export default function ManualTrackerPage() {
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="p-4 bg-[#F5F7FA] rounded-xl text-center">
-              <span className="text-2xl mb-2 block">📊</span>
+              <BarChart3 className="w-6 h-6 mx-auto mb-2 text-[#00B9A7]" />
               <span className="font-medium text-[#1A1A2E] block">CSV Export</span>
               <span className="text-xs text-[#6B7280]">Universal format</span>
             </div>
             <div className="p-4 bg-[#F5F7FA] rounded-xl text-center">
-              <span className="text-2xl mb-2 block">📑</span>
+              <FileSpreadsheet className="w-6 h-6 mx-auto mb-2 text-[#00B9A7]" />
               <span className="font-medium text-[#1A1A2E] block">Excel (.xlsx)</span>
               <span className="text-xs text-[#6B7280]">With formulas</span>
             </div>
             <div className="p-4 bg-[#F5F7FA] rounded-xl text-center">
-              <span className="text-2xl mb-2 block">📄</span>
+              <FileText className="w-6 h-6 mx-auto mb-2 text-[#00B9A7]" />
               <span className="font-medium text-[#1A1A2E] block">PDF Reports</span>
               <span className="text-xs text-[#6B7280]">Share or print</span>
             </div>
             <div className="p-4 bg-[#F5F7FA] rounded-xl text-center">
-              <span className="text-2xl mb-2 block">🔌</span>
+              <Plug className="w-6 h-6 mx-auto mb-2 text-[#00B9A7]" />
               <span className="font-medium text-[#1A1A2E] block">API Access</span>
               <span className="text-xs text-[#6B7280]">For power users</span>
             </div>

@@ -1,8 +1,10 @@
+import { Search } from "lucide-react";
+
 export default function NotFound() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="text-center max-w-sm">
-        <div className="text-6xl mb-6">🔍</div>
+        <Search className="w-16 h-16 mx-auto mb-6 text-slate-400" />
         <h1 className="text-2xl font-bold text-gray-900 mb-2">
           Page not found
         </h1>

@@ -10,7 +10,7 @@ import { ToastContainer } from "@/components/ui/Toast";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { useUserData } from "@/lib/contexts/UserDataContext";
 import type { CategoryWithBudget, Transaction } from "@/types";
-import { Target, AlertCircle, Pencil, Check, X } from "lucide-react";
+import { Target, AlertCircle, Pencil, Check, X, AlertTriangle } from "lucide-react";
 import { CategoryIcon } from "@/components/ui/CategoryIcon";
 import StatCard from "@/components/ui/StatCard";
 import ProgressBar from "@/components/ui/ProgressBar";
@@ -262,7 +262,7 @@ export function BudgetView({ transactions, initialCategories }: BudgetClientProp
           </p>
         </div>
         <div className="mx-4 md:mx-0 bg-white dark:bg-gray-900 rounded-2xl shadow-sm flex flex-col items-center justify-center py-12 px-4 text-center animate-fadeIn">
-          <span className="text-4xl mb-3">🎯</span>
+          <Target className="w-10 h-10 mb-3 text-[#00B9A7]" />
           <p className="text-sm font-semibold text-[#1A1A2E] dark:text-white">
             {mounted ? t("budget.noBudgets") : "No expense categories yet"}
           </p>
@@ -419,7 +419,11 @@ export function BudgetView({ transactions, initialCategories }: BudgetClientProp
               `}
             >
               <span className="text-xl shrink-0">
-                {warning.level === "danger" ? "🔴" : "⚠️"}
+                {warning.level === "danger" ? (
+                  <AlertCircle className="w-5 h-5 text-red-500 fill-red-500" />
+                ) : (
+                  <AlertTriangle className="w-5 h-5 text-amber-500" />
+                )}
               </span>
               <div className="flex-1">
                 <p className={`
@@ -484,7 +488,7 @@ export function BudgetView({ transactions, initialCategories }: BudgetClientProp
           justify-center py-12 px-4
           text-center animate-fadeIn
         ">
-          <span className="text-4xl mb-3">🎯</span>
+          <Target className="w-10 h-10 mb-3 text-[#00B9A7]" />
           <p className="
             text-sm font-semibold
             text-[#1A1A2E] dark:text-white
@@ -708,7 +712,7 @@ export function BudgetView({ transactions, initialCategories }: BudgetClientProp
                     flex items-center gap-1 mt-2
                     font-medium
                   ">
-                    🔴 {mounted
+                    <AlertCircle className="w-4 h-4 text-red-500 fill-red-500" /> {mounted
                       ? t("budget.overBudgetBy")
                       : "Over budget by"}{" "}
                     {formatCurrency(data.spent - data.limit, baseCurrency)}

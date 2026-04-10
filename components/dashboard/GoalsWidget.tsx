@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { Target, PartyPopper } from "lucide-react";
 import type { Goal } from "@/lib/actions/goals"
 
 interface GoalsWidgetProps {
@@ -60,7 +61,7 @@ export function GoalsWidget({
               text-[10px] text-[#00C48C]
               font-semibold mt-0.5
             ">
-              {completedCount} completed 🎉
+              {completedCount} completed <PartyPopper className="w-3 h-3 inline" />
             </p>
           )}
         </div>
@@ -83,7 +84,7 @@ export function GoalsWidget({
           flex flex-col items-center
           justify-center py-8 px-4 text-center
         ">
-          <span className="text-3xl mb-2">🎯</span>
+          <Target className="w-8 h-8 mb-2 text-[#00B9A7]" />
           <p className="
             text-sm font-medium
             text-[#1A1A2E] dark:text-white

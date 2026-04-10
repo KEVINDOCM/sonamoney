@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { motion } from "framer-motion"
-import { ArrowRight, CheckCircle, Shield, Smartphone } from "lucide-react"
+import { ArrowRight, CheckCircle, Shield, Smartphone, ShoppingCart, Wallet, UtensilsCrossed, BarChart3, Target } from "lucide-react"
 import { useTranslation } from "@/lib/i18n/useTranslation"
 import { useReducedMotion } from "@/lib/hooks/useReducedMotion"
 import { containerVariants, itemVariants } from "./animations"
@@ -131,15 +131,13 @@ export function HeroSection() {
             <div className="space-y-2">
               <p className="text-xs font-bold text-[#1A1A2E]">Recent</p>
               {[
-                { icon: "🛒", name: "Groceries", amount: "-Rp 250.000", color: "text-[#FF5B5B]" },
-                { icon: "💰", name: "Salary", amount: "+Rp 8.500.000", color: "text-[#00C48C]" },
-                { icon: "🍕", name: "Food", amount: "-Rp 85.000", color: "text-[#FF5B5B]" },
+                { icon: ShoppingCart, name: "Groceries", amount: "-Rp 250.000", color: "text-[#FF5B5B]" },
+                { icon: Wallet, name: "Salary", amount: "+Rp 8.500.000", color: "text-[#00C48C]" },
+                { icon: UtensilsCrossed, name: "Food", amount: "-Rp 85.000", color: "text-[#FF5B5B]" },
               ].map((tx) => (
                 <div key={tx.name} className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-[#F5F7FA] flex items-center justify-center text-sm">
-                      {tx.icon}
-                    </div>
+                    <tx.icon className="w-5 h-5" />
                     <span className="text-xs font-medium text-[#1A1A2E]">{tx.name}</span>
                   </div>
                   <span className={`text-xs font-bold ${tx.color}`}>{tx.amount}</span>
@@ -150,7 +148,7 @@ export function HeroSection() {
 
           {/* Floating badges */}
           <div className="absolute -left-6 top-1/3 bg-white rounded-2xl shadow-lg border border-gray-100 px-3 py-2 flex items-center gap-2">
-            <span className="text-lg">📊</span>
+            <BarChart3 className="w-5 h-5 text-[#6366F1]" />
             <div>
               <p className="text-[10px] font-bold text-[#1A1A2E]">Analytics</p>
               <p className="text-[10px] text-[#00C48C] font-semibold">+12% this month</p>
@@ -158,7 +156,7 @@ export function HeroSection() {
           </div>
 
           <div className="absolute -right-4 bottom-1/4 bg-white rounded-2xl shadow-lg border border-gray-100 px-3 py-2 flex items-center gap-2">
-            <span className="text-lg">🎯</span>
+            <Target className="w-5 h-5 text-[#00B9A7]" />
             <div>
               <p className="text-[10px] font-bold text-[#1A1A2E]">Budget on track</p>
               <p className="text-[10px] text-[#6B7280]">2 of 6 categories</p>

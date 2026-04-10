@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { getSiteUrl } from "@/lib/utils/url"
+import { Lock, Zap, Shield, Key, Smartphone, CircleX } from "lucide-react"
 
 export const metadata: Metadata = {
   title: "The Best Mint Alternative in 2026 | Free Budget App — SonaMoney",
@@ -117,7 +118,7 @@ export default function MintAlternativePage() {
           <div className="grid md:grid-cols-3 gap-8 stagger-children">
             <div className="p-6 rounded-2xl bg-[#F5F7FA] hover-lift stagger-1">
               <div className="w-12 h-12 bg-[#00B9A7]/10 rounded-xl flex items-center justify-center mb-4">
-                <span className="text-2xl">🚫</span>
+                <CircleX className="w-6 h-6 text-[#00B9A7]" />
               </div>
               <h3 className="text-lg font-bold text-[#1A1A2E] mb-2">Zero Ads. Forever.</h3>
               <p className="text-[#6B7280]">
@@ -127,7 +128,7 @@ export default function MintAlternativePage() {
             </div>
             <div className="p-6 rounded-2xl bg-[#F5F7FA] hover-lift stagger-2">
               <div className="w-12 h-12 bg-[#00B9A7]/10 rounded-xl flex items-center justify-center mb-4">
-                <span className="text-2xl">🔒</span>
+                <Lock className="w-6 h-6 text-[#00B9A7]" />
               </div>
               <h3 className="text-lg font-bold text-[#1A1A2E] mb-2">Bank-Level Security</h3>
               <p className="text-[#6B7280]">
@@ -137,7 +138,7 @@ export default function MintAlternativePage() {
             </div>
             <div className="p-6 rounded-2xl bg-[#F5F7FA] hover-lift stagger-3">
               <div className="w-12 h-12 bg-[#00B9A7]/10 rounded-xl flex items-center justify-center mb-4">
-                <span className="text-2xl">⚡</span>
+                <Zap className="w-6 h-6 text-[#00B9A7]" />
               </div>
               <h3 className="text-lg font-bold text-[#1A1A2E] mb-2">2-Minute Setup</h3>
               <p className="text-[#6B7280]">
@@ -307,17 +308,17 @@ export default function MintAlternativePage() {
             read-only access, and we never store your login credentials.
           </p>
           <div className="flex flex-wrap justify-center gap-4 mb-8">
-            <div className="px-4 py-2 bg-white rounded-lg border border-gray-200 text-sm font-medium text-[#6B7280]">
-              🔒 256-bit Encryption
+            <div className="px-4 py-2 bg-white rounded-lg border border-gray-200 text-sm font-medium text-[#6B7280] inline-flex items-center gap-1">
+              <Lock className="w-4 h-4" /> 256-bit Encryption
             </div>
-            <div className="px-4 py-2 bg-white rounded-lg border border-gray-200 text-sm font-medium text-[#6B7280]">
-              🛡️ SOC 2 Type II
+            <div className="px-4 py-2 bg-white rounded-lg border border-gray-200 text-sm font-medium text-[#6B7280] inline-flex items-center gap-1">
+              <Shield className="w-4 h-4" /> SOC 2 Type II
             </div>
-            <div className="px-4 py-2 bg-white rounded-lg border border-gray-200 text-sm font-medium text-[#6B7280]">
-              🔐 Read-Only Access
+            <div className="px-4 py-2 bg-white rounded-lg border border-gray-200 text-sm font-medium text-[#6B7280] inline-flex items-center gap-1">
+              <Key className="w-4 h-4" /> Read-Only Access
             </div>
-            <div className="px-4 py-2 bg-white rounded-lg border border-gray-200 text-sm font-medium text-[#6B7280]">
-              📱 Biometric Login
+            <div className="px-4 py-2 bg-white rounded-lg border border-gray-200 text-sm font-medium text-[#6B7280] inline-flex items-center gap-1">
+              <Smartphone className="w-4 h-4" /> Biometric Login
             </div>
           </div>
           <Link

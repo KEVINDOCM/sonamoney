@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X } from "lucide-react";
+import { X, Wallet, BarChart3, Target, TrendingUp, Lightbulb } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 interface StepData {
   step: number;
-  icon: string;
+  icon: LucideIcon;
   title: string;
   description: string;
   highlight: string | null;
@@ -15,7 +16,7 @@ interface StepData {
 const STEPS: StepData[] = [
   {
     step: 0,
-    icon: "💰",
+    icon: Wallet,
     title: "Welcome to Money Tracer",
     description: "Your personal finance companion. Track every rupiah, understand your spending, and take control of your money.",
     highlight: null,
@@ -23,7 +24,7 @@ const STEPS: StepData[] = [
   },
   {
     step: 1,
-    icon: "📊",
+    icon: BarChart3,
     title: "Track Your Transactions",
     description: "Add income and expenses in seconds. Categorize them to see exactly where your money comes from and goes.",
     highlight: "Start by adding your first transaction using the Add Transaction button.",
@@ -31,7 +32,7 @@ const STEPS: StepData[] = [
   },
   {
     step: 2,
-    icon: "🎯",
+    icon: Target,
     title: "Set Monthly Budgets",
     description: "Set spending limits for each expense category. Get visual warnings before you overspend.",
     highlight: "Visit the Budget page to set your first monthly limit.",
@@ -39,7 +40,7 @@ const STEPS: StepData[] = [
   },
   {
     step: 3,
-    icon: "📈",
+    icon: TrendingUp,
     title: "Understand Your Money",
     description: "The Analytics page gives you charts and insights about your spending patterns and trends.",
     highlight: "Check Analytics after adding a few transactions to see your patterns.",
@@ -119,12 +120,15 @@ export function OnboardingModal(): React.ReactElement | null {
           {/* Icon */}
           {/* eslint-disable-next-line react/forbid-component-props */}
           <div
-            className="text-5xl text-center mb-6 select-none"
+            className="text-center mb-6 select-none"
             style={{
               animation: "popIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.1ms both",
             }}
           >
-            {STEPS[currentStep].icon}
+            {(() => {
+              const IconComponent = STEPS[currentStep].icon;
+              return <IconComponent className="w-14 h-14 mx-auto text-blue-600" />;
+            })()}
           </div>
 
           {/* Title */}
@@ -158,7 +162,7 @@ export function OnboardingModal(): React.ReactElement | null {
                 animation: "slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) 150ms both",
               }}
             >
-              💡 {STEPS[currentStep].highlight}
+              <Lightbulb className="w-3.5 h-3.5 inline-block mr-1" /> {STEPS[currentStep].highlight}
             </div>
           )}
 

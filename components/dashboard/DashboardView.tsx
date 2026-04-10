@@ -16,7 +16,7 @@ import { GoalsWidget } from "./GoalsWidget";
 import { BudgetNotification } from "./BudgetNotification";
 import { HealthScoreWidget } from "./HealthScoreWidget";
 import { HealthScoreFAB } from "./HealthScoreFAB";
-import { ArrowUpRight, ArrowDownRight, Wallet, TrendingUp, PiggyBank } from "lucide-react";
+import { ArrowUpRight, ArrowDownRight, Wallet, TrendingUp, PiggyBank, AlertTriangle, Banknote } from "lucide-react";
 import { useReducedMotion } from "@/lib/hooks/useReducedMotion";
 
 // Performance-optimized animated number - only animates once
@@ -275,8 +275,8 @@ export function DashboardView({
           <div className="relative overflow-hidden bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/20 border border-amber-200 dark:border-amber-800/50 rounded-2xl p-4 shadow-soft">
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-amber-200/30 to-transparent rounded-full blur-2xl"/>
             <div className="relative flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/40 dark:to-orange-900/30 flex items-center justify-center text-xl shadow-sm">
-                ⚠️
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/40 dark:to-orange-900/30 flex items-center justify-center shadow-sm">
+                <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400" />
               </div>
               <div className="flex-1">
                 <p className="text-sm font-semibold text-amber-800 dark:text-amber-400">
@@ -307,8 +307,8 @@ export function DashboardView({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-teal-50 to-cyan-50 dark:from-teal-900/30 dark:to-cyan-900/20 flex items-center justify-center text-4xl mb-5 shadow-sm">
-            💸
+          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-teal-50 to-cyan-50 dark:from-teal-900/30 dark:to-cyan-900/20 flex items-center justify-center mb-5 shadow-sm">
+            <Banknote className="w-10 h-10 text-teal-500" />
           </div>
           <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
             {mounted ? t("dashboard.noTransactions") : "No transactions yet"}

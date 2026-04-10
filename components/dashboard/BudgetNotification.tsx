@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { X } from "lucide-react"
+import { AlertTriangle, X } from "lucide-react"
+import { useTranslation } from "@/lib/i18n/useTranslation";
+import { useCurrency } from "@/lib/hooks/useCurrency";
 
 interface BudgetNotificationProps {
   budgetWarningCount: number
@@ -94,7 +96,7 @@ export function BudgetNotification({
           flex items-center justify-center
           text-xl
         ">
-          ⚠️
+          <AlertTriangle className="w-5 h-5" />
         </div>
 
         {/* Content */}

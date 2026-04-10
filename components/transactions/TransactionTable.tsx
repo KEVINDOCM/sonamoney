@@ -5,7 +5,7 @@ import { CategoryIcon } from "@/components/ui/CategoryIcon";
 import { formatCurrency } from "@/lib/utils/currency";
 import { formatShortDate } from "@/lib/utils/formatDate";
 import type { Transaction, Category, Account } from "@/types";
-import { Search } from "lucide-react";
+import { Search, RefreshCw, CornerUpLeft, Pencil, Trash2, SkipForward, Square } from "lucide-react";
 import { useState } from "react";
 
 interface TransactionTableProps {
@@ -140,8 +140,9 @@ export default function TransactionTable({
                             ml-1 text-[10px] font-semibold
                             bg-[#E6F7F6] text-[#00B9A7]
                             px-1.5 py-0.5 rounded-full
+                            inline-flex items-center gap-0.5
                           ">
-                            🔄
+                            <RefreshCw className="w-3 h-3" />
                           </span>
                         )}
                         {transaction.recurring_parent_id && (
@@ -149,8 +150,9 @@ export default function TransactionTable({
                             ml-1 text-[10px] font-semibold
                             bg-[#F0EFFE] text-[#6366F1]
                             px-1.5 py-0.5 rounded-full
+                            inline-flex items-center gap-0.5
                           ">
-                            ↩
+                            <CornerUpLeft className="w-3 h-3" />
                           </span>
                         )}
                         {transaction.account_id && accountMap.get(transaction.account_id) && (
@@ -257,9 +259,7 @@ export default function TransactionTable({
                                 border-none bg-transparent cursor-pointer
                               "
                             >
-                              <svg className="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                              </svg>
+                              <Pencil className="w-4 h-4 text-gray-400 dark:text-gray-500" />
                               {editLabel}
                             </button>
                             {transaction.is_recurring && (
@@ -283,7 +283,7 @@ export default function TransactionTable({
                                     border-none bg-transparent cursor-pointer
                                   "
                                 >
-                                  🔄 Log now
+                                  <RefreshCw className="w-4 h-4" /> Log now
                                 </button>
                                 {/* Skip */}
                                 <button
@@ -303,7 +303,7 @@ export default function TransactionTable({
                                     border-none bg-transparent cursor-pointer
                                   "
                                 >
-                                  ⏭ Skip this month
+                                  <SkipForward className="w-4 h-4" /> Skip this month
                                 </button>
                                 {/* Stop recurring */}
                                 <button
@@ -323,7 +323,7 @@ export default function TransactionTable({
                                     border-none bg-transparent cursor-pointer
                                   "
                                 >
-                                  ⏹ Stop recurring
+                                  <Square className="w-4 h-4" /> Stop recurring
                                 </button>
                               </>
                             )}
@@ -345,9 +345,7 @@ export default function TransactionTable({
                                 border-none bg-transparent cursor-pointer
                               "
                             >
-                              <svg className="w-4 h-4 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                              </svg>
+                              <Trash2 className="w-4 h-4 text-rose-400" />
                               {deleteLabel}
                             </button>
                           </div>

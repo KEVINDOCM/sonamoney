@@ -15,13 +15,14 @@ import {
     Cell,
     LineChart,
     Line,
-    LabelList
-} from "recharts";
+    LabelList,
+} from "@/lib/recharts-config";
 import { formatCurrency } from "@/lib/utils/currency";
 import { useCurrency } from "@/lib/hooks/useCurrency";
 import { useUserData } from "@/lib/contexts/UserDataContext";
 import type { Transaction, Category } from "@/types";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, TrendingUp, TrendingDown, ArrowRight, Trophy, Wallet, AlertTriangle, Lightbulb, Hash, BarChart3 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import StatCard from "@/components/ui/StatCard";
 import { AnalyticsSummaryCards } from "./AnalyticsSummaryCards";
@@ -53,7 +54,7 @@ interface ThisMonthStats {
 
 interface Insight {
     type: "positive" | "negative" | "neutral";
-    icon: string;
+    icon: LucideIcon;
     message: string;
 }
 
@@ -121,19 +122,19 @@ function generateInsights(
         if (change > 10) {
             insights.push({
                 type: "negative",
-                icon: "📈",
+                icon: TrendingUp,
                 message: t("analytics.insightSpendingIncreased").replace("{percent}", Math.abs(change).toFixed(1)),
             });
         } else if (change < -10) {
             insights.push({
                 type: "positive",
-                icon: "📉",
+                icon: TrendingDown,
                 message: t("analytics.insightSpendingDecreased").replace("{percent}", Math.abs(change).toFixed(1)),
             });
         } else {
             insights.push({
                 type: "neutral",
-                icon: "➡️",
+                icon: ArrowRight,
                 message: t("analytics.insightSpendingConsistent"),
             });
         }
@@ -151,7 +152,7 @@ function generateInsights(
         const pct = currentTotal > 0 ? ((topCategory[1] / currentTotal) * 100).toFixed(0) : "0";
         insights.push({
             type: "neutral",
-            icon: "🏆",
+            icon: Trophy,
             message: t("analytics.insightTopCategory")
                 .replace("{category}", topCategory[0])
                 .replace("{percent}", pct),
@@ -168,19 +169,19 @@ function generateInsights(
         if (savingsRate >= 20) {
             insights.push({
                 type: "positive",
-                icon: "💰",
+                icon: Wallet,
                 message: t("analytics.insightSavingsGood").replace("{percent}", savingsRate.toFixed(0)),
             });
         } else if (savingsRate < 0) {
             insights.push({
                 type: "negative",
-                icon: "⚠️",
+                icon: AlertTriangle,
                 message: t("analytics.insightOverspent").replace("{amount}", formatCurrency(currentTotal - currentIncome, baseCurrency)),
             });
         } else {
             insights.push({
                 type: "neutral",
-                icon: "💡",
+                icon: Lightbulb,
                 message: t("analytics.insightSavingsLow").replace("{percent}", savingsRate.toFixed(0)),
             });
         }
@@ -191,7 +192,7 @@ function generateInsights(
     if (txCount > 20) {
         insights.push({
             type: "neutral",
-            icon: "🔢",
+            icon: Hash,
             message: t("analytics.insightTransactionCount").replace("{count}", txCount.toString()),
         });
     }
@@ -434,7 +435,7 @@ export function AnalyticsView({ transactions }: AnalyticsClientProps) {
                     </p>
                 </div>
                 <div className="flex flex-col items-center justify-center py-12 text-center">
-                    <span className="text-4xl mb-3">📊</span>
+                    <BarChart3 className="w-10 h-10 mb-3 text-slate-400" />
                     <p className="text-sm font-semibold text-slate-900 dark:text-white">
                         No data yet
                     </p>

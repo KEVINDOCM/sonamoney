@@ -1,6 +1,6 @@
 "use client";
 
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "@/lib/recharts-config";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { useCurrency } from "@/lib/hooks/useCurrency";
 import type { DashboardSeriesPoint } from "@/lib/actions/transactions";

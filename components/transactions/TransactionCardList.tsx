@@ -4,7 +4,7 @@ import { CategoryIcon } from "@/components/ui/CategoryIcon";
 import { formatCurrency } from "@/lib/utils/currency";
 import { formatShortDate } from "@/lib/utils/formatDate";
 import type { Transaction, Category, Account } from "@/types";
-import { Search } from "lucide-react";
+import { Search, RefreshCw, CornerUpLeft, Pencil, Trash2, SkipForward, Square } from "lucide-react";
 import { useState } from "react";
 
 interface TransactionCardListProps {
@@ -125,7 +125,7 @@ export default function TransactionCardList({
           flex flex-col items-center
           justify-center py-12 px-4 text-center
         ">
-          <span className="text-4xl mb-3">🔍</span>
+          <Search className="w-10 h-10 mb-3 text-slate-400" />
           <p className="
             text-sm font-semibold
             text-[#1A1A2E] dark:text-white
@@ -252,7 +252,7 @@ export default function TransactionCardList({
                                   flex items-center gap-0.5
                                   shrink-0
                                 ">
-                                  🔄 Recurring
+                                  <RefreshCw className="w-3 h-3" /> Recurring
                                 </span>
                               )}
                               {transaction.recurring_parent_id && (
@@ -264,7 +264,7 @@ export default function TransactionCardList({
                                   flex items-center gap-0.5
                                   shrink-0
                                 ">
-                                  ↩ Auto
+                                  <CornerUpLeft className="w-3 h-3" /> Auto
                                 </span>
                               )}
                             </div>
@@ -362,104 +362,104 @@ export default function TransactionCardList({
                                     text-sm font-medium
                                     text-[#1A1A2E] dark:text-gray-300
                                     hover:bg-gray-50 dark:hover:bg-gray-800
-                                    flex items-center gap-3
+                                    flex items-center gap-2
                                     transition-colors
                                   "
                                 >
-                                  <span>✏️</span>
+                                  <Pencil className="w-4 h-4" />
                                   {editLabel}
                                 </button>
-                                {transaction.is_recurring && (
-                                  <>
-                                    <div className="
-                                      h-px bg-gray-100 dark:bg-gray-800 mx-3
-                                    "/>
-                                    {/* Log now */}
-                                    <button
-                                      onClick={() => {
-                                        onLogRecurring?.(transaction.id);
-                                        onCloseDropdown();
-                                        setDropdownPos(null);
-                                      }}
-                                      className="
-                                        w-full text-left px-4 py-2.5
-                                        text-sm font-medium
-                                        text-[#00B9A7]
-                                        hover:bg-[#E6F7F6]
-                                        dark:hover:bg-[#00B9A7]/10
-                                        flex items-center gap-2
-                                        transition-colors
-                                      "
-                                    >
-                                      🔄 Log now
-                                    </button>
-                                    {/* Skip */}
-                                    <button
-                                      onClick={() => {
-                                        onSkipRecurring?.(transaction.id);
-                                        onCloseDropdown();
-                                        setDropdownPos(null);
-                                      }}
-                                      className="
-                                        w-full text-left px-4 py-2.5
-                                        text-sm font-medium
-                                        text-[#FFB800]
-                                        hover:bg-[#FFF8E6]
-                                        dark:hover:bg-yellow-900/20
-                                        flex items-center gap-2
-                                        transition-colors
-                                      "
-                                    >
-                                      ⏭ Skip this month
-                                    </button>
-                                    {/* Stop recurring */}
-                                    <button
-                                      onClick={() => {
-                                        onStopRecurring?.(transaction.id);
-                                        onCloseDropdown();
-                                        setDropdownPos(null);
-                                      }}
-                                      className="
-                                        w-full text-left px-4 py-2.5
-                                        text-sm font-medium
-                                        text-[#FF5B5B]
-                                        hover:bg-[#FFF0F0]
-                                        dark:hover:bg-rose-900/20
-                                        flex items-center gap-2
-                                        transition-colors
-                                      "
-                                    >
-                                      ⏹ Stop recurring
-                                    </button>
-                                  </>
-                                )}
-                                <div className="
-                                  h-px bg-gray-100 dark:bg-gray-800
-                                  mx-3
-                                "/>
-                                <button
-                                  onClick={() => {
-                                    onDelete(transaction);
-                                    onCloseDropdown();
-                                    setDropdownPos(null);
-                                  }}
-                                  className="
-                                    w-full text-left px-4 py-3
-                                    text-sm font-medium
-                                    text-[#FF5B5B]
-                                    hover:bg-[#FFF0F0]
-                                    dark:hover:bg-rose-900/20
-                                    flex items-center gap-3
-                                    transition-colors
-                                  "
-                                >
-                                  <span>🗑️</span>
-                                  {deleteLabel}
-                                </button>
-                              </div>
-                            </>
-                          )}
-                        </div>
+                                  {transaction.is_recurring && (
+                                    <>
+                                      <div className="
+                                        h-px bg-gray-100 dark:bg-gray-800 mx-3
+                                      "/>
+                                      {/* Log now */}
+                                      <button
+                                        onClick={() => {
+                                          onLogRecurring?.(transaction.id);
+                                          onCloseDropdown();
+                                          setDropdownPos(null);
+                                        }}
+                                        className="
+                                          w-full text-left px-4 py-2.5
+                                          text-sm font-medium
+                                          text-[#00B9A7]
+                                          hover:bg-[#E6F7F6]
+                                          dark:hover:bg-[#00B9A7]/10
+                                          flex items-center gap-2
+                                          transition-colors
+                                        "
+                                      >
+                                        <RefreshCw className="w-4 h-4" /> Log now
+                                      </button>
+                                      {/* Skip */}
+                                      <button
+                                        onClick={() => {
+                                          onSkipRecurring?.(transaction.id);
+                                          onCloseDropdown();
+                                          setDropdownPos(null);
+                                        }}
+                                        className="
+                                          w-full text-left px-4 py-2.5
+                                          text-sm font-medium
+                                          text-[#FFB800]
+                                          hover:bg-[#FFF8E6]
+                                          dark:hover:bg-yellow-900/20
+                                          flex items-center gap-2
+                                          transition-colors
+                                        "
+                                      >
+                                        <SkipForward className="w-4 h-4" /> Skip this month
+                                      </button>
+                                      {/* Stop recurring */}
+                                      <button
+                                        onClick={() => {
+                                          onStopRecurring?.(transaction.id);
+                                          onCloseDropdown();
+                                          setDropdownPos(null);
+                                        }}
+                                        className="
+                                          w-full text-left px-4 py-2.5
+                                          text-sm font-medium
+                                          text-[#FF5B5B]
+                                          hover:bg-[#FFF0F0]
+                                          dark:hover:bg-rose-900/20
+                                          flex items-center gap-2
+                                          transition-colors
+                                        "
+                                      >
+                                        <Square className="w-4 h-4" /> Stop recurring
+                                      </button>
+                                    </>
+                                  )}
+                                  <div className="
+                                    h-px bg-gray-100 dark:bg-gray-800
+                                    mx-3
+                                  "/>
+                                  <button
+                                    onClick={() => {
+                                      onDelete(transaction);
+                                      onCloseDropdown();
+                                      setDropdownPos(null);
+                                    }}
+                                    className="
+                                      w-full text-left px-4 py-3
+                                      text-sm font-medium
+                                      text-[#FF5B5B]
+                                      hover:bg-[#FFF0F0]
+                                      dark:hover:bg-rose-900/20
+                                      flex items-center gap-2
+                                      transition-colors
+                                    "
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                    {deleteLabel}
+                                  </button>
+                                </div>
+                              </>
+                            )}
+                          </div>
                         </div>
                       </div>
                     );

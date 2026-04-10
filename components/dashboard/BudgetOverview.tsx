@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { formatCurrency } from "@/lib/utils/currency";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { Target } from "lucide-react";
 import { useCurrency } from "@/lib/hooks/useCurrency";
 import type { Category } from "@/types";
 import { Button } from "@/components/ui/Button";
@@ -65,7 +66,7 @@ export function BudgetOverview({ budgetSummary }: BudgetOverviewProps) {
           flex flex-col items-center justify-center
           py-10 px-4 text-center
         ">
-          <span className="text-3xl mb-3">🎯</span>
+          <Target className="w-8 h-8 mb-3 text-[#00B9A7]" />
           <p className="
             text-sm font-medium
             text-[#1A1A2E] dark:text-white

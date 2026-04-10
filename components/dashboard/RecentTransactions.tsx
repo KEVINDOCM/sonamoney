@@ -7,6 +7,7 @@ import { CategoryIcon } from "@/components/ui/CategoryIcon";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { useCurrency } from "@/lib/hooks/useCurrency";
 import type { Transaction, Category } from "@/types";
+import { Banknote, Wallet } from "lucide-react";
 
 export interface RecentTransactionsProps {
     transactions: Transaction[];
@@ -74,7 +75,7 @@ export function RecentTransactions({ transactions, categories }: RecentTransacti
                     flex flex-col items-center justify-center
                     py-10 px-4 text-center
                 ">
-                    <span className="text-3xl mb-3">💸</span>
+                    <Banknote className="w-8 h-8 mb-3 text-slate-400" />
                     <p className="
                         text-sm font-medium
                         text-[#1A1A2E] dark:text-white
@@ -114,10 +115,13 @@ export function RecentTransactions({ transactions, categories }: RecentTransacti
                                 <div className="
                                     w-10 h-10 rounded-xl shrink-0
                                     flex items-center justify-center
-                                    text-lg
                                     bg-[#F5F7FA] dark:bg-gray-800
                                 ">
-                                    {category?.icon ?? "💰"}
+                                    {category?.icon ? (
+                                        <span className="text-lg">{category.icon}</span>
+                                    ) : (
+                                        <Wallet className="w-5 h-5 text-[#00C48C]" />
+                                    )}
                                 </div>
 
                                 {/* Info */}

@@ -1,6 +1,7 @@
 import * as React from "react"
 import { fetchGoals } from "@/lib/actions/goals"
 import { GoalsView } from "@/components/goals/GoalsView"
+import { AlertTriangle } from "lucide-react"
 
 // Force dynamic rendering since this page uses cookies for auth (via fetchGoals)
 export const dynamic = "force-dynamic";
@@ -30,7 +31,7 @@ function GoalsError() {
   return (
     <div className="page-container pt-4 md:pt-0 px-4 md:px-0">
       <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-card p-8 text-center">
-        <span className="text-4xl mb-4 block">⚠️</span>
+        <AlertTriangle className="w-10 h-10 mx-auto mb-4 text-amber-500" />
         <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
           Failed to load goals
         </h2>

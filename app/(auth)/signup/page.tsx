@@ -7,6 +7,7 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client"
 import { signupSchema } from "@/lib/security"
 import { validatePasswordStrength } from "@/lib/utils/passwordSecurity"
 import { generateSecureHeaders } from "@/lib/security/client"
+import { AlertTriangle } from "lucide-react"
 
 interface AuthClient {
   auth: {
@@ -181,7 +182,7 @@ export default function SignupPage() {
                 border border-[#FF5B5B]/20
                 px-4 py-3 flex items-start gap-2
               ">
-                <span className="shrink-0 mt-0.5">⚠️</span>
+                <AlertTriangle className="w-4 h-4 text-[#FF5B5B] shrink-0 mt-0.5" />
                 <p className="text-sm text-[#FF5B5B] font-medium">
                   {error}
                 </p>

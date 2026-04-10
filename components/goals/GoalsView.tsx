@@ -1,7 +1,11 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { Target, Plus, Trash2, Pencil } from "lucide-react"
+import {
+  Target, Plus, Trash2, Pencil, Home, Car, Plane, Gem, Smartphone, Laptop, Dumbbell,
+  BookOpen, GraduationCap, Wallet, Building2, AlertTriangle, Check
+} from "lucide-react"
+import type { LucideIcon } from "lucide-react"
 import {
   createGoal,
   updateGoalAmount,
@@ -18,10 +22,38 @@ interface GoalsClientProps {
   initialGoals: Goal[]
 }
 
-const GOAL_ICONS = [
-  "🎯", "🏠", "🚗", "✈️", "💍", "📱",
-  "💻", "🏋️", "📚", "🎓", "💰", "🏦",
-]
+// Icon name to component mapping for goals
+const GOAL_ICON_MAP: Record<string, LucideIcon> = {
+  target: Target,
+  home: Home,
+  car: Car,
+  plane: Plane,
+  gem: Gem,
+  smartphone: Smartphone,
+  laptop: Laptop,
+  dumbbell: Dumbbell,
+  book: BookOpen,
+  graduation: GraduationCap,
+  wallet: Wallet,
+  bank: Building2,
+}
+
+const GOAL_ICON_NAMES = Object.keys(GOAL_ICON_MAP)
+
+const GOAL_ICONS: Record<string, string> = {
+  target: "🎯",
+  home: "🏠",
+  car: "🚗",
+  plane: "✈️",
+  gem: "💍",
+  smartphone: "📱",
+  laptop: "💻",
+  dumbbell: "🏋️",
+  book: "📚",
+  graduation: "🎓",
+  wallet: "💰",
+  bank: "🏦",
+}
 
 const GOAL_COLORS = [
   "#00B9A7", "#6366F1", "#FFB800",
@@ -50,7 +82,7 @@ export function GoalsView({
     current_amount: "0",
     currency: baseCurrency,
     deadline: "",
-    icon: "🎯",
+    icon: "target",
     color: "#00B9A7",
   })
 
@@ -108,7 +140,7 @@ export function GoalsView({
         current_amount: "0",
         currency: baseCurrency,
         deadline: "",
-        icon: "🎯",
+        icon: "target",
         color: "#00B9A7",
       })
       // Refresh goals
@@ -221,7 +253,7 @@ export function GoalsView({
           flex flex-col items-center
           text-center
         ">
-          <span className="text-5xl mb-4">⚠️</span>
+          <AlertTriangle className="w-14 h-14 mb-4 text-amber-500" />
           <h3 className="
             text-base font-bold
             text-[#1A1A2E] dark:text-white mb-2
@@ -248,7 +280,7 @@ export function GoalsView({
           flex flex-col items-center
           text-center
         ">
-          <span className="text-5xl mb-4">🎯</span>
+          <Target className="w-14 h-14 mb-4 text-[#00B9A7]" />
           <h3 className="
             text-base font-bold
             text-[#1A1A2E] dark:text-white
@@ -308,13 +340,15 @@ export function GoalsView({
                     className="
                       w-10 h-10 rounded-xl shrink-0
                       flex items-center justify-center
-                      text-lg
                     "
                     style={{
                       backgroundColor: `${goal.color}20`,
                     }}
                   >
-                    {goal.icon}
+                    {(() => {
+                      const IconComponent = GOAL_ICON_MAP[goal.icon] || Target;
+                      return <IconComponent className="w-5 h-5" style={{ color: goal.color }} />;
+                    })()}
                   </div>
 
                   <div className="flex-1 min-w-0">
@@ -334,8 +368,9 @@ export function GoalsView({
                           bg-[#E6FAF4] text-[#00C48C]
                           px-2 py-0.5 rounded-full
                           shrink-0
+                          flex items-center gap-1
                         ">
-                          ✓ Done
+                          <Check className="w-3 h-3" /> Done
                         </span>
                       )}
                     </div>
@@ -591,25 +626,29 @@ export function GoalsView({
                     Icon
                   </label>
                   <div className="flex flex-wrap gap-2">
-                    {GOAL_ICONS.map((icon) => (
-                      <button
-                        key={icon}
-                        onClick={() =>
-                          setForm((f) => ({ ...f, icon }))
-                        }
-                        className={`
-                          w-9 h-9 rounded-xl text-lg
-                          flex items-center justify-center
-                          transition-all duration-150
-                          ${form.icon === icon
-                            ? "bg-[#E6F7F6] ring-2 ring-[#00B9A7]"
-                            : "bg-gray-100 dark:bg-gray-800 hover:bg-gray-200"
+                    {GOAL_ICON_NAMES.map((iconName) => {
+                      const IconComponent = GOAL_ICON_MAP[iconName];
+                      return (
+                        <button
+                          key={iconName}
+                          onClick={() =>
+                            setForm((f) => ({ ...f, icon: iconName }))
                           }
-                        `}
-                      >
-                        {icon}
-                      </button>
-                    ))}
+                          className={`
+                            w-9 h-9 rounded-xl
+                            flex items-center justify-center
+                            transition-all duration-150
+                            ${form.icon === iconName
+                              ? "bg-[#E6F7F6] ring-2 ring-[#00B9A7]"
+                              : "bg-gray-100 dark:bg-gray-800 hover:bg-gray-200"
+                            }
+                          `}
+                          title={iconName}
+                        >
+                          <IconComponent className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { Tag, Wallet, Banknote, Pencil, Trash2 } from "lucide-react";
 import type { Category } from "@/types";
 
 interface CategoryTableProps {
@@ -46,7 +47,7 @@ export function CategoryTable({
             flex flex-col items-center
             text-center animate-fadeIn
           ">
-            <span className="text-4xl mb-3">🏷️</span>
+            <Tag className="w-10 h-10 mb-3 text-slate-400" />
             <p className="
               text-sm font-semibold
               text-[#1A1A2E] dark:text-white
@@ -90,10 +91,15 @@ export function CategoryTable({
                   w-10 h-10 rounded-xl shrink-0
                   flex items-center justify-center
                   bg-[#F5F7FA] dark:bg-gray-800
-                  text-lg
                 ">
-                  {category.icon ?? (
-                    category.type === "income" ? "💰" : "💸"
+                  {category.icon ? (
+                    <span className="text-lg">{category.icon}</span>
+                  ) : (
+                    category.type === "income" ? (
+                      <Wallet className="w-5 h-5 text-[#00C48C]" />
+                    ) : (
+                      <Banknote className="w-5 h-5 text-[#FF5B5B]" />
+                    )
                   )}
                 </div>
 
@@ -153,8 +159,9 @@ export function CategoryTable({
                       active:scale-95
                       transition-all duration-200
                     "
+                    aria-label={labels.edit}
                   >
-                    ✏️
+                    <Pencil className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => onDelete(category)}
@@ -167,8 +174,9 @@ export function CategoryTable({
                       active:scale-95
                       transition-all duration-200
                     "
+                    aria-label={labels.delete}
                   >
-                    🗑️
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               </div>
@@ -249,9 +257,7 @@ export function CategoryTable({
                       justify-center py-12
                       text-center
                     ">
-                      <span className="
-                        text-4xl mb-3
-                      ">🏷️</span>
+                      <Tag className="w-10 h-10 mb-3 text-slate-400" />
                       <p className="
                         text-sm font-semibold
                         text-[#1A1A2E] dark:text-white
@@ -292,11 +298,15 @@ export function CategoryTable({
                         w-8 h-8 rounded-lg
                         flex items-center justify-center
                         bg-[#F5F7FA] dark:bg-gray-800
-                        text-base
                       ">
-                        {category.icon ?? (
-                          category.type === "income"
-                            ? "💰" : "💸"
+                        {category.icon ? (
+                          <span className="text-base">{category.icon}</span>
+                        ) : (
+                          category.type === "income" ? (
+                            <Wallet className="w-4 h-4 text-[#00C48C]" />
+                          ) : (
+                            <Banknote className="w-4 h-4 text-[#FF5B5B]" />
+                          )
                         )}
                       </div>
                     </td>
@@ -369,8 +379,9 @@ export function CategoryTable({
                             active:scale-95
                             transition-all duration-200
                           "
+                          aria-label={labels.edit}
                         >
-                          ✏️
+                          <Pencil className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => onDelete(category)}
@@ -383,8 +394,9 @@ export function CategoryTable({
                             active:scale-95
                             transition-all duration-200
                           "
+                          aria-label={labels.delete}
                         >
-                          🗑️
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </td>

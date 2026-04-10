@@ -153,6 +153,13 @@ export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en" translate="no">
       <head>
+        {/* Recharts CSP configuration - must be before any recharts imports */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.recharts = { useFunctionConstructor: false };`,
+          }}
+        />
+
         <script
           dangerouslySetInnerHTML={{
             __html: `

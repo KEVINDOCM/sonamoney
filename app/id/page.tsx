@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { getSiteUrl } from "@/lib/utils/url"
+import { Home, ShoppingCart, Smartphone, BarChart3, RefreshCw, UtensilsCrossed, Bike, Store, Gift, Pencil, ShoppingBag } from "lucide-react"
 
 export const metadata: Metadata = {
   title: "Aplikasi Pengeluaran Terbaik Indonesia 2025 | SonaMoney",
@@ -142,7 +143,7 @@ export default function IndonesiaPage() {
             </div>
             <div className="p-6 rounded-2xl bg-[#F5F7FA] hover-lift stagger-3">
               <div className="w-12 h-12 bg-[#00B9A7]/10 rounded-xl flex items-center justify-center mb-4">
-                <span className="text-2xl">🛒</span>
+                <ShoppingCart className="w-6 h-6 text-[#00B9A7]" />
               </div>
               <h3 className="text-lg font-bold text-[#1A1A2E] mb-2">
                 Kategori Khas Indonesia
@@ -245,27 +246,27 @@ export default function IndonesiaPage() {
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="p-4 bg-[#F5F7FA] rounded-xl text-center">
-              <span className="text-2xl mb-2 block">🏠</span>
+              <Home className="w-6 h-6 mx-auto mb-2 text-[#00B9A7]" />
               <span className="font-medium text-[#1A1A2E]">Kos/Kost</span>
             </div>
             <div className="p-4 bg-[#F5F7FA] rounded-xl text-center">
-              <span className="text-2xl mb-2 block">🛵</span>
+              <Bike className="w-6 h-6 mx-auto mb-2 text-[#00B9A7]" />
               <span className="font-medium text-[#1A1A2E]">GoJek/Grab</span>
             </div>
             <div className="p-4 bg-[#F5F7FA] rounded-xl text-center">
-              <span className="text-2xl mb-2 block">🏪</span>
+              <Store className="w-6 h-6 mx-auto mb-2 text-[#00B9A7]" />
               <span className="font-medium text-[#1A1A2E]">Indomaret/Alfamart</span>
             </div>
             <div className="p-4 bg-[#F5F7FA] rounded-xl text-center">
-              <span className="text-2xl mb-2 block">🍜</span>
+              <UtensilsCrossed className="w-6 h-6 mx-auto mb-2 text-[#00B9A7]" />
               <span className="font-medium text-[#1A1A2E]">Warung/Kantin</span>
             </div>
             <div className="p-4 bg-[#F5F7FA] rounded-xl text-center">
-              <span className="text-2xl mb-2 block">📱</span>
+              <Smartphone className="w-6 h-6 mx-auto mb-2 text-[#00B9A7]" />
               <span className="font-medium text-[#1A1A2E]">Pulsa/Data</span>
             </div>
             <div className="p-4 bg-[#F5F7FA] rounded-xl text-center">
-              <span className="text-2xl mb-2 block">🎁</span>
+              <Gift className="w-6 h-6 mx-auto mb-2 text-[#00B9A7]" />
               <span className="font-medium text-[#1A1A2E]">THR/Gaji ke-13</span>
             </div>
           </div>
@@ -291,7 +292,7 @@ export default function IndonesiaPage() {
           <div className="grid sm:grid-cols-3 gap-6 max-w-3xl mx-auto">
             <div className="p-6 bg-white rounded-2xl shadow-sm border border-gray-100">
               <div className="w-12 h-12 bg-[#00B9A7]/10 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">✏️</span>
+                <Pencil className="w-6 h-6 text-[#00B9A7]" />
               </div>
               <h3 className="font-bold text-[#1A1A2E] mb-2">Catat Offline</h3>
               <p className="text-sm text-[#6B7280]">
@@ -300,7 +301,7 @@ export default function IndonesiaPage() {
             </div>
             <div className="p-6 bg-white rounded-2xl shadow-sm border border-gray-100">
               <div className="w-12 h-12 bg-[#00B9A7]/10 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">📊</span>
+                <BarChart3 className="w-6 h-6 text-[#00B9A7]" />
               </div>
               <h3 className="font-bold text-[#1A1A2E] mb-2">Lihat Laporan</h3>
               <p className="text-sm text-[#6B7280]">
@@ -309,7 +310,7 @@ export default function IndonesiaPage() {
             </div>
             <div className="p-6 bg-white rounded-2xl shadow-sm border border-gray-100">
               <div className="w-12 h-12 bg-[#00B9A7]/10 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">🔄</span>
+                <RefreshCw className="w-6 h-6 text-[#00B9A7]" />
               </div>
               <h3 className="font-bold text-[#1A1A2E] mb-2">Sinkron Otomatis</h3>
               <p className="text-sm text-[#6B7280]">

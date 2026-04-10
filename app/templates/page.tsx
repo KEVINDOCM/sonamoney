@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { getSiteUrl } from "@/lib/utils/url"
+import { Calendar, BarChart3, Target, Briefcase, Users, GraduationCap, Home, Plane, Gem, Building2, TrendingUp, Globe, type LucideIcon } from "lucide-react"
 
 export const metadata: Metadata = {
   title: "Free Budget Templates | Excel, PDF & Google Sheets — SonaMoney",
@@ -65,86 +66,92 @@ export default function TemplatesPage() {
     ],
   }
 
-  const templates = [
+  const templates: Array<{
+    icon: LucideIcon;
+    title: string;
+    description: string;
+    formats: string[];
+    popular: boolean;
+  }> = [
     {
-      icon: "📅",
+      icon: Calendar,
       title: "Monthly Budget Template",
       description: "Classic monthly budget with income, expenses, and savings tracking.",
       formats: ["Excel", "Google Sheets", "PDF"],
       popular: true,
     },
     {
-      icon: "📊",
+      icon: BarChart3,
       title: "50/30/20 Budget Worksheet",
       description: "Elizabeth Warren's rule: 50% needs, 30% wants, 20% savings.",
       formats: ["Excel", "Google Sheets"],
       popular: true,
     },
     {
-      icon: "🎯",
+      icon: Target,
       title: "Zero-Based Budget",
       description: "Every rupiah/dollar has a job. Perfect for irregular income.",
       formats: ["Excel", "PDF"],
       popular: false,
     },
     {
-      icon: "💼",
+      icon: Briefcase,
       title: "Biweekly Budget for Freelancers",
       description: "Designed for gig workers with inconsistent pay schedules.",
       formats: ["Excel", "Google Sheets"],
       popular: true,
     },
     {
-      icon: "👨‍👩‍👧‍👦",
+      icon: Users,
       title: "Family Budget Planner",
       description: "Track household expenses, kids' costs, and family savings goals.",
       formats: ["Excel", "PDF"],
       popular: false,
     },
     {
-      icon: "🎓",
+      icon: GraduationCap,
       title: "Student Budget Template",
       description: "Manage allowance, tuition, food, and entertainment on a tight budget.",
       formats: ["Excel", "Google Sheets"],
       popular: false,
     },
     {
-      icon: "🏠",
+      icon: Home,
       title: "Debt Payoff Tracker",
       description: "Snowball or avalanche method to eliminate debt faster.",
       formats: ["Excel", "PDF"],
       popular: true,
     },
     {
-      icon: "✈️",
+      icon: Plane,
       title: "Vacation Budget Planner",
       description: "Plan trips without overspending. Flights, hotels, food, activities.",
       formats: ["Excel", "PDF"],
       popular: false,
     },
     {
-      icon: "💍",
+      icon: Gem,
       title: "Wedding Budget Worksheet",
       description: "Track venue, catering, attire, and all wedding expenses.",
       formats: ["Excel", "PDF"],
       popular: false,
     },
     {
-      icon: "🏦",
+      icon: Building2,
       title: "Emergency Fund Tracker",
       description: "Build your 3-6 month safety net with visual progress.",
       formats: ["Excel", "PDF"],
       popular: false,
     },
     {
-      icon: "📈",
+      icon: TrendingUp,
       title: "Annual Budget Overview",
       description: "Yearly financial planning with monthly breakdowns.",
       formats: ["Excel", "Google Sheets"],
       popular: false,
     },
     {
-      icon: "🌍",
+      icon: Globe,
       title: "Multi-Currency Budget",
       description: "Perfect for expats or those with income/expenses in multiple currencies.",
       formats: ["Excel"],
@@ -428,7 +435,7 @@ export default function TemplatesPage() {
             </div>
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
               <div className="w-12 h-12 bg-[#00C48C]/10 rounded-xl flex items-center justify-center mb-4">
-                <span className="text-2xl">📅</span>
+                <Calendar className="w-6 h-6 text-[#00C48C]" />
               </div>
               <h3 className="text-lg font-bold text-[#1A1A2E] mb-2">
                 Bill Calendar Sync
@@ -455,7 +462,7 @@ export default function TemplatesPage() {
                 className={`p-4 bg-[#F5F7FA] rounded-xl hover-lift stagger-${Math.min(index + 1, 6)}`}
               >
                 <div className="flex items-start justify-between mb-2">
-                  <span className="text-2xl">{template.icon}</span>
+                  <template.icon className="w-6 h-6 text-[#6366F1]" />
                   {template.popular && (
                     <span className="px-2 py-1 bg-[#00B9A7] text-white text-xs font-medium rounded-full">
                       Popular

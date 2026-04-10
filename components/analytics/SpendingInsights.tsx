@@ -1,12 +1,13 @@
 "use client";
 
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import type { LucideIcon } from "lucide-react";
 
 type InsightType = "positive" | "negative" | "neutral";
 
 interface Insight {
     type: InsightType;
-    icon: string;
+    icon: LucideIcon;
     message: string;
 }
 
@@ -40,9 +41,8 @@ export function SpendingInsights({ insights }: SpendingInsightsProps) {
                                     w-9 h-9 rounded-xl shrink-0
                                     flex items-center justify-center
                                     bg-[#00C48C]/20
-                                    text-lg
                                 ">
-                                    {insight.icon}
+                                    <insight.icon className="w-5 h-5 text-[#00C48C]" />
                                 </div>
                                 <p className="
                                     text-xs leading-relaxed
@@ -67,9 +67,8 @@ export function SpendingInsights({ insights }: SpendingInsightsProps) {
                                     w-9 h-9 rounded-xl shrink-0
                                     flex items-center justify-center
                                     bg-[#FF5B5B]/20
-                                    text-lg
                                 ">
-                                    {insight.icon}
+                                    <insight.icon className="w-5 h-5 text-[#FF5B5B]" />
                                 </div>
                                 <p className="
                                     text-xs leading-relaxed
@@ -94,9 +93,8 @@ export function SpendingInsights({ insights }: SpendingInsightsProps) {
                                     w-9 h-9 rounded-xl shrink-0
                                     flex items-center justify-center
                                     bg-[#FFB800]/20
-                                    text-lg
                                 ">
-                                    {insight.icon}
+                                    <insight.icon className="w-5 h-5 text-[#FFB800]" />
                                 </div>
                                 <p className="
                                     text-xs leading-relaxed
