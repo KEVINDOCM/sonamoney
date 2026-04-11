@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition, FormEvent } from "react"
+import { useState, useTransition, FormEvent, useRef } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { createSupabaseBrowserClient } from "@/lib/supabase/client"
@@ -9,6 +9,10 @@ import { validatePasswordStrength } from "@/lib/utils/passwordSecurity"
 import { generateSecureHeaders } from "@/lib/security/client"
 import { TurnstileWidget } from "@/components/security/TurnstileCaptcha"
 import { AlertTriangle } from "lucide-react"
+
+interface TurnstileRef {
+  reset: () => void
+}
 
 interface AuthClient {
   auth: {
@@ -31,6 +35,7 @@ export default function SignupPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [password, setPassword] = useState("")
   const [captchaToken, setCaptchaToken] = useState<string>("")
+  const turnstileRef = useRef<TurnstileRef>(null)
   const [passwordStrength, setPasswordStrength] =
     useState<{
       score: number
@@ -84,6 +89,9 @@ export default function SignupPage() {
       setIsSubmitting(false)
 
       if (!res.ok) {
+        // Reset Turnstile widget - tokens are one-time use only
+        turnstileRef.current?.reset()
+        setCaptchaToken("")
         setError(json.error ?? "Failed to create account.")
         return
       }
@@ -284,6 +292,7 @@ export default function SignupPage() {
                   Security Verification
                 </label>
                 <TurnstileWidget
+                  widgetRef={turnstileRef}
                   onVerify={(token) => setCaptchaToken(token)}
                   onError={() => setError("CAPTCHA verification failed. Please refresh and try again.")}
                   action="signup"

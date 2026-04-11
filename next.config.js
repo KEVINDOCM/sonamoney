@@ -65,6 +65,7 @@ const securityHeaders = [
       "microphone=()",
       "geolocation=()",
       "interest-cohort=()",
+      "xr-spatial-tracking=()",
     ].join(", "),
   },
   // Cross-Origin policies
