@@ -99,11 +99,6 @@ export async function POST(req: Request): Promise<Response> {
     // Get captcha token if provided (required when captcha is enabled in Supabase)
     const captchaToken = body.captchaToken as string | undefined
     
-    // Debug logging for captcha issues
-    console.log('[AUTH] Captcha token received:', captchaToken ? `${captchaToken.slice(0, 20)}...` : 'undefined')
-    console.log('[AUTH] Captcha token type:', typeof captchaToken)
-    console.log('[AUTH] Captcha token length:', captchaToken?.length ?? 0)
-
     const { error } = await supabase.auth.signUp({
       email,
       password,

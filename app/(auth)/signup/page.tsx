@@ -42,6 +42,8 @@ export default function SignupPage() {
       strength: string
       errors: string[]
     } | null>(null)
+  const [showSuccess, setShowSuccess] = useState(false)
+  const [registeredEmail, setRegisteredEmail] = useState("")
 
   const handlePasswordChange = (
     e: React.ChangeEvent<HTMLInputElement>
@@ -96,9 +98,9 @@ export default function SignupPage() {
         return
       }
 
-      startTransition(() => {
-        router.push("/dashboard")
-      })
+      // Show success message - email confirmation required before login
+      setRegisteredEmail(email)
+      setShowSuccess(true)
     } catch {
       setIsSubmitting(false)
       setError("Network error. Please try again.")
@@ -162,44 +164,94 @@ export default function SignupPage() {
       ">
         <div className="w-full max-w-md">
 
-          {/* Header */}
-          <div className="text-center mb-8">
+          {/* Success Screen */}
+          {showSuccess ? (
             <div className="
-              inline-flex items-center justify-center
-              w-14 h-14 rounded-2xl bg-[#E6F7F6] mb-4
+              bg-white rounded-3xl shadow-sm
+              border border-gray-100 p-6 lg:p-8 text-center
             ">
-              <span className="text-2xl">🚀</span>
-            </div>
-            <h1 className="
-              text-2xl font-extrabold text-[#1A1A2E]
-            ">
-              Create your account
-            </h1>
-            <p className="text-sm text-[#6B7280] mt-1">
-              Free forever. No credit card needed.
-            </p>
-          </div>
-
-          {/* Card */}
-          <div className="
-            bg-white rounded-3xl shadow-sm
-            border border-gray-100 p-6 lg:p-8 space-y-5
-          ">
-            {/* Error */}
-            {error && (
               <div className="
-                rounded-2xl bg-[#FFF0F0]
-                border border-[#FF5B5B]/20
-                px-4 py-3 flex items-start gap-2
+                inline-flex items-center justify-center
+                w-16 h-16 rounded-2xl bg-[#E6F7F6] mb-4
               ">
-                <AlertTriangle className="w-4 h-4 text-[#FF5B5B] shrink-0 mt-0.5" />
-                <p className="text-sm text-[#FF5B5B] font-medium">
-                  {error}
+                <span className="text-3xl">✉️</span>
+              </div>
+              <h2 className="text-xl font-bold text-[#1A1A2E] mb-2">
+                Check your email
+              </h2>
+              <p className="text-sm text-[#6B7280] mb-4">
+                We sent a confirmation link to <strong className="text-[#1A1A2E]">{registeredEmail}</strong>.
+                Click the link to activate your account before logging in.
+              </p>
+              <div className="space-y-3">
+                <Link
+                  href="/login"
+                  className="
+                    block w-full py-3 px-4
+                    bg-[#00B9A7] hover:bg-[#0099A0]
+                    text-white font-semibold rounded-xl
+                    transition-colors text-center
+                  "
+                >
+                  Go to Login
+                </Link>
+                <button
+                  onClick={() => {
+                    setShowSuccess(false)
+                    setRegisteredEmail("")
+                    setPassword("")
+                    setCaptchaToken("")
+                  }}
+                  className="
+                    block w-full py-3 px-4
+                    text-[#6B7280] font-medium
+                    hover:text-[#1A1A2E] transition-colors
+                  "
+                >
+                  Create another account
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* Header */}
+              <div className="text-center mb-8">
+                <div className="
+                  inline-flex items-center justify-center
+                  w-14 h-14 rounded-2xl bg-[#E6F7F6] mb-4
+                ">
+                  <span className="text-2xl">🚀</span>
+                </div>
+                <h1 className="
+                  text-2xl font-extrabold text-[#1A1A2E]
+                ">
+                  Create your account
+                </h1>
+                <p className="text-sm text-[#6B7280] mt-1">
+                  Free forever. No credit card needed.
                 </p>
               </div>
-            )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Card */}
+              <div className="
+                bg-white rounded-3xl shadow-sm
+                border border-gray-100 p-6 lg:p-8 space-y-5
+              ">
+                {/* Error */}
+                {error && (
+                  <div className="
+                    rounded-2xl bg-[#FFF0F0]
+                    border border-[#FF5B5B]/20
+                    px-4 py-3 flex items-start gap-2
+                  ">
+                    <AlertTriangle className="w-4 h-4 text-[#FF5B5B] shrink-0 mt-0.5" />
+                    <p className="text-sm text-[#FF5B5B] font-medium">
+                      {error}
+                    </p>
+                  </div>
+                )}
+
+                <form onSubmit={handleSubmit} className="space-y-4">
               {/* Email */}
               <div className="space-y-1.5">
                 <label className="
@@ -387,6 +439,8 @@ export default function SignupPage() {
               Log in
             </Link>
           </p>
+              </>
+            )}
         </div>
       </div>
     </div>
