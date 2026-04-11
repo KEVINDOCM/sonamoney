@@ -1,13 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useTransition, FormEvent } from "react";
+import { useState, useTransition, FormEvent, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { loginSchema } from "@/lib/utils/validation";
 import { generateSecureHeaders } from "@/lib/security/client";
+import { TurnstileWidget } from "@/components/security/TurnstileCaptcha";
 import { Lock, AlertTriangle, Hand } from "lucide-react";
+
+interface TurnstileRef {
+  reset: () => void
+}
 
 interface AuthErrorState {
   message: string;
@@ -15,7 +20,11 @@ interface AuthErrorState {
 
 interface AuthClient {
   auth: {
-    signInWithPassword: (credentials: { email: string; password: string }) => Promise<{ error: Error | null }>;
+    signInWithPassword: (credentials: { 
+      email: string; 
+      password: string;
+      options?: { captchaToken?: string };
+    }) => Promise<{ error: Error | null }>;
     signInWithOAuth: (options: { provider: string; options: { redirectTo: string } }) => Promise<void>;
   };
 }
@@ -26,6 +35,8 @@ export default function AuthLoginPage() {
   const [authError, setAuthError] = useState<AuthErrorState | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [lockoutMs, setLockoutMs] = useState<number>(0);
+  const [captchaToken, setCaptchaToken] = useState<string>("");
+  const turnstileRef = useRef<TurnstileRef>(null);
   const { t, mounted } = useTranslation();
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -82,6 +93,9 @@ export default function AuthLoginPage() {
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password,
+          options: {
+            captchaToken: captchaToken,
+          },
         });
 
         // Debug logging - check browser console (F12) for actual error
@@ -103,6 +117,9 @@ export default function AuthLoginPage() {
         setIsSubmitting(false);
 
         if (!success) {
+          // Reset Turnstile widget - tokens are one-time use only
+          turnstileRef.current?.reset()
+          setCaptchaToken("")
           setAuthError({
             message: "Invalid email or password. Please try again.",
           })
@@ -216,6 +233,19 @@ export default function AuthLoginPage() {
                 />
               </div>
 
+              {/* CAPTCHA Widget */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-[#1A1A2E] uppercase tracking-wide block">
+                  Security Verification
+                </label>
+                <TurnstileWidget
+                  widgetRef={turnstileRef}
+                  onVerify={(token) => setCaptchaToken(token)}
+                  onError={() => setAuthError({ message: "CAPTCHA verification failed. Please refresh and try again." })}
+                  action="login"
+                />
+              </div>
+
               <div className="flex justify-end">
                 <Link
                   href="/forgot-password"
@@ -228,7 +258,7 @@ export default function AuthLoginPage() {
               {/* Submit */}
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={isLoading || !captchaToken}
                 className="w-full h-11 bg-[#00B9A7] text-white rounded-full font-semibold text-sm hover:bg-[#0099A0] active:scale-95 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-[#00B9A7]/25"
               >
                 {isLoading ? (mounted ? t("auth.signingIn") : "Signing in...") : (mounted ? t("auth.login") : "Log in")}
