@@ -22,7 +22,17 @@ interface TurnstileProps {
 }
 
 // Cloudflare Turnstile site key (public) - validated at runtime
-const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+// Explicitly convert to string and trim to handle any JSON formatting issues
+const rawSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+const TURNSTILE_SITE_KEY = typeof rawSiteKey === 'string' ? rawSiteKey.trim() : 
+                           typeof rawSiteKey === 'object' && rawSiteKey !== null ? String(rawSiteKey).trim() : 
+                           undefined
+
+// Debug logging in production to diagnose env var issues
+if (typeof window !== 'undefined') {
+  console.log('[CAPTCHA] Site key type:', typeof rawSiteKey)
+  console.log('[CAPTCHA] Site key value:', TURNSTILE_SITE_KEY ? TURNSTILE_SITE_KEY.slice(0, 10) + '...' : 'undefined')
+}
 
 declare global {
   interface Window {
