@@ -84,6 +84,11 @@ export default function AuthLoginPage() {
           password,
         });
 
+        // Debug logging - check browser console (F12) for actual error
+        if (signInError) {
+          console.error("[LOGIN] Supabase signIn error:", signInError.message, "Status:", (signInError as { status?: number }).status);
+        }
+
         const success = !signInError;
 
         // Step 3: Record attempt result
