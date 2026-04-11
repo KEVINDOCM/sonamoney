@@ -101,8 +101,8 @@ const securityHeaders = [
       "font-src 'self' https://fonts.gstatic.com",
       // API connections allowed
       "connect-src 'self' https://*.supabase.co https://generativelanguage.googleapis.com https://api.pwnedpasswords.com https://open.er-api.com https://api.frankfurter.app",
-      // Frames: none
-      "frame-src 'none'",
+      // Frames: Turnstile requires iframe
+      "frame-src https://challenges.cloudflare.com",
       // Objects: none
       "object-src 'none'",
       // Base URI: self only

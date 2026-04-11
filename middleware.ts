@@ -225,8 +225,9 @@ export async function middleware(request: MiddlewareRequest) {
   const isProtected = protectedPaths.some((path) => pathname.startsWith(path))
   const isAuthPath = pathname === "/login" || pathname === "/signup"
 
-  // CSRF Protection
-  if (isApiRoute && requiresCSRFProtection(method) && !isAuthEndpoint) {
+  // CSRF Protection (skip for CSP reports - browsers send these automatically)
+  const isCspReport = pathname === "/api/csp-report"
+  if (isApiRoute && requiresCSRFProtection(method) && !isAuthEndpoint && !isCspReport) {
     if (!user) {
       const csrfToken = extractCSRFToken(request.headers)
       const validation = await validateCSRFToken(csrfToken)

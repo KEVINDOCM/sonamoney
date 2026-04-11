@@ -36,11 +36,9 @@ export function TurnstileWidget({ onVerify, onError, action = "login" }: Turnsti
   useEffect(() => {
     // Check if site key is configured
     if (!TURNSTILE_SITE_KEY) {
-      console.warn("[CAPTCHA] Turnstile site key not configured")
-      // In development, bypass CAPTCHA
-      if (process.env.NODE_ENV === "development") {
-        onVerify("dev-bypass-token")
-      }
+      console.error("[CAPTCHA] NEXT_PUBLIC_TURNSTILE_SITE_KEY not configured")
+      setHasError(true)
+      onError?.()
       return
     }
 
@@ -105,7 +103,7 @@ export function TurnstileWidget({ onVerify, onError, action = "login" }: Turnsti
   if (hasError) {
     return (
       <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-800 text-sm">
-        ❌ CAPTCHA failed to load. Please refresh the page or try again later.
+        ❌ CAPTCHA failed to load. {!TURNSTILE_SITE_KEY && "(Site key not configured)"} Please refresh the page or try again later.
       </div>
     )
   }

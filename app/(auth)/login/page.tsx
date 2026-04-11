@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { loginSchema } from "@/lib/utils/validation";
+import { generateSecureHeaders } from "@/lib/security/client";
 import { Lock, AlertTriangle, Hand } from "lucide-react";
 
 interface AuthErrorState {
@@ -49,48 +50,52 @@ export default function AuthLoginPage() {
     void (async () => {
       try {
         // Step 1: Pre-check lockout
+        const prePayload = { email, password };
+        const preHeaders = await generateSecureHeaders(prePayload);
         const preCheck = await fetch("/api/auth/login", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-        })
+          headers: preHeaders,
+          body: JSON.stringify(prePayload),
+        });
 
-        const preData: unknown = await preCheck.json()
+        const preData: unknown = await preCheck.json();
         const preJson = preData as {
-          error?: string
-          locked?: boolean
-          remainingMs?: number
-          proceed?: boolean
-        }
+          error?: string;
+          locked?: boolean;
+          remainingMs?: number;
+          proceed?: boolean;
+        };
 
         if (!preCheck.ok) {
-          setIsSubmitting(false)
+          setIsSubmitting(false);
           if (preJson.locked && preJson.remainingMs) {
-            setLockoutMs(preJson.remainingMs)
+            setLockoutMs(preJson.remainingMs);
           }
           setAuthError({
             message: preJson.error ?? "Failed to log in. Please try again.",
-          })
-          return
+          });
+          return;
         }
 
         // Step 2: Client-side Supabase sign in (sets session cookie)
-        const supabase = createSupabaseBrowserClient() as AuthClient
+        const supabase = createSupabaseBrowserClient() as AuthClient;
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password,
-        })
+        });
 
-        const success = !signInError
+        const success = !signInError;
 
         // Step 3: Record attempt result
+        const putPayload = { email, success };
+        const putHeaders = await generateSecureHeaders(putPayload);
         await fetch("/api/auth/login", {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, success }),
-        })
+          headers: putHeaders,
+          body: JSON.stringify(putPayload),
+        });
 
-        setIsSubmitting(false)
+        setIsSubmitting(false);
 
         if (!success) {
           setAuthError({
