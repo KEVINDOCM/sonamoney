@@ -144,6 +144,7 @@ export function TurnstileWidget({
         script.defer = true
         script.onload = () => setIsLoaded(true)
         script.onerror = () => {
+          console.error('[CAPTCHA] Failed to load Turnstile script - may be blocked by ad blocker')
           setHasError(true)
           const errorCallback = onErrorRef.current
           if (errorCallback) errorCallback()
@@ -165,9 +166,22 @@ export function TurnstileWidget({
     // Render widget once when script loads (deferred to avoid forced reflow)
     useEffect(() => {
       if (!isLoaded || !containerRef.current || hasRenderedRef.current) return
+
+      // Capture sitekey at render time - don't read from process.env inside closure
+      // This prevents issues where env values might be modified by browser extensions
+      const rawSitekey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+      const sitekey = typeof rawSitekey === 'string' ? rawSitekey.trim() : String(rawSitekey || '').trim()
       
-      const sitekeyCheck = String(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '').trim()
-      if (!window.turnstile || sitekeyCheck.length === 0) return
+      // Also capture action to ensure it's a string
+      const actionValue = String(action || 'login').trim()
+
+      if (!window.turnstile || sitekey.length === 0) {
+        console.error('[CAPTCHA] Cannot render: turnstile not loaded or sitekey empty')
+        setHasError(true)
+        const initErrorCallback = onErrorRef.current
+        if (initErrorCallback) initErrorCallback()
+        return
+      }
 
       // Prevent double render (StrictMode, etc.)
       hasRenderedRef.current = true
@@ -176,22 +190,19 @@ export function TurnstileWidget({
       const renderFrame = requestAnimationFrame(() => {
         if (!containerRef.current || !window.turnstile) return
 
-        // Double-coerce sitekey to ensure it's definitely a string
-        // Env vars can be injected as objects in some Next.js configurations
-        const rawSitekey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
-        const sitekey = typeof rawSitekey === 'string' ? rawSitekey.trim() : String(rawSitekey || '').trim()
-        
-        console.log('[CAPTCHA] Raw type:', typeof rawSitekey, '| Final type:', typeof sitekey, '| value:', sitekey.slice(0, 15) + '...')
+        // Final validation before passing to Turnstile
+        const finalSitekey = String(sitekey)
+        const finalAction = String(actionValue)
 
-        if (!sitekey || sitekey.length === 0) {
-          console.error('[CAPTCHA] Sitekey is empty after coercion')
+        if (!finalSitekey || finalSitekey.length === 0) {
+          console.error('[CAPTCHA] Sitekey is empty at render time')
           setHasError(true)
           return
         }
 
         widgetIdRef.current = window.turnstile.render(containerRef.current, {
-          sitekey: sitekey,
-          action,
+          sitekey: finalSitekey,
+          action: finalAction,
           callback: (token: string) => {
             const verifyCallback = onVerifyRef.current
             if (verifyCallback) verifyCallback(token)

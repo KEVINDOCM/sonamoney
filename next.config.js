@@ -60,13 +60,7 @@ const securityHeaders = [
   // Disable browser features not needed
   {
     key: "Permissions-Policy",
-    value: [
-      "camera=()",
-      "microphone=()",
-      "geolocation=()",
-      "interest-cohort=()",
-      "xr-spatial-tracking=()",
-    ].join(", "),
+    value: "camera=(), microphone=(), geolocation=(), interest-cohort=(), xr-spatial-tracking=(self)"
   },
   // Cross-Origin policies
   {
@@ -92,18 +86,18 @@ const securityHeaders = [
     value: [
       // Default: only same origin
       "default-src 'self'",
-      // Scripts: self + inline + Cloudflare Insights + Turnstile
-      "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com https://challenges.cloudflare.com",
+      // Scripts: self + inline + Cloudflare Insights + Turnstile + challenge platform
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://static.cloudflareinsights.com https://challenges.cloudflare.com https://cdn-cgi.challenges.cloudflare.com",
       // Styles: self + inline + Google Fonts
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      // Images: self + data URIs + Supabase storage
-      "img-src 'self' data: blob: https://*.supabase.co",
+      // Images: self + data URIs + Supabase storage + Cloudflare challenge
+      "img-src 'self' data: blob: https://*.supabase.co https://challenges.cloudflare.com",
       // Fonts: self + Google Fonts
       "font-src 'self' https://fonts.gstatic.com",
       // API connections allowed
       "connect-src 'self' https://*.supabase.co https://generativelanguage.googleapis.com https://api.pwnedpasswords.com https://open.er-api.com https://api.frankfurter.app",
-      // Frames: Turnstile requires iframe
-      "frame-src https://challenges.cloudflare.com",
+      // Frames: Turnstile requires iframe + challenge platform
+      "frame-src https://challenges.cloudflare.com https://challenges.cloudflare.com/cdn-cgi/challenge-platform/",
       // Objects: none
       "object-src 'none'",
       // Base URI: self only
