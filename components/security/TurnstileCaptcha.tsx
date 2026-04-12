@@ -21,17 +21,15 @@ interface TurnstileProps {
   widgetRef?: React.Ref<{ reset: () => void }>
 }
 
-// Cloudflare Turnstile site key (public) - validated at runtime
-// Explicitly convert to string and trim to handle any JSON formatting issues
-const rawSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
-const TURNSTILE_SITE_KEY = typeof rawSiteKey === 'string' ? rawSiteKey.trim() : 
-                           typeof rawSiteKey === 'object' && rawSiteKey !== null ? String(rawSiteKey).trim() : 
-                           undefined
+// Cloudflare Turnstile site key (public)
+// Force to string and handle edge cases where env var might be object
+const TURNSTILE_SITE_KEY = String(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '').trim()
 
 // Debug logging in production to diagnose env var issues
 if (typeof window !== 'undefined') {
-  console.log('[CAPTCHA] Site key type:', typeof rawSiteKey)
-  console.log('[CAPTCHA] Site key value:', TURNSTILE_SITE_KEY ? TURNSTILE_SITE_KEY.slice(0, 10) + '...' : 'undefined')
+  console.log('[CAPTCHA] Site key type:', typeof TURNSTILE_SITE_KEY)
+  console.log('[CAPTCHA] Site key length:', TURNSTILE_SITE_KEY.length)
+  console.log('[CAPTCHA] Site key value:', TURNSTILE_SITE_KEY ? TURNSTILE_SITE_KEY.slice(0, 15) + '...' : 'EMPTY')
 }
 
 declare global {
@@ -128,7 +126,7 @@ export function TurnstileWidget({
 
     // Load Turnstile script once on mount
     useEffect(() => {
-      if (!TURNSTILE_SITE_KEY) {
+      if (TURNSTILE_SITE_KEY.length === 0) {
         console.error("[CAPTCHA] NEXT_PUBLIC_TURNSTILE_SITE_KEY not configured")
         setHasError(true)
         const missingKeyCallback = onErrorRef.current
@@ -171,7 +169,7 @@ export function TurnstileWidget({
     // Render widget once when script loads
     useEffect(() => {
       if (!isLoaded || !containerRef.current || hasRenderedRef.current) return
-      if (!window.turnstile || !TURNSTILE_SITE_KEY) return
+      if (!window.turnstile || TURNSTILE_SITE_KEY.length === 0) return
 
       // Prevent double render (StrictMode, etc.)
       hasRenderedRef.current = true
@@ -203,7 +201,7 @@ export function TurnstileWidget({
     }, [isLoaded, action]) // Stable deps - action is string literal
 
     // Error state: configuration missing (production only)
-    if (!TURNSTILE_SITE_KEY && process.env.NODE_ENV !== "development") {
+    if (TURNSTILE_SITE_KEY.length === 0 && process.env.NODE_ENV !== "development") {
       return (
         <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-800 text-sm">
           ⚠️ CAPTCHA not configured. Please contact support.
@@ -215,7 +213,7 @@ export function TurnstileWidget({
     if (hasError) {
       return (
         <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-800 text-sm">
-          ❌ CAPTCHA failed to load. {!TURNSTILE_SITE_KEY && "(Site key not configured)"} 
+          ❌ CAPTCHA failed to load. {TURNSTILE_SITE_KEY.length === 0 && "(Site key not configured)"} 
           Please refresh the page or try again later.
         </div>
       )
