@@ -1,6 +1,11 @@
 /**
  * Cloudflare Turnstile CAPTCHA Component
  * Privacy-friendly bot protection for login and registration
+ * 
+ * Note: You may see 401 errors on the Private Access Token (PAT) endpoint in console.
+ * This is expected behavior - Turnstile attempts Privacy Pass tokens first, and 401
+ * indicates no valid token exists. The widget automatically falls back to interactive
+ * challenges. This does not indicate a failure.
  */
 
 "use client"
@@ -22,9 +27,16 @@ interface TurnstileProps {
 }
 
 // Helper to safely get sitekey from env (avoids module-level object injection issues)
-const getSitekey = () => {
+const getSitekey = (): string => {
   const raw = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
-  return typeof raw === 'string' ? raw.trim() : String(raw || '').trim()
+  if (typeof raw === 'string') {
+    return raw.trim()
+  }
+  if (raw && typeof raw === 'object') {
+    console.error('[CAPTCHA] Sitekey env var is object at module level:', raw)
+    return String((raw as Record<string, unknown>).valueOf?.() || '').trim()
+  }
+  return String(raw || '').trim()
 }
 
 declare global {
@@ -43,6 +55,7 @@ declare global {
     "error-callback"?: () => void
     "expired-callback"?: () => void
     "timeout-callback"?: () => void
+    "unsupported-callback"?: () => void
   }
 }
 
@@ -170,13 +183,31 @@ export function TurnstileWidget({
       // Capture sitekey at render time - don't read from process.env inside closure
       // This prevents issues where env values might be modified by browser extensions
       const rawSitekey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
-      const sitekey = typeof rawSitekey === 'string' ? rawSitekey.trim() : String(rawSitekey || '').trim()
+      
+      // Defensive: handle cases where env var might be an object or non-string
+      let sitekey: string
+      if (typeof rawSitekey === 'string') {
+        sitekey = rawSitekey.trim()
+      } else if (rawSitekey && typeof rawSitekey === 'object') {
+        // Edge case: env var might be wrapped or parsed as object
+        console.error('[CAPTCHA] Sitekey is an object, attempting to extract value:', rawSitekey)
+        const obj = rawSitekey as Record<string, unknown>
+        sitekey = String(obj.valueOf?.() || JSON.stringify(rawSitekey)).trim()
+      } else {
+        sitekey = String(rawSitekey || '').trim()
+      }
       
       // Also capture action to ensure it's a string
       const actionValue = String(action || 'login').trim()
 
+      // Debug logging to diagnose sitekey issues
+      if (process.env.NODE_ENV === 'development') {
+        const maskedSitekey = sitekey ? `${sitekey.slice(0, 4)}...${sitekey.slice(-4)}` : '(empty)'
+        console.log('[CAPTCHA] Sitekey type:', typeof rawSitekey, 'Length:', sitekey.length, 'Masked:', maskedSitekey)
+      }
+
       if (!window.turnstile || sitekey.length === 0) {
-        console.error('[CAPTCHA] Cannot render: turnstile not loaded or sitekey empty')
+        console.error('[CAPTCHA] Cannot render: turnstile not loaded or sitekey empty. Raw type:', typeof rawSitekey)
         setHasError(true)
         const initErrorCallback = onErrorRef.current
         if (initErrorCallback) initErrorCallback()
@@ -194,8 +225,9 @@ export function TurnstileWidget({
         const finalSitekey = String(sitekey)
         const finalAction = String(actionValue)
 
-        if (!finalSitekey || finalSitekey.length === 0) {
-          console.error('[CAPTCHA] Sitekey is empty at render time')
+        // Extra defensive: verify sitekey is actually a string
+        if (typeof finalSitekey !== 'string' || finalSitekey.length === 0) {
+          console.error('[CAPTCHA] Sitekey invalid. Type:', typeof finalSitekey, 'Value:', finalSitekey)
           setHasError(true)
           return
         }
@@ -222,6 +254,12 @@ export function TurnstileWidget({
             setHasError(true)
             const timeoutCallback = onErrorRef.current
             if (timeoutCallback) timeoutCallback()
+          },
+          "unsupported-callback": () => {
+            console.error("[CAPTCHA] Browser unsupported - tracking prevention may be enabled")
+            setHasError(true)
+            const unsupportedCallback = onErrorRef.current
+            if (unsupportedCallback) unsupportedCallback()
           }
         })
       })
@@ -242,9 +280,36 @@ export function TurnstileWidget({
     if (hasError) {
       const sitekeyEmpty = getSitekey().length === 0
       return (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-800 text-sm">
-          ❌ CAPTCHA failed to load. {sitekeyEmpty && "(Site key not configured)"} 
-          Please refresh the page or try again later.
+        <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-800 text-sm space-y-3">
+          <div className="flex items-start gap-2">
+            <span className="shrink-0">❌</span>
+            <div>
+              <p className="font-medium">CAPTCHA verification failed</p>
+              {sitekeyEmpty && <p className="text-red-600/80 text-xs mt-0.5">Site key not configured</p>}
+              <p className="text-red-600/80 text-xs mt-1">
+                This may be caused by privacy settings or tracking prevention features in your browser.
+                Try disabling &quot;Prevent Cross-Site Tracking&quot; or use a different browser.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setHasError(false)
+              setIsLoaded(false)
+              hasRenderedRef.current = false
+              widgetIdRef.current = null
+              // Force re-render by clearing and reloading
+              if (containerRef.current) {
+                containerRef.current.innerHTML = ''
+              }
+              // Small delay to allow cleanup before reload attempt
+              setTimeout(() => setIsLoaded(true), 100)
+            }}
+            className="w-full py-2 px-3 bg-red-100 hover:bg-red-200 text-red-800 text-xs font-medium rounded-lg transition-colors"
+          >
+            Retry CAPTCHA
+          </button>
         </div>
       )
     }

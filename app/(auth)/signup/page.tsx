@@ -346,7 +346,7 @@ export default function SignupPage() {
                 <TurnstileWidget
                   widgetRef={turnstileRef}
                   onVerify={(token) => setCaptchaToken(token)}
-                  onError={() => setError("CAPTCHA verification failed. Please refresh and try again.")}
+                  onError={() => setError("CAPTCHA verification failed. This may be due to browser privacy settings blocking third-party content. Try disabling 'Prevent Cross-Site Tracking' or use a different browser.")}
                   action="signup"
                 />
               </div>

@@ -241,7 +241,7 @@ export default function AuthLoginPage() {
                 <TurnstileWidget
                   widgetRef={turnstileRef}
                   onVerify={(token) => setCaptchaToken(token)}
-                  onError={() => setAuthError({ message: "CAPTCHA verification failed. Please refresh and try again." })}
+                  onError={() => setAuthError({ message: "CAPTCHA verification failed. This may be due to browser privacy settings blocking third-party content. Try disabling 'Prevent Cross-Site Tracking' or use a different browser." })}
                   action="login"
                 />
               </div>

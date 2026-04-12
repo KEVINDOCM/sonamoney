@@ -57,10 +57,10 @@ const securityHeaders = [
     key: "Referrer-Policy",
     value: "strict-origin-when-cross-origin",
   },
-  // Disable browser features not needed
+  // Disable browser features not needed (xr-spatial-tracking enabled for Cloudflare Turnstile)
   {
     key: "Permissions-Policy",
-    value: "camera=(), microphone=(), geolocation=(), interest-cohort=(), xr-spatial-tracking=(self)"
+    value: "camera=(), microphone=(), geolocation=(), interest-cohort=(), xr-spatial-tracking=*"
   },
   // Cross-Origin policies
   {
@@ -105,7 +105,8 @@ const securityHeaders = [
       // Form submissions: self only
       "form-action 'self'",
       // Upgrade insecure requests
-      "upgrade-insecure-requests;" +
+      "upgrade-insecure-requests",
+      // CSP violation reporting endpoint
       "report-uri /api/csp-report",
     ].join("; "),
   },
