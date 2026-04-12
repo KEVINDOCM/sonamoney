@@ -21,15 +21,10 @@ interface TurnstileProps {
   widgetRef?: React.Ref<{ reset: () => void }>
 }
 
-// Cloudflare Turnstile site key (public)
-// Force to string and handle edge cases where env var might be object
-const TURNSTILE_SITE_KEY = String(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '').trim()
-
-// Debug logging in production to diagnose env var issues
-if (typeof window !== 'undefined') {
-  console.log('[CAPTCHA] Site key type:', typeof TURNSTILE_SITE_KEY)
-  console.log('[CAPTCHA] Site key length:', TURNSTILE_SITE_KEY.length)
-  console.log('[CAPTCHA] Site key value:', TURNSTILE_SITE_KEY ? TURNSTILE_SITE_KEY.slice(0, 15) + '...' : 'EMPTY')
+// Helper to safely get sitekey from env (avoids module-level object injection issues)
+const getSitekey = () => {
+  const raw = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+  return typeof raw === 'string' ? raw.trim() : String(raw || '').trim()
 }
 
 declare global {
@@ -126,7 +121,8 @@ export function TurnstileWidget({
 
     // Load Turnstile script once on mount
     useEffect(() => {
-      if (TURNSTILE_SITE_KEY.length === 0) {
+      const sitekeyValue = String(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '').trim()
+      if (sitekeyValue.length === 0) {
         console.error("[CAPTCHA] NEXT_PUBLIC_TURNSTILE_SITE_KEY not configured")
         setHasError(true)
         const missingKeyCallback = onErrorRef.current
@@ -169,19 +165,29 @@ export function TurnstileWidget({
     // Render widget once when script loads (deferred to avoid forced reflow)
     useEffect(() => {
       if (!isLoaded || !containerRef.current || hasRenderedRef.current) return
-      if (!window.turnstile || TURNSTILE_SITE_KEY.length === 0) return
+      
+      const sitekeyCheck = String(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '').trim()
+      if (!window.turnstile || sitekeyCheck.length === 0) return
 
       // Prevent double render (StrictMode, etc.)
       hasRenderedRef.current = true
 
       // Defer render to next frame to avoid forced reflow during initial load
       const renderFrame = requestAnimationFrame(() => {
-        // Aggressive string coercion - ensure sitekey is definitely a string
-        const sitekey = String(TURNSTILE_SITE_KEY).trim()
-        
-        console.log('[CAPTCHA] Rendering with sitekey type:', typeof sitekey, 'value:', sitekey.slice(0, 15) + '...')
-
         if (!containerRef.current || !window.turnstile) return
+
+        // Double-coerce sitekey to ensure it's definitely a string
+        // Env vars can be injected as objects in some Next.js configurations
+        const rawSitekey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+        const sitekey = typeof rawSitekey === 'string' ? rawSitekey.trim() : String(rawSitekey || '').trim()
+        
+        console.log('[CAPTCHA] Raw type:', typeof rawSitekey, '| Final type:', typeof sitekey, '| value:', sitekey.slice(0, 15) + '...')
+
+        if (!sitekey || sitekey.length === 0) {
+          console.error('[CAPTCHA] Sitekey is empty after coercion')
+          setHasError(true)
+          return
+        }
 
         widgetIdRef.current = window.turnstile.render(containerRef.current, {
           sitekey: sitekey,
@@ -213,7 +219,7 @@ export function TurnstileWidget({
     }, [isLoaded, action]) // Stable deps - action is string literal
 
     // Error state: configuration missing (production only)
-    if (TURNSTILE_SITE_KEY.length === 0 && process.env.NODE_ENV !== "development") {
+    if (getSitekey().length === 0 && process.env.NODE_ENV !== "development") {
       return (
         <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-800 text-sm">
           ⚠️ CAPTCHA not configured. Please contact support.
@@ -223,9 +229,10 @@ export function TurnstileWidget({
 
     // Error state: widget failed to load
     if (hasError) {
+      const sitekeyEmpty = getSitekey().length === 0
       return (
         <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-800 text-sm">
-          ❌ CAPTCHA failed to load. {TURNSTILE_SITE_KEY.length === 0 && "(Site key not configured)"} 
+          ❌ CAPTCHA failed to load. {sitekeyEmpty && "(Site key not configured)"} 
           Please refresh the page or try again later.
         </div>
       )

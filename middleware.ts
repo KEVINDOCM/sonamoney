@@ -12,6 +12,7 @@ import { extractClientIP, hashIP, checkIsAdminIP, detectAnonymizer } from "./lib
 import { logSecurityEvent } from "./lib/middleware/security-logger"
 import { maintenanceHtml } from "./lib/middleware/maintenance-template"
 import { getCachedSession, cacheSession } from "./lib/middleware/session-cache"
+import { userHasMFAEnabled, isTrustedDevice, validateSession } from "./lib/mfa"
 import type { MiddlewareRequest } from "./lib/middleware/types"
 
 export async function middleware(request: MiddlewareRequest) {
@@ -311,6 +312,45 @@ export async function middleware(request: MiddlewareRequest) {
     }
   }
 
+  // MFA Check for authenticated users accessing protected routes
+  if (user && isProtected) {
+    // Skip MFA check for MFA verification page itself
+    const isMFAVerifyPath = pathname === "/mfa-verify"
+    const isAuthAPI = pathname.startsWith("/api/auth/")
+
+    if (!isMFAVerifyPath && !isAuthAPI) {
+      // Check if user has MFA enabled
+      const mfaRequired = await userHasMFAEnabled(user.id)
+
+      if (mfaRequired) {
+        // Check for MFA session cookie
+        const mfaSession = request.cookies.get("mfa_session")?.value
+        let mfaVerified = false
+
+        if (mfaSession) {
+          // Validate MFA session
+          const session = await validateSession(mfaSession)
+          if (session && session.userId === user.id && session.mfaVerified) {
+            // Check if device is trusted
+            const deviceFingerprint = generateDeviceFingerprint(request.headers as unknown as Headers)
+            const trusted = await isTrustedDevice(user.id, deviceFingerprint)
+
+            if (trusted || session.trusted) {
+              mfaVerified = true
+            }
+          }
+        }
+
+        if (!mfaVerified) {
+          // Redirect to MFA verification
+          const mfaUrl = new URL("/mfa-verify", requestUrl)
+          mfaUrl.searchParams.set("redirectTo", pathname)
+          return NextResponse.redirect(mfaUrl)
+        }
+      }
+    }
+  }
+
   // Auth redirects
   if (isProtected && !user) {
     const loginUrl = new URL("/login", requestUrl)
@@ -320,6 +360,20 @@ export async function middleware(request: MiddlewareRequest) {
 
   if (isAuthPath && user) {
     return NextResponse.redirect(new URL("/dashboard", requestUrl))
+  }
+
+  // Helper function for device fingerprinting
+  function generateDeviceFingerprint(headers: Headers): string {
+    const userAgent = headers.get("user-agent") || ""
+    const acceptLang = headers.get("accept-language") || ""
+    const combined = `${userAgent}|${acceptLang}`
+    let hash = 0
+    for (let i = 0; i < combined.length; i++) {
+      const char = combined.charCodeAt(i)
+      hash = (hash << 5) - hash + char
+      hash = hash & hash
+    }
+    return Math.abs(hash).toString(36)
   }
 
   // Security headers
@@ -333,11 +387,11 @@ export async function middleware(request: MiddlewareRequest) {
   // CSP headers - explicitly set script-src to avoid fallback warning
   const cspDirectives = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://*.cloudflare.com",
+    "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://*.cloudflare.com https://static.cloudflareinsights.com",
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: https:",
     "font-src 'self'",
-    "connect-src 'self' https://*.supabase.co https://challenges.cloudflare.com",
+    "connect-src 'self' https://*.supabase.co https://challenges.cloudflare.com https://static.cloudflareinsights.com",
     "frame-src https://challenges.cloudflare.com",
     "object-src 'none'",
     "base-uri 'self'",
