@@ -330,6 +330,29 @@ export async function middleware(request: MiddlewareRequest) {
 
   ;(response as unknown as { headers: { set: (k: string, v: string) => void } }).headers.set("X-Content-Type-Options", "nosniff")
 
+  // CSP headers - explicitly set script-src to avoid fallback warning
+  const cspDirectives = [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://*.cloudflare.com",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob: https:",
+    "font-src 'self'",
+    "connect-src 'self' https://*.supabase.co https://challenges.cloudflare.com",
+    "frame-src https://challenges.cloudflare.com",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "upgrade-insecure-requests",
+  ].join("; ")
+
+  ;(response as unknown as { headers: { set: (k: string, v: string) => void } }).headers.set("Content-Security-Policy", cspDirectives)
+
+  // Permissions-Policy to suppress xr-spatial-tracking warnings from Turnstile
+  ;(response as unknown as { headers: { set: (k: string, v: string) => void } }).headers.set(
+    "Permissions-Policy",
+    "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=(), xr-spatial-tracking=()"
+  )
+
   return response
 }
 

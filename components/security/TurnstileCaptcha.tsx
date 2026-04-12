@@ -166,7 +166,7 @@ export function TurnstileWidget({
       }
     }, []) // Empty deps - only run on mount/unmount
 
-    // Render widget once when script loads
+    // Render widget once when script loads (deferred to avoid forced reflow)
     useEffect(() => {
       if (!isLoaded || !containerRef.current || hasRenderedRef.current) return
       if (!window.turnstile || TURNSTILE_SITE_KEY.length === 0) return
@@ -174,30 +174,42 @@ export function TurnstileWidget({
       // Prevent double render (StrictMode, etc.)
       hasRenderedRef.current = true
 
-      widgetIdRef.current = window.turnstile.render(containerRef.current, {
-        sitekey: TURNSTILE_SITE_KEY,
-        action,
-        callback: (token: string) => {
-          const verifyCallback = onVerifyRef.current
-          if (verifyCallback) verifyCallback(token)
-        },
-        "error-callback": () => {
-          console.error("[CAPTCHA] Challenge verification failed")
-          setHasError(true)
-          const challengeErrorCallback = onErrorRef.current
-          if (challengeErrorCallback) challengeErrorCallback()
-        },
-        "expired-callback": () => {
-          console.warn("[CAPTCHA] Token expired, challenge reset")
-          // Widget auto-resets, parent will receive new token via callback
-        },
-        "timeout-callback": () => {
-          console.warn("[CAPTCHA] Challenge timed out")
-          setHasError(true)
-          const timeoutCallback = onErrorRef.current
-          if (timeoutCallback) timeoutCallback()
-        }
+      // Defer render to next frame to avoid forced reflow during initial load
+      const renderFrame = requestAnimationFrame(() => {
+        // Aggressive string coercion - ensure sitekey is definitely a string
+        const sitekey = String(TURNSTILE_SITE_KEY).trim()
+        
+        console.log('[CAPTCHA] Rendering with sitekey type:', typeof sitekey, 'value:', sitekey.slice(0, 15) + '...')
+
+        if (!containerRef.current || !window.turnstile) return
+
+        widgetIdRef.current = window.turnstile.render(containerRef.current, {
+          sitekey: sitekey,
+          action,
+          callback: (token: string) => {
+            const verifyCallback = onVerifyRef.current
+            if (verifyCallback) verifyCallback(token)
+          },
+          "error-callback": () => {
+            console.error("[CAPTCHA] Challenge verification failed")
+            setHasError(true)
+            const challengeErrorCallback = onErrorRef.current
+            if (challengeErrorCallback) challengeErrorCallback()
+          },
+          "expired-callback": () => {
+            console.warn("[CAPTCHA] Token expired, challenge reset")
+            // Widget auto-resets, parent will receive new token via callback
+          },
+          "timeout-callback": () => {
+            console.warn("[CAPTCHA] Challenge timed out")
+            setHasError(true)
+            const timeoutCallback = onErrorRef.current
+            if (timeoutCallback) timeoutCallback()
+          }
+        })
       })
+
+      return () => cancelAnimationFrame(renderFrame)
     }, [isLoaded, action]) // Stable deps - action is string literal
 
     // Error state: configuration missing (production only)
