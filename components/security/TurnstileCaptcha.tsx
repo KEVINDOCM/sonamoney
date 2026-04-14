@@ -26,18 +26,13 @@ interface TurnstileProps {
   widgetRef?: React.Ref<{ reset: () => void }>
 }
 
-// Helper to safely get sitekey from env (avoids module-level object injection issues)
-const getSitekey = (): string => {
-  const raw = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
-  if (typeof raw === 'string') {
-    return raw.trim()
-  }
-  if (raw && typeof raw === 'object') {
-    console.error('[CAPTCHA] Sitekey env var is object at module level:', raw)
-    return String((raw as Record<string, unknown>).valueOf?.() || '').trim()
-  }
-  return String(raw || '').trim()
-}
+// Capture sitekey at module initialization - this ensures it's processed once by Next.js
+// and stored as a primitive string, avoiding any transformation issues inside effects
+const RAW_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+// Force to string immediately - this handles any edge cases where env might be object
+const SITE_KEY: string = typeof RAW_SITE_KEY === 'string' 
+  ? RAW_SITE_KEY.trim() 
+  : String(RAW_SITE_KEY || '').trim()
 
 declare global {
   interface Window {
@@ -134,8 +129,7 @@ export function TurnstileWidget({
 
     // Load Turnstile script once on mount
     useEffect(() => {
-      const sitekeyValue = String(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '').trim()
-      if (sitekeyValue.length === 0) {
+      if (SITE_KEY.length === 0) {
         console.error("[CAPTCHA] NEXT_PUBLIC_TURNSTILE_SITE_KEY not configured")
         setHasError(true)
         const missingKeyCallback = onErrorRef.current
@@ -180,34 +174,17 @@ export function TurnstileWidget({
     useEffect(() => {
       if (!isLoaded || !containerRef.current || hasRenderedRef.current) return
 
-      // Capture sitekey at render time - don't read from process.env inside closure
-      // This prevents issues where env values might be modified by browser extensions
-      const rawSitekey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
-       
-      // Defensive: handle cases where env var might be an object or non-string
-      let sitekey: string
-      if (typeof rawSitekey === 'string') {
-        sitekey = rawSitekey.trim()
-      } else if (rawSitekey && typeof rawSitekey === 'object') {
-        // Edge case: env var might be wrapped or parsed as object
-        console.error('[CAPTCHA] Sitekey is an object, attempting to extract value:', rawSitekey)
-        const obj = rawSitekey as Record<string, unknown>
-        sitekey = String(obj.valueOf?.() || JSON.stringify(rawSitekey)).trim()
-      } else {
-        sitekey = String(rawSitekey || '').trim()
-      }
-      
-      // Also capture action to ensure it's a string
+      // Use the module-level SITE_KEY constant - guaranteed to be a string
       const actionValue = String(action || 'login').trim()
 
       // Debug logging to diagnose sitekey issues
       if (process.env.NODE_ENV === 'development') {
-        const maskedSitekey = sitekey ? `${sitekey.slice(0, 4)}...${sitekey.slice(-4)}` : '(empty)'
-        console.log('[CAPTCHA] Sitekey type:', typeof rawSitekey, 'Length:', sitekey.length, 'Masked:', maskedSitekey)
+        const maskedSitekey = SITE_KEY ? `${SITE_KEY.slice(0, 4)}...${SITE_KEY.slice(-4)}` : '(empty)'
+        console.log('[CAPTCHA] Rendering with sitekey. Length:', SITE_KEY.length, 'Masked:', maskedSitekey)
       }
 
-      if (!window.turnstile || sitekey.length === 0) {
-        console.error('[CAPTCHA] Cannot render: turnstile not loaded or sitekey empty. Raw type:', typeof rawSitekey)
+      if (!window.turnstile || SITE_KEY.length === 0) {
+        console.error('[CAPTCHA] Cannot render: turnstile not loaded or sitekey empty. SITE_KEY type:', typeof SITE_KEY)
         setHasError(true)
         const initErrorCallback = onErrorRef.current
         if (initErrorCallback) initErrorCallback()
@@ -221,20 +198,16 @@ export function TurnstileWidget({
       const renderFrame = requestAnimationFrame(() => {
         if (!containerRef.current || !window.turnstile) return
 
-        // Final validation before passing to Turnstile
-        const finalSitekey = String(sitekey)
-        const finalAction = String(actionValue)
-
-        // Extra defensive: verify sitekey is actually a string
-        if (typeof finalSitekey !== 'string' || finalSitekey.length === 0) {
-          console.error('[CAPTCHA] Sitekey invalid. Type:', typeof finalSitekey, 'Value:', finalSitekey)
+        // Extra defensive: verify SITE_KEY is still a string
+        if (typeof SITE_KEY !== 'string' || SITE_KEY.length === 0) {
+          console.error('[CAPTCHA] SITE_KEY invalid. Type:', typeof SITE_KEY, 'Value:', SITE_KEY)
           setHasError(true)
           return
         }
 
         widgetIdRef.current = window.turnstile.render(containerRef.current, {
-          sitekey: finalSitekey,
-          action: finalAction,
+          sitekey: SITE_KEY,
+          action: actionValue,
           callback: (token: string) => {
             const verifyCallback = onVerifyRef.current
             if (verifyCallback) verifyCallback(token)
@@ -268,7 +241,7 @@ export function TurnstileWidget({
     }, [isLoaded, action]) // Stable deps - action is string literal
 
     // Error state: configuration missing (production only)
-    if (getSitekey().length === 0 && process.env.NODE_ENV !== "development") {
+    if (SITE_KEY.length === 0 && process.env.NODE_ENV !== "development") {
       return (
         <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-800 text-sm">
           ⚠️ CAPTCHA not configured. Please contact support.
@@ -278,7 +251,7 @@ export function TurnstileWidget({
 
     // Error state: widget failed to load
     if (hasError) {
-      const sitekeyEmpty = getSitekey().length === 0
+      const sitekeyEmpty = SITE_KEY.length === 0
       return (
         <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-800 text-sm space-y-3">
           <div className="flex items-start gap-2">
@@ -327,151 +300,6 @@ export function TurnstileWidget({
     )
   }
 
-// Server-side verification result interface
-export interface TurnstileVerificationResult {
-  valid: boolean
-  reason?: "success" | "verification_failed" | "action_mismatch" |
-            "hostname_mismatch" | "token_expired" | "missing_secret" | "network_error"
-  action?: string
-  hostname?: string
-  tokenAge?: number
-  errors?: string[]
-}
-
-// Server-side verification helper with retry logic and idempotency
-export async function verifyTurnstileToken(
-  token: string,
-  options?: {
-    remoteip?: string
-    expectedAction?: string
-    expectedHostname?: string
-    maxTokenAge?: number  // in minutes, default 5
-    maxRetries?: number   // default 3
-  }
-): Promise<TurnstileVerificationResult> {
-  // Dev bypass
-  if (!token || token === "dev-bypass-token") {
-    return process.env.NODE_ENV === "development"
-      ? { valid: true, reason: "success" }
-      : { valid: false, reason: "verification_failed" }
-  }
-
-  const secretKey = process.env.TURNSTILE_SECRET_KEY
-  if (!secretKey) {
-    console.error("[CAPTCHA] Secret key not configured")
-    return { valid: false, reason: "missing_secret" }
-  }
-
-  // Generate idempotency key for this verification attempt (works in both client and server)
-  const idempotencyKey = typeof crypto !== "undefined" && crypto.randomUUID
-    ? crypto.randomUUID()
-    : `${Date.now()}-${Math.random().toString(36).substring(2, 15)}-${Math.random().toString(36).substring(2, 15)}`
-  const maxRetries = options?.maxRetries ?? 3
-
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 10000) // 10s timeout
-
-      // Use FormData as recommended by Cloudflare for better compatibility
-      const formData = new FormData()
-      formData.append("secret", secretKey)
-      formData.append("response", token)
-      formData.append("idempotency_key", idempotencyKey)
-      if (options?.remoteip) {
-        formData.append("remoteip", options.remoteip)
-      }
-
-      const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
-        method: "POST",
-        body: formData,
-        signal: controller.signal,
-      })
-
-      clearTimeout(timeoutId)
-      const data = await response.json()
-
-      // If last attempt, return result regardless
-      if (attempt === maxRetries && !data.success) {
-        return {
-          valid: false,
-          reason: "verification_failed",
-          errors: data["error-codes"]
-        }
-      }
-
-      // If not last attempt and failed, retry
-      if (!data.success) {
-        const retryable = ["timeout-or-duplicate", "internal-error"]
-        const shouldRetry = data["error-codes"]?.some((code: string) => retryable.includes(code))
-
-        if (shouldRetry && attempt < maxRetries) {
-          console.warn(`[CAPTCHA] Retrying after error: ${data["error-codes"]?.join(", ")}`)
-          await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000))
-          continue
-        }
-
-        return {
-          valid: false,
-          reason: "verification_failed",
-          errors: data["error-codes"]
-        }
-      }
-
-      // Success - validate additional fields
-      // Validate action
-      if (options?.expectedAction && data.action !== options.expectedAction) {
-        console.warn(`[CAPTCHA] Action mismatch: expected ${options.expectedAction}, got ${data.action}`)
-        return {
-          valid: false,
-          reason: "action_mismatch",
-          action: data.action
-        }
-      }
-
-      // Validate hostname
-      if (options?.expectedHostname && data.hostname !== options.expectedHostname) {
-        console.warn(`[CAPTCHA] Hostname mismatch: expected ${options.expectedHostname}, got ${data.hostname}`)
-        return {
-          valid: false,
-          reason: "hostname_mismatch",
-          hostname: data.hostname
-        }
-      }
-
-      // Validate token age
-      const challengeTime = new Date(data.challenge_ts)
-      const now = new Date()
-      const ageMinutes = (now.getTime() - challengeTime.getTime()) / (1000 * 60)
-      const maxAge = options?.maxTokenAge ?? 5
-
-      if (ageMinutes > maxAge) {
-        console.warn(`[CAPTCHA] Token expired: ${ageMinutes.toFixed(1)} minutes old`)
-        return {
-          valid: false,
-          reason: "token_expired",
-          tokenAge: ageMinutes
-        }
-      }
-
-      return {
-        valid: true,
-        reason: "success",
-        action: data.action,
-        hostname: data.hostname,
-        tokenAge: ageMinutes
-      }
-
-    } catch (error) {
-      if (attempt === maxRetries) {
-        console.error("[CAPTCHA] Verification error after all retries:", error)
-        return { valid: false, reason: "network_error" }
-      }
-      // Exponential backoff before retry
-      await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000))
-    }
-  }
-
-  // Should not reach here, but just in case
-  return { valid: false, reason: "network_error" }
-}
+// Re-export server-side verification from server-safe location
+// NOTE: Do NOT import this in Client Components - use only in Server Components/API Routes
+export { verifyTurnstileToken, type TurnstileVerificationResult } from "@/lib/utils/captcha"

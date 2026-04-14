@@ -2,7 +2,7 @@ import { z } from "zod"
 import { logAuditEvent } from "@/lib/utils/auditLog"
 import { checkAndRecordAttempt, isLockedOut } from "@/lib/utils/authSecurity"
 import { validateRequest, loginSchema, sanitizeEmail, getClientIp } from "@/lib/security"
-import { verifyTurnstileToken } from "@/components/security/TurnstileCaptcha"
+import { verifyTurnstileToken } from "@/lib/utils/captcha"
 
 const MAX_ATTEMPTS = 5
 const GENERIC_ERROR = "Invalid email or password"

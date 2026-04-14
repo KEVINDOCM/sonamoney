@@ -3,7 +3,7 @@ import { logAuditEvent } from "@/lib/utils/auditLog"
 import { getSiteUrl } from "@/lib/utils/url"
 import { checkPasswordBreached } from "@/lib/utils/passwordSecurity"
 import { validateRequest, signupSchema, sanitizeEmail, getClientIp } from "@/lib/security"
-import { verifyTurnstileToken } from "@/components/security/TurnstileCaptcha"
+import { verifyTurnstileToken } from "@/lib/utils/captcha"
 
 const GENERIC_SUCCESS = "If this email is not registered, you will receive a confirmation email."
 const GENERIC_ERROR = "Failed to create account. Please try again."

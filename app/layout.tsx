@@ -195,6 +195,13 @@ export default function RootLayout({ children }: RootLayoutProps) {
           href={process.env.NEXT_PUBLIC_SUPABASE_URL ?? ""}
         />
 
+        {/* Preconnect to Cloudflare Turnstile (avoids preload warnings) */}
+        <link
+          rel="preconnect"
+          href="https://challenges.cloudflare.com"
+          crossOrigin="anonymous"
+        />
+
         {/* DNS prefetch for external APIs */}
         <link
           rel="dns-prefetch"
