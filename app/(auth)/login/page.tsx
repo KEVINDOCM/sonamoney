@@ -60,8 +60,8 @@ export default function AuthLoginPage() {
 
     void (async () => {
       try {
-        // Step 1: Pre-check lockout
-        const prePayload = { email, password };
+        // Step 1: Pre-check lockout with CAPTCHA validation
+        const prePayload = { email, password, captchaToken };
         const preHeaders = await generateSecureHeaders(prePayload);
         const preCheck = await fetch("/api/auth/login", {
           method: "POST",

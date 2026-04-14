@@ -2,6 +2,7 @@ import { z } from "zod"
 import { logAuditEvent } from "@/lib/utils/auditLog"
 import { checkAndRecordAttempt, isLockedOut } from "@/lib/utils/authSecurity"
 import { validateRequest, loginSchema, sanitizeEmail, getClientIp } from "@/lib/security"
+import { verifyTurnstileToken } from "@/components/security/TurnstileCaptcha"
 
 const MAX_ATTEMPTS = 5
 const GENERIC_ERROR = "Invalid email or password"
@@ -26,6 +27,42 @@ export async function POST(req: Request): Promise<Response> {
 
     const data = validation.data!
     const email = sanitizeEmail(String(data.email))
+
+    // Verify CAPTCHA token (required for login)
+    const captchaToken = body.captchaToken as string | undefined
+    const hostname = req.headers.get("host") ?? ""
+
+    if (!captchaToken) {
+      await logAuditEvent({
+        eventType: "auth.login.blocked",
+        eventStatus: "blocked",
+        ipAddress: ip,
+        metadata: { reason: "captcha_missing" },
+      })
+      return Response.json(
+        { error: "Security verification required. Please complete the CAPTCHA." },
+        { status: 403 }
+      )
+    }
+
+    const captchaResult = await verifyTurnstileToken(captchaToken, {
+      remoteip: ip,
+      expectedAction: "login",
+      expectedHostname: hostname,
+    })
+
+    if (!captchaResult.valid) {
+      await logAuditEvent({
+        eventType: "auth.login.blocked",
+        eventStatus: "blocked",
+        ipAddress: ip,
+        metadata: { reason: `captcha_${captchaResult.reason}` },
+      })
+      return Response.json(
+        { error: "Security verification failed. Please complete the CAPTCHA and try again." },
+        { status: 403 }
+      )
+    }
 
     // Check lockout BEFORE attempting login
     const lockout = await isLockedOut(email)

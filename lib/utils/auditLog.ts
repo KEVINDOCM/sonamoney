@@ -4,6 +4,7 @@ export type AuditEventType =
   | "auth.login.success"
   | "auth.login.failure"
   | "auth.login.locked"
+  | "auth.login.blocked"
   | "auth.register.success"
   | "auth.register.failure"
   | "auth.register.blocked"

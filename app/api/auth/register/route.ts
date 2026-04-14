@@ -3,6 +3,7 @@ import { logAuditEvent } from "@/lib/utils/auditLog"
 import { getSiteUrl } from "@/lib/utils/url"
 import { checkPasswordBreached } from "@/lib/utils/passwordSecurity"
 import { validateRequest, signupSchema, sanitizeEmail, getClientIp } from "@/lib/security"
+import { verifyTurnstileToken } from "@/components/security/TurnstileCaptcha"
 
 const GENERIC_SUCCESS = "If this email is not registered, you will receive a confirmation email."
 const GENERIC_ERROR = "Failed to create account. Please try again."
@@ -93,12 +94,45 @@ export async function POST(req: Request): Promise<Response> {
       )
     }
 
+    // Verify CAPTCHA token with enhanced security (required)
+    const captchaToken = body.captchaToken as string | undefined
+    const hostname = req.headers.get("host") ?? ""
+
+    if (!captchaToken) {
+      await logAuditEvent({
+        eventType: "auth.register.blocked",
+        eventStatus: "blocked",
+        ipAddress: ip,
+        metadata: { reason: "captcha_missing" },
+      })
+      return Response.json(
+        { error: "Security verification required. Please complete the CAPTCHA." },
+        { status: 403 }
+      )
+    }
+
+    const captchaResult = await verifyTurnstileToken(captchaToken, {
+      remoteip: ip,
+      expectedAction: "signup",
+      expectedHostname: hostname,
+    })
+
+    if (!captchaResult.valid) {
+      await logAuditEvent({
+        eventType: "auth.register.blocked",
+        eventStatus: "blocked",
+        ipAddress: ip,
+        metadata: { reason: `captcha_${captchaResult.reason}` },
+      })
+      return Response.json(
+        { error: "Security verification failed. Please complete the CAPTCHA and try again." },
+        { status: 403 }
+      )
+    }
+
     const supabase = createSupabaseApiClient()
     const origin = req.headers.get("origin") ?? getSiteUrl()
 
-    // Get captcha token if provided (required when captcha is enabled in Supabase)
-    const captchaToken = body.captchaToken as string | undefined
-    
     const { error } = await supabase.auth.signUp({
       email,
       password,

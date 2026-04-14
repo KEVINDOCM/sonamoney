@@ -366,7 +366,7 @@ export default function SignupPage() {
               {/* Submit */}
               <button
                 type="submit"
-                disabled={isSubmitting || isPending}
+                disabled={isSubmitting || isPending || !captchaToken}
                 className="
                   w-full h-11 bg-[#00B9A7] text-white
                   rounded-full font-semibold text-sm
